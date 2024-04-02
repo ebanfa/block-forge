@@ -42,10 +42,8 @@ type RelayConfig struct {
 	Config map[string]interface{} // Configuration parameters for the relay
 }
 
-// ETLManager manages the execution and scheduling of ETL processes.
+// ETLManager represents an interface for managing and executing ETL processes.
 type ETLManager interface {
-	system.StartableComponent
-
 	// InitializeETLProcess initializes an ETL process with the provided configuration.
 	InitializeETLProcess(config ETLConfig) (*ETLProcess, error)
 
@@ -69,6 +67,11 @@ type ETLManager interface {
 
 	// RemoveScheduledETLProcess removes a scheduled ETL process by its ID.
 	RemoveScheduledETLProcess(processID string) error
+}
+
+type ETLSystem interface {
+	ETLManager
+	system.System
 }
 
 // ETLProcess represents an individual ETL process.
