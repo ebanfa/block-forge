@@ -46,6 +46,21 @@ type MockModuleManager struct {
 	mock.Mock
 }
 
+func (m *MockModuleManager) ID() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockModuleManager) Name() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockModuleManager) Description() string {
+	args := m.Called()
+	return args.String(0)
+}
+
 // Initialize mocks the Initialize method of the MockModuleManager interface
 func (m *MockModuleManager) Initialize(ctx *context.Context, app appl.Application) error {
 	args := m.Called(ctx, app)

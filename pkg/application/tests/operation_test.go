@@ -14,7 +14,7 @@ import (
 
 // TestNewSystemOperations tests the creation of a new SystemOperations instance.
 func TestNewSystemOperations(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	require.NotNil(t, ops)
 	assert.Equal(t, "system_operations", ops.ID())
 	assert.Equal(t, "System Operations", ops.Name())
@@ -23,7 +23,7 @@ func TestNewSystemOperations(t *testing.T) {
 
 // TestSystemOperations_Initialize tests the initialization of the SystemOperations instance.
 func TestSystemOperations_Initialize(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	system := &mocks.MockSystem{}
 	err := ops.Initialize(nil, system)
 	require.NoError(t, err)
@@ -31,7 +31,7 @@ func TestSystemOperations_Initialize(t *testing.T) {
 
 // TestSystemOperations_RegisterOperation tests the registration of an operation.
 func TestSystemOperations_RegisterOperation(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	op := new(mocks.MockOperation)
 	err := ops.RegisterOperation("mock_op", op)
 	assert.NoError(t, err)
@@ -40,7 +40,7 @@ func TestSystemOperations_RegisterOperation(t *testing.T) {
 // TestSystemOperations_ExecuteOperation tests the execution of a registered operation.
 // TestSystemOperations_ExecuteOperation tests the execution of a registered operation.
 func TestSystemOperations_ExecuteOperation(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	// Create a mock system using testify/mock
 	mockSystem := &mocks.MockSystem{}
 	ops.Initialize(nil, mockSystem)
@@ -72,7 +72,7 @@ func TestSystemOperations_ExecuteOperation(t *testing.T) {
 
 // TestSystemOperations_ExecuteOperation_InitializeFailure tests the execution when the operation initialization fails.
 func TestSystemOperations_ExecuteOperation_InitializeFailure(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	mockSystem := &mocks.MockSystem{}
 	ops.Initialize(nil, mockSystem)
 
@@ -97,7 +97,7 @@ func TestSystemOperations_ExecuteOperation_InitializeFailure(t *testing.T) {
 
 // TestSystemOperations_ExecuteOperation_NotFound tests the execution of a non-registered operation.
 func TestSystemOperations_ExecuteOperation_NotFound(t *testing.T) {
-	ops := system.NewSystemOperations()
+	ops := system.NewSystemOperations("system_operations", "System Operations", "Manages and executes operations within the system")
 	mockSystem := &mocks.MockSystem{}
 	ops.Initialize(nil, mockSystem)
 

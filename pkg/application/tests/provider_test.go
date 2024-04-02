@@ -25,7 +25,7 @@ func TestProvideEventBus(t *testing.T) {
 
 func TestProvideModuleManager(t *testing.T) {
 	// Test ProvideModuleManager function
-	manager := application.ProvideModuleManager()
+	manager := application.ProvideModuleManager("MMID", "ModuleManager", "Module Manager")
 	assert.NotNil(t, manager)
 }
 
@@ -73,7 +73,7 @@ func TestProvideLogger(t *testing.T) {
 
 func TestProvideOperationsManager(t *testing.T) {
 	// Test ProvideOperationsManager function
-	manager := application.ProvideOperationsManager()
+	manager := application.ProvideOperationsManager("MMID", "ModuleManager", "Module Manager")
 	assert.NotNil(t, manager)
 	// Add more assertions as needed...
 }

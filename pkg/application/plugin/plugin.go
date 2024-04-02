@@ -2,17 +2,14 @@ package plugin
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/appl"
-	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // Plugin represents a plugin in the system.
 type Plugin interface {
-	component.StartableComponent
-
-	// Initialize initializes the application.
-	Initialize(ctx *context.Context, system system.System) error
+	system.Startable
+	system.SystemComponent
 
 	// RegisterEventHandlers registers event handlers provided by the plugin.
 	RegisterEventHandlers() error

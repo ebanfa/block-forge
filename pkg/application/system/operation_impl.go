@@ -10,32 +10,38 @@ import (
 
 // SystemOperations is a concrete implementation of the Operations interface.
 type SystemOperations struct {
-	operations map[string]Operation // Map to store registered operations
-	lock       sync.RWMutex         // Read-write mutex to synchronize access to operations
-	system     System               // System instance received during initialization
+	operations  map[string]Operation // Map to store registered operations
+	lock        sync.RWMutex         // Read-write mutex to synchronize access to operations
+	system      System               // System instance received during initialization
+	id          string
+	name        string
+	description string
 }
 
 // NewSystemOperations creates a new instance of SystemOperations.
-func NewSystemOperations() Operations {
+func NewSystemOperations(id string, name string, description string) Operations {
 	return &SystemOperations{
-		operations: make(map[string]Operation),
-		lock:       sync.RWMutex{},
+		operations:  make(map[string]Operation),
+		lock:        sync.RWMutex{},
+		id:          id,
+		name:        name,
+		description: description,
 	}
 }
 
 // ID returns the unique identifier of the component.
 func (ops *SystemOperations) ID() string {
-	return "system_operations"
+	return ops.id
 }
 
 // Name returns the name of the component.
 func (ops *SystemOperations) Name() string {
-	return "System Operations"
+	return ops.name
 }
 
 // Description returns the description of the component.
 func (ops *SystemOperations) Description() string {
-	return "Manages and executes operations within the system"
+	return ops.description
 }
 
 // Initialize initializes the module with the provided system.

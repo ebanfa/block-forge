@@ -7,9 +7,8 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/logger"
 )
 
-// Operation represents a unit of work that can be executed.
-type Operation interface {
-
+// Component represents a generic component in the system.
+type Component interface {
 	// ID returns the unique identifier of the component.
 	ID() string
 
@@ -18,9 +17,33 @@ type Operation interface {
 
 	// Description returns the description of the component.
 	Description() string
+}
 
+// Component represents a generic component in the system.
+type SystemComponent interface {
+	Component
 	// Initialize initializes the module.
 	Initialize(ctx *context.Context, system System) error
+}
+
+// Startable defines the interface for components that can be started and stopped.
+type Startable interface {
+	// Start starts the component.
+	Start(ctx *context.Context) error
+
+	// Stop stops the component.
+	Stop(ctx *context.Context) error
+}
+
+// Startable defines the interface for components that can be started and stopped.
+type StartableComponent interface {
+	Component
+	Startable
+}
+
+// Operation represents a unit of work that can be executed.
+type Operation interface {
+	SystemComponent
 
 	// Execute performs the operation with the given context and input parameters, and returns any output or error encountered.
 	Execute(ctx *context.Context, input OperationInput) (OperationOutput, error)
@@ -28,18 +51,7 @@ type Operation interface {
 
 // Operations represents the interface for managing operations.
 type Operations interface {
-
-	// ID returns the unique identifier of the component.
-	ID() string
-
-	// Name returns the name of the component.
-	Name() string
-
-	// Description returns the description of the component.
-	Description() string
-
-	// Initialize initializes the module.
-	Initialize(ctx *context.Context, system System) error
+	SystemComponent
 
 	// RegisterOperation registers an operation with the given ID.
 	// Returns an error if the operation ID is already registered or if the operation is nil.

@@ -21,32 +21,53 @@ type moduleEntry struct {
 	name   string
 }
 
-// moduleManager implements the ModuleManager interface.
-type moduleManager struct {
+// ModuleManagerImpl implements the ModuleManager interface.
+type ModuleManagerImpl struct {
 	started     bool
 	modules     map[string]moduleEntry
 	mutex       sync.RWMutex
 	stopChan    chan struct{}
 	application Application
+	id          string
+	name        string
+	description string
 }
 
 // NewModuleManager creates a new instance of ModuleManager.
-func NewModuleManager() ModuleManager {
-	return &moduleManager{
-		modules:  make(map[string]moduleEntry),
-		stopChan: make(chan struct{}),
+func NewModuleManager(id string, name string, description string) ModuleManager {
+	return &ModuleManagerImpl{
+		modules:     make(map[string]moduleEntry),
+		stopChan:    make(chan struct{}),
+		id:          id,
+		name:        name,
+		description: description,
 	}
 }
 
+// ID returns the unique identifier of the component.
+func (mm *ModuleManagerImpl) ID() string {
+	return mm.id
+}
+
+// Name returns the name of the component.
+func (mm *ModuleManagerImpl) Name() string {
+	return mm.name
+}
+
+// Description returns the description of the component.
+func (mm *ModuleManagerImpl) Description() string {
+	return mm.description
+}
+
 // Initialize initializes the module manager.
-func (mm *moduleManager) Initialize(ctx *context.Context, app Application) error {
+func (mm *ModuleManagerImpl) Initialize(ctx *context.Context, app Application) error {
 	// Initialize any global setup or resources required by the module manager.
 	mm.application = app
 	return nil
 }
 
 // AddModule adds a module to the module manager.
-func (mm *moduleManager) AddModule(module Module) error {
+func (mm *ModuleManagerImpl) AddModule(module Module) error {
 	mm.mutex.Lock()
 	defer mm.mutex.Unlock()
 
@@ -62,7 +83,7 @@ func (mm *moduleManager) AddModule(module Module) error {
 }
 
 // RemoveModule removes a module from the module manager.
-func (mm *moduleManager) RemoveModule(name string) error {
+func (mm *ModuleManagerImpl) RemoveModule(name string) error {
 	mm.mutex.Lock()
 	defer mm.mutex.Unlock()
 
@@ -76,7 +97,7 @@ func (mm *moduleManager) RemoveModule(name string) error {
 }
 
 // GetModule returns the module with the given name.
-func (mm *moduleManager) GetModule(name string) (Module, error) {
+func (mm *ModuleManagerImpl) GetModule(name string) (Module, error) {
 	mm.mutex.RLock()
 	defer mm.mutex.RUnlock()
 
@@ -89,7 +110,7 @@ func (mm *moduleManager) GetModule(name string) (Module, error) {
 }
 
 // StartModules starts all modules managed by the module manager.
-func (mm *moduleManager) StartModules(ctx *context.Context) error {
+func (mm *ModuleManagerImpl) StartModules(ctx *context.Context) error {
 	mm.mutex.RLock()
 	defer mm.mutex.RUnlock()
 
@@ -116,7 +137,7 @@ func (mm *moduleManager) StartModules(ctx *context.Context) error {
 }
 
 // StopModules stops all modules managed by the module manager.
-func (mm *moduleManager) StopModules(ctx *context.Context) error {
+func (mm *ModuleManagerImpl) StopModules(ctx *context.Context) error {
 	mm.mutex.Lock()
 	defer mm.mutex.Unlock()
 
@@ -146,7 +167,7 @@ func (mm *moduleManager) StopModules(ctx *context.Context) error {
 }
 
 // DiscoverModules discovers available modules within the system.
-func (mm *moduleManager) DiscoverModules(ctx *context.Context) ([]Module, error) {
+func (mm *ModuleManagerImpl) DiscoverModules(ctx *context.Context) ([]Module, error) {
 	// Assuming modules are located in a specific directory
 	modulesDir := "./modules"
 
@@ -181,7 +202,7 @@ func (mm *moduleManager) DiscoverModules(ctx *context.Context) ([]Module, error)
 }
 
 // LoadRemoteModule loads a module from a remote source.
-func (mm *moduleManager) LoadRemoteModule(ctx *context.Context, moduleURL string) (Module, error) {
+func (mm *ModuleManagerImpl) LoadRemoteModule(ctx *context.Context, moduleURL string) (Module, error) {
 	// Download the remote module file
 	resp, err := http.Get(moduleURL)
 	if err != nil {
@@ -218,7 +239,7 @@ func (mm *moduleManager) LoadRemoteModule(ctx *context.Context, moduleURL string
 
 // loadModule loads a module from a given file path.
 // loadModule loads a module from a pre-compiled package.
-func (mm *moduleManager) loadModule(ctx *context.Context, packagePath string) (Module, error) {
+func (mm *ModuleManagerImpl) loadModule(ctx *context.Context, packagePath string) (Module, error) {
 	// Import the package
 	pkg, err := plugin.Open(packagePath)
 	if err != nil {

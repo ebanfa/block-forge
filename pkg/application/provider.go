@@ -33,8 +33,8 @@ func ProvideEventBus() event.EventBusInterface {
 }
 
 // ProvideModuleManager provides a module manager interface.
-func ProvideModuleManager() appl.ModuleManager {
-	return appl.NewModuleManager()
+func ProvideModuleManager(id string, name string, description string) appl.ModuleManager {
+	return appl.NewModuleManager(id, name, description)
 }
 
 // ProvideSystem provides a system interface.
@@ -73,8 +73,8 @@ func ProvideLogger() logger.LoggerInterface {
 }
 
 // ProvideOperationsManager provides an operations manager interface.
-func ProvideOperationsManager() system.Operations {
-	return system.NewSystemOperations()
+func ProvideOperationsManager(id string, name string, description string) system.Operations {
+	return system.NewSystemOperations(id, name, description)
 }
 
 // ProvideApplication provides the application interface.

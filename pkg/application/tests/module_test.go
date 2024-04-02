@@ -16,7 +16,7 @@ import (
 
 func TestModuleManager_Initialize(t *testing.T) {
 	// Create a new ModuleManager
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	ctx := &context.Context{}
 
 	// Create a mock applications
@@ -31,7 +31,7 @@ func TestModuleManager_Initialize(t *testing.T) {
 
 func TestModuleManager_AddModule(t *testing.T) {
 	// Create a new ModuleManager
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 
 	// Create a mock module
 	mockModule := &mocks.MockModule{}
@@ -50,7 +50,7 @@ func TestModuleManager_AddModule(t *testing.T) {
 }
 
 func TestModuleManager_AddModule_AlreadyExists(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -70,7 +70,7 @@ func TestModuleManager_AddModule_AlreadyExists(t *testing.T) {
 }
 
 func TestModuleManager_RemoveModule(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -88,7 +88,7 @@ func TestModuleManager_RemoveModule(t *testing.T) {
 }
 
 func TestModuleManager_RemoveModule_NotFound(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -104,7 +104,7 @@ func TestModuleManager_RemoveModule_NotFound(t *testing.T) {
 }
 
 func TestModuleManager_GetModule(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -124,7 +124,7 @@ func TestModuleManager_GetModule(t *testing.T) {
 }
 
 func TestModuleManager_StartModules(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -149,7 +149,7 @@ func TestModuleManager_StartModules(t *testing.T) {
 }
 
 func TestModuleManager_StopModules(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -180,7 +180,7 @@ func TestModuleManager_StopModules(t *testing.T) {
 }
 
 func TestModuleManager_StopModules_Failure(t *testing.T) {
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 	mockModule := &mocks.MockModule{}
 
 	// Expect ID() method call on mockModule
@@ -247,7 +247,7 @@ func TestModuleManager_DiscoverModules(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create a new ModuleManager
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 
 	// Prepare the context
 	ctx := &context.Context{}
@@ -269,7 +269,7 @@ func TestModuleManager_DiscoverModules_Failure(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	// Create a new ModuleManager
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 
 	// Prepare the context
 	ctx := &context.Context{}
@@ -323,7 +323,7 @@ func TestModuleManager_LoadRemoteModule(t *testing.T) {
 	}()
 
 	// Create a new ModuleManager
-	mm := appl.NewModuleManager()
+	mm := appl.NewModuleManager("MMID", "ModuleManager", "Module Manager")
 
 	// Prepare the context
 	ctx := &context.Context{}
