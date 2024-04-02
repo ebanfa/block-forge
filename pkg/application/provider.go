@@ -38,8 +38,8 @@ func ProvideModuleManager(id string, name string, description string) appl.Modul
 }
 
 // ProvideSystem provides a system interface.
-func ProvideSystem(eventBus event.EventBusInterface, operationsManager system.Operations, logger logger.LoggerInterface, configuration config.Configuration) system.System {
-	return system.NewSystem(eventBus, operationsManager, logger, configuration)
+func ProvideSystem(eventBus event.EventBusInterface, logger logger.LoggerInterface, configuration system.Configuration) system.System {
+	return system.NewSystem(eventBus, logger, configuration)
 }
 
 // ProvideConfiguration loads and provides the application configuration.
@@ -72,12 +72,12 @@ func ProvideLogger() logger.LoggerInterface {
 	return logger.NewLogrusLogger()
 }
 
-// ProvideOperationsManager provides an operations manager interface.
-func ProvideOperationsManager(id string, name string, description string) system.Operations {
-	return system.NewSystemOperations(id, name, description)
-}
-
 // ProvideApplication provides the application interface.
-func ProvideApplication(moduleManager appl.ModuleManager, system system.System) appl.Application {
-	return appl.NewApplication(moduleManager, system)
+func ProvideApplication(
+	ID string,
+	name string,
+	description string,
+	moduleManager appl.ModuleManager,
+	system system.System) appl.Application {
+	return appl.NewApplication(ID, name, description, moduleManager, system)
 }

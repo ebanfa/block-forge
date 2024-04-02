@@ -4,11 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/context"
 	applMocks "github.com/edward1christian/block-forge/pkg/application/mocks"
+	applSystem "github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/edward1christian/block-forge/pkg/etl"
 	"github.com/edward1christian/block-forge/pkg/etl/mocks"
+	etlSystem "github.com/edward1christian/block-forge/pkg/etl/system"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,8 +25,8 @@ var (
 func TestMain(m *testing.M) {
 	ctx = context.Background()
 	eventBus := &applMocks.MockEventBus{}
-	configuration := config.Configuration{}
-	system = etl.NewETLSystem(eventBus, nil, nil, configuration)
+	configuration := applSystem.Configuration{}
+	system = etlSystem.NewETLSystem(eventBus, nil, configuration)
 
 	mockETLComponent = &mocks.MockETLComponent{}
 	mockETLComponent.On("Initialize", ctx, system).Return(nil)

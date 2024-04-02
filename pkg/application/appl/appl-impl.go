@@ -7,29 +7,50 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// application represents the main application.
+// ApplicationImpl represents the main application.
 type ApplicationImpl struct {
+	id            string
+	name          string
+	description   string
 	moduleManager ModuleManager
 	system        system.System
 	started       bool
 }
 
-// ModuleManager implements Application.
+// NewApplication creates a new instance of the ApplicationImpl.
+func NewApplication(id, name, description string, moduleManager ModuleManager, system system.System) *ApplicationImpl {
+	return &ApplicationImpl{
+		id:            id,
+		name:          name,
+		description:   description,
+		moduleManager: moduleManager,
+		system:        system,
+	}
+}
+
+// ID returns the unique identifier of the application.
+func (app *ApplicationImpl) ID() string {
+	return app.id
+}
+
+// Name returns the name of the application.
+func (app *ApplicationImpl) Name() string {
+	return app.name
+}
+
+// Description returns the description of the application.
+func (app *ApplicationImpl) Description() string {
+	return app.description
+}
+
+// ModuleManager returns the module manager of the application.
 func (app *ApplicationImpl) ModuleManager() ModuleManager {
 	return app.moduleManager
 }
 
-// System implements Application.
+// System returns the system of the application.
 func (app *ApplicationImpl) System() system.System {
 	return app.system
-}
-
-// NewApplication creates a new instance of the ApplicationImpl.
-func NewApplication(moduleManager ModuleManager, system system.System) *ApplicationImpl {
-	return &ApplicationImpl{
-		moduleManager: moduleManager,
-		system:        system,
-	}
 }
 
 // Initialize initializes the application.
@@ -48,7 +69,7 @@ func (app *ApplicationImpl) Start(ctx *context.Context) error {
 	}
 
 	// Start the module manager
-	if err := app.moduleManager.StartModules(ctx); err != nil {
+	if err := app.moduleManager.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start modules: %w", err)
 	}
 
@@ -64,7 +85,7 @@ func (app *ApplicationImpl) Stop(ctx *context.Context) error {
 	}
 
 	// Stop the module manager
-	if err := app.moduleManager.StopModules(ctx); err != nil {
+	if err := app.moduleManager.Stop(ctx); err != nil {
 		return fmt.Errorf("failed to stop modules: %w", err)
 	}
 

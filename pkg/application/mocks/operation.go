@@ -1,85 +1,43 @@
 package mocks
 
 import (
+	"github.com/stretchr/testify/mock"
+
 	"github.com/edward1christian/block-forge/pkg/application/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
-	"github.com/stretchr/testify/mock"
 )
 
-// Mock implementations for testing
+// MockOperation represents a mock for the Operation interface.
 type MockOperation struct {
 	mock.Mock
 }
 
-// ID implements application.Operations.
-func (m *MockOperation) ID() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-// Name implements application.Operations.
-func (m *MockOperation) Name() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-// Description implements application.Operations.
-func (m *MockOperation) Description() string {
-	args := m.Called()
-	return args.String(0)
-}
-
+// Start mocks the Start method of the SystemService interface.
 func (m *MockOperation) Initialize(ctx *context.Context, system system.System) error {
 	args := m.Called(ctx, system)
 	return args.Error(0)
 }
 
-func (m *MockOperation) Execute(ctx *context.Context, data system.OperationInput) (system.OperationOutput, error) {
-	args := m.Called(ctx, data)
-	return args.Get(0).(system.OperationOutput), args.Error(1)
+// Execute mocks the Execute method of the Operation interface.
+func (m *MockOperation) Execute(ctx *context.Context, input *system.OperationInput) (*system.OperationOutput, error) {
+	args := m.Called(ctx, input)
+	return args.Get(0).(*system.OperationOutput), args.Error(1)
 }
 
-// OperationsMock is a mock for the Operations interface.
-type MockOperations struct {
-	mock.Mock
-}
-
-// ID implements application.Operations.
-func (m *MockOperations) ID() string {
+// ID returns the unique identifier of the component.
+func (m *MockOperation) ID() string {
 	args := m.Called()
 	return args.String(0)
 }
 
-// Name implements application.Operations.
-func (m *MockOperations) Name() string {
+// Name returns the name of the component.
+func (m *MockOperation) Name() string {
 	args := m.Called()
 	return args.String(0)
 }
 
-// Description implements application.Operations.
-func (m *MockOperations) Description() string {
+// Description returns the description of the component.
+func (m *MockOperation) Description() string {
 	args := m.Called()
 	return args.String(0)
-}
-
-// Initialize implements application.Operations.
-func (m *MockOperations) Initialize(ctx *context.Context, system system.System) error {
-	args := m.Called(ctx, system)
-	return args.Error(0)
-}
-
-// RegisterOperation mocks the RegisterOperation method of the Operations interface.
-func (m *MockOperations) RegisterOperation(operationID string, operation system.Operation) error {
-	args := m.Called(operationID, operation)
-	return args.Error(0)
-}
-
-// ExecuteOperation mocks the ExecuteOperation method of the Operations interface.
-func (m *MockOperations) ExecuteOperation(
-	ctx *context.Context,
-	operationID string,
-	data system.OperationInput) (system.OperationOutput, error) {
-
-	args := m.Called(ctx, operationID, data)
-	return args.Get(0).(system.OperationOutput), args.Error(1)
 }

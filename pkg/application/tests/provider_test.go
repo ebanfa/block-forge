@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/edward1christian/block-forge/pkg/application"
-	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 func TestInit(t *testing.T) {
@@ -32,13 +32,12 @@ func TestProvideModuleManager(t *testing.T) {
 func TestProvideSystem(t *testing.T) {
 	// Test ProvideSystem function
 	// Mock dependencies
-	mockEventBus := new(mocks.MockEventBus)
-	mockModuleManager := new(mocks.MockOperations)
+	config := system.Configuration{}
 	mockLogger := new(mocks.MockLogger)
-	config := config.Configuration{}
+	mockEventBus := new(mocks.MockEventBus)
 
 	// Test ProvideSystem function
-	sys := application.ProvideSystem(mockEventBus, mockModuleManager, mockLogger, config)
+	sys := application.ProvideSystem(mockEventBus, mockLogger, config)
 	assert.NotNil(t, sys)
 	// Add more assertions as needed...
 }
@@ -71,13 +70,6 @@ func TestProvideLogger(t *testing.T) {
 	// Add more assertions as needed...
 }
 
-func TestProvideOperationsManager(t *testing.T) {
-	// Test ProvideOperationsManager function
-	manager := application.ProvideOperationsManager("MMID", "ModuleManager", "Module Manager")
-	assert.NotNil(t, manager)
-	// Add more assertions as needed...
-}
-
 func TestProvideApplication(t *testing.T) {
 	// Test ProvideApplication function
 	// Mock dependencies
@@ -85,7 +77,7 @@ func TestProvideApplication(t *testing.T) {
 	mockSystem := new(mocks.MockSystem)
 
 	// Test ProvideApplication function
-	app := application.ProvideApplication(mockModuleManager, mockSystem)
+	app := application.ProvideApplication("appl", "appl", "appl", mockModuleManager, mockSystem)
 	assert.NotNil(t, app)
 	// Add more assertions as needed...
 }

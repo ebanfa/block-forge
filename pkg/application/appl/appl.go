@@ -7,21 +7,18 @@ import (
 
 // Application represents the main application.
 type Application interface {
-	system.Startable
+	system.BootableComponent
 
 	// System returns the system instance
 	System() system.System
 
 	// ModuleManager returns the module manager instance
 	ModuleManager() ModuleManager
-
-	// Initialize initializes the application.
-	Initialize(ctx *context.Context) error
 }
 
 // Component represents a generic component in the system.
 type ApplicationComponent interface {
-	system.Component
+	system.StartableComponent
 
 	// Initialize starts the module with the given context and application instance
 	Initialize(ctx *context.Context, app Application) error
@@ -29,7 +26,6 @@ type ApplicationComponent interface {
 
 // Module represents a module component in the system.
 type Module interface {
-	system.Startable
 	ApplicationComponent
 }
 
@@ -47,13 +43,13 @@ type ModuleManager interface {
 	GetModule(name string) (Module, error)
 
 	// StartModules starts all modules managed by the module manager
-	StartModules(ctx *context.Context) error
+	StartModule(ctx *context.Context, name string) error
 
 	// StopModules stops all modules managed by the module manager
-	StopModules(ctx *context.Context) error
+	StopModule(ctx *context.Context, name string) error
 
 	// DiscoverModules discovers available modules within the system
-	DiscoverModules(ctx *context.Context) ([]Module, error)
+	DiscoverAndLoadModules(ctx *context.Context) error
 
 	// LoadRemoteModule loads a module from a remote source
 	LoadRemoteModule(ctx *context.Context, moduleURL string) (Module, error)

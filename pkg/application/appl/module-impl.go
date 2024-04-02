@@ -1,6 +1,7 @@
 package appl
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
@@ -15,46 +16,40 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/context"
 )
 
-// moduleEntry represents a module entry in the module manager.
-type moduleEntry struct {
-	module Module
-	name   string
-}
-
 // ModuleManagerImpl implements the ModuleManager interface.
 type ModuleManagerImpl struct {
-	started     bool
-	modules     map[string]moduleEntry
-	mutex       sync.RWMutex
-	stopChan    chan struct{}
-	application Application
 	id          string
 	name        string
 	description string
+	started     bool
+	modules     map[string]Module
+	mutex       sync.RWMutex
+	stopChan    chan struct{}
+	application Application
 }
 
 // NewModuleManager creates a new instance of ModuleManager.
-func NewModuleManager(id string, name string, description string) ModuleManager {
+func NewModuleManager(id, name, description string) ModuleManager {
 	return &ModuleManagerImpl{
-		modules:     make(map[string]moduleEntry),
-		stopChan:    make(chan struct{}),
 		id:          id,
 		name:        name,
 		description: description,
+		modules:     make(map[string]Module),
+		stopChan:    make(chan struct{}),
 	}
 }
 
-// ID returns the unique identifier of the component.
+// ID returns the unique identifier of the module manager.
 func (mm *ModuleManagerImpl) ID() string {
 	return mm.id
 }
 
-// Name returns the name of the component.
+// Name returns the name of the module manager.
 func (mm *ModuleManagerImpl) Name() string {
 	return mm.name
 }
 
-// Description returns the description of the component.
+// Description returns the description of the module manager.
 func (mm *ModuleManagerImpl) Description() string {
 	return mm.description
 }
@@ -63,6 +58,13 @@ func (mm *ModuleManagerImpl) Description() string {
 func (mm *ModuleManagerImpl) Initialize(ctx *context.Context, app Application) error {
 	// Initialize any global setup or resources required by the module manager.
 	mm.application = app
+
+	// Discover and load modules
+	// You may need to adjust this based on your actual implementation
+	if err := mm.DiscoverAndLoadModules(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -75,42 +77,38 @@ func (mm *ModuleManagerImpl) AddModule(module Module) error {
 		return fmt.Errorf("module with ID '%s' already exists", module.ID())
 	}
 
-	mm.modules[module.ID()] = moduleEntry{
-		module: module,
-		name:   module.Name(),
-	}
+	mm.modules[module.ID()] = module
 	return nil
 }
 
 // RemoveModule removes a module from the module manager.
-func (mm *ModuleManagerImpl) RemoveModule(name string) error {
+func (mm *ModuleManagerImpl) RemoveModule(id string) error {
 	mm.mutex.Lock()
 	defer mm.mutex.Unlock()
 
-	for id, entry := range mm.modules {
-		if entry.name == name {
-			delete(mm.modules, id)
-			return nil
-		}
+	if _, exists := mm.modules[id]; !exists {
+		return fmt.Errorf("module with ID '%s' not found", id)
 	}
-	return fmt.Errorf("module with name '%s' not found", name)
+
+	delete(mm.modules, id)
+	return nil
 }
 
-// GetModule returns the module with the given name.
-func (mm *ModuleManagerImpl) GetModule(name string) (Module, error) {
+// GetModule returns the module with the given ID.
+func (mm *ModuleManagerImpl) GetModule(id string) (Module, error) {
 	mm.mutex.RLock()
 	defer mm.mutex.RUnlock()
 
-	for _, entry := range mm.modules {
-		if entry.name == name {
-			return entry.module, nil
-		}
+	module, exists := mm.modules[id]
+	if !exists {
+		return nil, fmt.Errorf("module with ID '%s' not found", id)
 	}
-	return nil, fmt.Errorf("module with name '%s' not found", name)
+
+	return module, nil
 }
 
 // StartModules starts all modules managed by the module manager.
-func (mm *ModuleManagerImpl) StartModules(ctx *context.Context) error {
+func (mm *ModuleManagerImpl) Start(ctx *context.Context) error {
 	mm.mutex.RLock()
 	defer mm.mutex.RUnlock()
 
@@ -120,14 +118,14 @@ func (mm *ModuleManagerImpl) StartModules(ctx *context.Context) error {
 
 	// Start each module concurrently.
 	var wg sync.WaitGroup
-	for _, entry := range mm.modules {
+	for _, module := range mm.modules {
 		wg.Add(1)
 		go func(module Module) {
 			defer wg.Done()
 			if err := module.Start(ctx); err != nil {
 				fmt.Printf("Failed to start module %s: %v\n", module.Name(), err)
 			}
-		}(entry.module)
+		}(module)
 	}
 
 	// Wait for all modules to start.
@@ -137,7 +135,7 @@ func (mm *ModuleManagerImpl) StartModules(ctx *context.Context) error {
 }
 
 // StopModules stops all modules managed by the module manager.
-func (mm *ModuleManagerImpl) StopModules(ctx *context.Context) error {
+func (mm *ModuleManagerImpl) Stop(ctx *context.Context) error {
 	mm.mutex.Lock()
 	defer mm.mutex.Unlock()
 
@@ -150,14 +148,14 @@ func (mm *ModuleManagerImpl) StopModules(ctx *context.Context) error {
 
 	// Stop each module concurrently.
 	var wg sync.WaitGroup
-	for _, entry := range mm.modules {
+	for _, module := range mm.modules {
 		wg.Add(1)
 		go func(module Module) {
 			defer wg.Done()
 			if err := module.Stop(ctx); err != nil {
 				fmt.Printf("Failed to stop module %s: %v\n", module.Name(), err)
 			}
-		}(entry.module)
+		}(module)
 	}
 
 	// Wait for all modules to stop.
@@ -166,97 +164,191 @@ func (mm *ModuleManagerImpl) StopModules(ctx *context.Context) error {
 	return nil
 }
 
-// DiscoverModules discovers available modules within the system.
-func (mm *ModuleManagerImpl) DiscoverModules(ctx *context.Context) ([]Module, error) {
-	// Assuming modules are located in a specific directory
+// StartModule starts the module with the given name.
+func (mm *ModuleManagerImpl) StartModule(ctx *context.Context, name string) error {
+	mm.mutex.RLock()
+	defer mm.mutex.RUnlock()
+
+	module, exists := mm.modules[name]
+	if !exists {
+		return fmt.Errorf("module with name '%s' not found", name)
+	}
+
+	if err := module.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start module %s: %v", name, err)
+	}
+
+	return nil
+}
+
+// StopModule stops the module with the given name.
+func (mm *ModuleManagerImpl) StopModule(ctx *context.Context, name string) error {
+	mm.mutex.RLock()
+	defer mm.mutex.RUnlock()
+
+	module, exists := mm.modules[name]
+	if !exists {
+		return fmt.Errorf("module with name '%s' not found", name)
+	}
+
+	if err := module.Stop(ctx); err != nil {
+		return fmt.Errorf("failed to stop module %s: %v", name, err)
+	}
+
+	return nil
+}
+
+// DiscoverAndLoadModules discovers and loads available modules within the system.
+func (mm *ModuleManagerImpl) DiscoverAndLoadModules(ctx *context.Context) error {
+	// Implement module discovery and loading logic based on your requirements
+	// Example implementation using filepath.Walk to find modules in a directory
 	modulesDir := "./modules"
 
-	// Create a slice to store discovered modules
-	var discoveredModules []Module
-
-	// Open the modules directory
-	files, err := os.ReadDir(modulesDir)
+	files, err := ioutil.ReadDir(modulesDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read modules directory: %v", err)
+		return fmt.Errorf("failed to read modules directory: %v", err)
 	}
 
 	for _, file := range files {
-		// Check if the file is a Go source file
-		if !strings.HasSuffix(file.Name(), ".go") {
-			continue
-		}
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".zip") {
+			zipPath := filepath.Join(modulesDir, file.Name())
 
-		// Load the module source file
-		modulePath := filepath.Join(modulesDir, file.Name())
-		module, err := mm.loadModule(ctx, modulePath)
-		if err != nil {
-			fmt.Printf("Failed to load module %s: %v\n", file.Name(), err)
-			continue
-		}
+			// Decompress the module zip file
+			moduleDir, err := ioutil.TempDir("", "module-dir-*")
+			if err != nil {
+				return fmt.Errorf("failed to create temporary directory for module: %v", err)
+			}
+			defer os.RemoveAll(moduleDir)
 
-		// Add the loaded module to the slice
-		discoveredModules = append(discoveredModules, module)
+			// Open the module zip file
+			zipReader, err := zip.OpenReader(zipPath)
+			if err != nil {
+				return fmt.Errorf("failed to open module zip file: %v", err)
+			}
+			defer zipReader.Close()
+
+			// Extract all files from the zip archive
+			for _, zipFile := range zipReader.File {
+				// Open each file in the zip archive
+				zipFileReader, err := zipFile.Open()
+				if err != nil {
+					return fmt.Errorf("failed to open file in module zip: %v", err)
+				}
+				defer zipFileReader.Close()
+
+				// Create the file on disk
+				extractedFilePath := filepath.Join(moduleDir, zipFile.Name)
+				extractedFile, err := os.Create(extractedFilePath)
+				if err != nil {
+					return fmt.Errorf("failed to create extracted file: %v", err)
+				}
+				defer extractedFile.Close()
+
+				// Copy the file contents
+				_, err = io.Copy(extractedFile, zipFileReader)
+				if err != nil {
+					return fmt.Errorf("failed to extract file: %v", err)
+				}
+			}
+
+			// Load the module from the extracted directory
+			module, err := mm.loadModule(moduleDir)
+			if err != nil {
+				fmt.Printf("Failed to load module %s: %v\n", file.Name(), err)
+				continue
+			}
+
+			if err := mm.AddModule(module); err != nil {
+				fmt.Printf("Failed to add module %s: %v\n", module.Name(), err)
+				continue
+			}
+		}
 	}
 
-	return discoveredModules, nil
+	return nil
 }
 
 // LoadRemoteModule loads a module from a remote source.
 func (mm *ModuleManagerImpl) LoadRemoteModule(ctx *context.Context, moduleURL string) (Module, error) {
-	// Download the remote module file
+	// Download the module zip file
 	resp, err := http.Get(moduleURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download remote module: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// Check if the response is successful
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to download remote module: status code %d", resp.StatusCode)
-	}
-
-	// Create a temporary file to store the downloaded module
-	tempFile, err := ioutil.TempFile("", "module-*.go")
+	// Create a temporary file to store the downloaded module zip
+	tempZipFile, err := ioutil.TempFile("", "module-*.zip")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary file: %v", err)
+		return nil, fmt.Errorf("failed to create temporary zip file: %v", err)
 	}
-	defer os.Remove(tempFile.Name())
+	defer os.Remove(tempZipFile.Name())
 
-	// Write the downloaded content to the temporary file
-	_, err = io.Copy(tempFile, resp.Body)
+	// Write the downloaded content to the temporary zip file
+	_, err = io.Copy(tempZipFile, resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to write temporary file: %v", err)
+		return nil, fmt.Errorf("failed to write temporary zip file: %v", err)
 	}
 
-	// Load the module from the temporary file
-	module, err := mm.loadModule(ctx, tempFile.Name())
+	// Decompress the module zip file
+	moduleDir, err := ioutil.TempDir("", "module-dir-*")
 	if err != nil {
-		return nil, fmt.Errorf("failed to load remote module: %v", err)
+		return nil, fmt.Errorf("failed to create temporary directory for module: %v", err)
+	}
+	defer os.RemoveAll(moduleDir)
+
+	// Open the module zip file
+	zipReader, err := zip.OpenReader(tempZipFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to open module zip file: %v", err)
+	}
+	defer zipReader.Close()
+
+	// Extract all files from the zip archive
+	for _, file := range zipReader.File {
+		// Open each file in the zip archive
+		fileReader, err := file.Open()
+		if err != nil {
+			return nil, fmt.Errorf("failed to open file in module zip: %v", err)
+		}
+		defer fileReader.Close()
+
+		// Create the file on disk
+		extractedFilePath := filepath.Join(moduleDir, file.Name)
+		extractedFile, err := os.Create(extractedFilePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create extracted file: %v", err)
+		}
+		defer extractedFile.Close()
+
+		// Copy the file contents
+		_, err = io.Copy(extractedFile, fileReader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract file: %v", err)
+		}
 	}
 
-	return module, nil
+	// Load the module from the extracted directory
+	return mm.loadModule(moduleDir)
 }
 
 // loadModule loads a module from a given file path.
-// loadModule loads a module from a pre-compiled package.
-func (mm *ModuleManagerImpl) loadModule(ctx *context.Context, packagePath string) (Module, error) {
-	// Import the package
-	pkg, err := plugin.Open(packagePath)
+func (mm *ModuleManagerImpl) loadModule(modulePath string) (Module, error) {
+	plug, err := plugin.Open(modulePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open module package: %v", err)
+		return nil, fmt.Errorf("failed to open module: %v", err)
 	}
 
-	// Look up the module symbol
-	moduleSymbol, err := pkg.Lookup("Module")
+	sym, err := plug.Lookup("NewModule")
 	if err != nil {
-		return nil, fmt.Errorf("failed to find module symbol: %v", err)
+		return nil, fmt.Errorf("failed to find NewModule function: %v", err)
 	}
 
-	// Cast the module symbol to the Module interface
-	module, ok := moduleSymbol.(Module)
+	newModuleFunc, ok := sym.(func() Module)
 	if !ok {
-		return nil, fmt.Errorf("failed to cast module symbol to Module interface")
+		return nil, errors.New("NewModule function has invalid type")
 	}
 
+	module := newModuleFunc()
 	return module, nil
 }
