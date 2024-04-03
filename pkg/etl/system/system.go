@@ -19,8 +19,8 @@ type ETLSystemImpl struct {
 	logger        logger.LoggerInterface
 	configuration system.Configuration
 	etlProcesses  map[string]*etl.ETLProcess
-	scheduledJobs map[string]*etl.ScheduledETLProcess
 	factories     map[string]etl.ETLComponentFactory
+	scheduledJobs map[string]*etl.ScheduledETLProcess
 }
 
 // NewETLSystem creates a new instance of ETLSystemImpl.

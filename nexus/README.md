@@ -1,5 +1,3 @@
-Here's the README with proper formatting for section headings, using Markdown syntax:
-
 # Nexus: Blockchain ETL Tool
 
 Nexus is a versatile blockchain ETL (Extract, Transform, Load) tool integrated into the Block Forge monorepo. It facilitates the transfer of data between different blockchain networks by extracting data from source blockchains, performing necessary transformations, and loading the data into target blockchains. Nexus is built using Go and leverages an event-based architecture, plugin-based architecture, and orchestration framework for flexibility, extensibility, and manageability.

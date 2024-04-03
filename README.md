@@ -18,7 +18,7 @@ BlockForge is designed to foster the development of cutting-edge blockchain solu
 
 The following projects are currently hosted within the BlockForge monorepo:
 
-- **Nexus**: An advanced data relay for blockchains, acting as an ETL (Extract, Transform, Load) tool for blockchain data.
+- **BlockETL**: An advanced data relay for blockchains, acting as an ETL (Extract, Transform, Load) tool for blockchain data.
 - **Nova**: A blockchain building application that enables rapid scaffolding of Cosmos SDK-based blockchains.
 
 Additional projects, such as a decentralized bridge, a decentralized business process management blockchain, and a ZK Rollup chain, are planned for future development within the monorepo.
@@ -50,9 +50,9 @@ To get started with BlockForge, follow these steps:
 5. **Build and run a project**:
 
    ```bash
-   # Build and run Nexus
-   go build -o bitrelay ./bitrelay/cmd
-   ./bitrelay
+   # Build and run BlockETL
+   go build -o blocketl ./blocketl/cmd
+   ./blocketl
 
    # Build and run BuildNet
    go build -o nova ./nova/cmd
