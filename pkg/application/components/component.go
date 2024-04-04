@@ -9,6 +9,9 @@ const (
 	// BasicComponentType represents the type of a basic component.
 	BasicComponentType ComponentType = iota
 
+	// SystemComponentType represents the type of a system component.
+	SystemComponentType
+
 	// OperationType represents the type of an operation component.
 	OperationType
 

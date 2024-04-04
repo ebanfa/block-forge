@@ -13,8 +13,8 @@ import (
 	"github.com/edward1christian/block-forge/pkg/etl_beta/utils"
 )
 
-// etlManagerService implements the ETLManagerService interface.
-type etlManagerService struct {
+// ProcessManager implements the ETLManagerService interface.
+type ProcessManager struct {
 	systemApi.SystemComponentInterface
 	system    systemApi.SystemInterface
 	processes map[string]*ETLProcess          // Map to store ETL processes by ID
@@ -22,16 +22,21 @@ type etlManagerService struct {
 	mutex     sync.Mutex                      // Mutex for concurrent access to maps
 }
 
+// RestartETLProcess implements ProcessManagerServiceInterface.
+func (*ProcessManager) RestartETLProcess(ctx *context.Context, processID string) error {
+	panic("unimplemented")
+}
+
 // NewETLManagerService creates a new instance of ETLManagerService.
-func NewETLManagerService() ETLManagerService {
-	return &etlManagerService{
+func NewETLManagerService() ProcessManagerInterface {
+	return &ProcessManager{
 		processes: make(map[string]*ETLProcess),
 		schedule:  make(map[string]*ScheduledETLProcess),
 	}
 }
 
 // Initialize initializes the ETLManagerService.
-func (m *etlManagerService) Initialize(ctx *context.Context, system system.SystemInterface) error {
+func (m *ProcessManager) Initialize(ctx *context.Context, system system.SystemInterface) error {
 	// Save reference to the system
 	m.system = system
 
@@ -61,7 +66,7 @@ func (m *etlManagerService) Initialize(ctx *context.Context, system system.Syste
 }
 
 // InitializeETLProcess initializes an ETL process with the provided configuration.
-func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *etlComponentsApi.ETLProcessConfig) (*ETLProcess, error) {
+func (m *ProcessManager) InitializeETLProcess(ctx *context.Context, config *etlComponentsApi.ETLProcessConfig) (*ETLProcess, error) {
 	// Generate a unique ID for the ETL process
 	processID, err := utils.NewProcessIDGenerator("").GenerateID()
 	if err != nil {
@@ -109,7 +114,7 @@ func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *e
 }
 
 // StartETLProcess starts an ETL process with the given ID.
-func (m *etlManagerService) StartETLProcess(ctx *context.Context, processID string) error {
+func (m *ProcessManager) StartETLProcess(ctx *context.Context, processID string) error {
 	// Fetch the ETL process
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -137,7 +142,7 @@ func (m *etlManagerService) StartETLProcess(ctx *context.Context, processID stri
 }
 
 // StopETLProcess stops an ETL process with the given ID.
-func (m *etlManagerService) StopETLProcess(ctx *context.Context, processID string) error {
+func (m *ProcessManager) StopETLProcess(ctx *context.Context, processID string) error {
 	// Fetch the ETL process
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -165,7 +170,7 @@ func (m *etlManagerService) StopETLProcess(ctx *context.Context, processID strin
 }
 
 // GetETLProcess retrieves an ETL process by its ID.
-func (m *etlManagerService) GetETLProcess(processID string) (*ETLProcess, error) {
+func (m *ProcessManager) GetETLProcess(processID string) (*ETLProcess, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	process, found := m.processes[processID]
@@ -176,7 +181,7 @@ func (m *etlManagerService) GetETLProcess(processID string) (*ETLProcess, error)
 }
 
 // GetAllETLProcesses retrieves all ETL processes.
-func (m *etlManagerService) GetAllETLProcesses() []*ETLProcess {
+func (m *ProcessManager) GetAllETLProcesses() []*ETLProcess {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	processes := make([]*ETLProcess, 0, len(m.processes))
@@ -187,7 +192,7 @@ func (m *etlManagerService) GetAllETLProcesses() []*ETLProcess {
 }
 
 // ScheduleETLProcess schedules an ETL process for execution.
-func (m *etlManagerService) ScheduleETLProcess(process *ETLProcess, schedule Schedule) error {
+func (m *ProcessManager) ScheduleETLProcess(process *ETLProcess, schedule Schedule) error {
 	// Add scheduling logic here
 
 	// Create a new ScheduledETLProcess instance
@@ -205,7 +210,7 @@ func (m *etlManagerService) ScheduleETLProcess(process *ETLProcess, schedule Sch
 }
 
 // GetScheduledETLProcesses retrieves all scheduled ETL processes.
-func (m *etlManagerService) GetScheduledETLProcesses() []*ScheduledETLProcess {
+func (m *ProcessManager) GetScheduledETLProcesses() []*ScheduledETLProcess {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	scheduledProcesses := make([]*ScheduledETLProcess, 0, len(m.schedule))
@@ -216,7 +221,7 @@ func (m *etlManagerService) GetScheduledETLProcesses() []*ScheduledETLProcess {
 }
 
 // RemoveScheduledETLProcess removes a scheduled ETL process by its ID.
-func (m *etlManagerService) RemoveScheduledETLProcess(processID string) error {
+func (m *ProcessManager) RemoveScheduledETLProcess(processID string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	_, found := m.schedule[processID]
