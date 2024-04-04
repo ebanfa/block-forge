@@ -6,8 +6,11 @@ import "github.com/edward1christian/block-forge/pkg/application/common/context"
 type ComponentType int
 
 const (
+	// BasicComponentType represents the type of a basic component.
+	BasicComponentType ComponentType = iota
+
 	// OperationType represents the type of an operation component.
-	OperationType ComponentType = iota
+	OperationType
 
 	// ServiceType represents the type of a service component.
 	ServiceType

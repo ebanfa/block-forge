@@ -9,7 +9,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
-	etlComponents "github.com/edward1christian/block-forge/pkg/etl_beta/components"
+	etlComponentsApi "github.com/edward1christian/block-forge/pkg/etl_beta/components"
 	"github.com/edward1christian/block-forge/pkg/etl_beta/utils"
 )
 
@@ -42,7 +42,7 @@ func (m *etlManagerService) Initialize(ctx *context.Context, system system.Syste
 	processesConfig := config.CustomConfig
 
 	// Check if the processes configuration is of type []interface{}
-	etlProcessesConfig, ok := processesConfig.([]*etlComponents.ETLProcessConfig)
+	etlProcessesConfig, ok := processesConfig.([]*etlComponentsApi.ETLProcessConfig)
 	if !ok {
 		return errors.New("processes configuration is not an array")
 	}
@@ -61,7 +61,7 @@ func (m *etlManagerService) Initialize(ctx *context.Context, system system.Syste
 }
 
 // InitializeETLProcess initializes an ETL process with the provided configuration.
-func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *etlComponents.ETLProcessConfig) (*ETLProcess, error) {
+func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *etlComponentsApi.ETLProcessConfig) (*ETLProcess, error) {
 	// Generate a unique ID for the ETL process
 	processID, err := utils.NewProcessIDGenerator("").GenerateID()
 	if err != nil {
@@ -73,7 +73,7 @@ func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *e
 		ID:         processID,
 		Config:     config,
 		Status:     ETLProcessStatusInitialized,
-		Components: make(map[string]etlComponents.ETLProcessComponent),
+		Components: make(map[string]etlComponentsApi.ETLProcessComponent),
 	}
 
 	// Add the process to the map
@@ -96,7 +96,7 @@ func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *e
 		}
 
 		// Check if the component implements the ETLProcessComponent interface
-		etlComponent, ok := component.(etlComponents.ETLProcessComponent)
+		etlComponent, ok := component.(etlComponentsApi.ETLProcessComponent)
 		if !ok {
 			return nil, errors.New("component is not an ETLProcess component")
 		}

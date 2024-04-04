@@ -8,36 +8,19 @@ import (
 	"github.com/edward1christian/block-forge/pkg/etl_beta/components"
 )
 
-// ETLProcessStatus represents the status of an ETL process.
-type ETLProcessStatus string
-
-const (
-	ETLProcessStatusInitialized ETLProcessStatus = "initialized"
-	ETLProcessStatusRunning     ETLProcessStatus = "running"
-	ETLProcessStatusPaused      ETLProcessStatus = "paused"
-	ETLProcessStatusCompleted   ETLProcessStatus = "completed"
-	ETLProcessStatusFailed      ETLProcessStatus = "failed"
-	ETLProcessStatusStopped     ETLProcessStatus = "stopped"
-)
-
-// ETLProcess represents an individual ETL process.
-type ETLProcess struct {
-	ID         string                                    // Unique identifier of the ETL process
-	Config     *components.ETLProcessConfig              // Configuration of the ETL process
-	Status     ETLProcessStatus                          // Status of the ETL process
-	Components map[string]components.ETLProcessComponent // Map to track instantiated components by name
-}
-
 // ETLManager represents an interface for managing and executing ETL processes.
-type ETLManager interface {
+type ProcessManagerInterface interface {
 	// InitializeETLProcess initializes an ETL process with the provided configuration.
 	InitializeETLProcess(ctx *context.Context, config *components.ETLProcessConfig) (*ETLProcess, error)
 
-	// StartETLProcess starts an ETL process with the given ID.
+	// StartETLProcess starts the ETL process with the given ID.
 	StartETLProcess(ctx *context.Context, processID string) error
 
-	// StopETLProcess stops an ETL process with the given ID.
+	// StopETLProcess stops the ETL process with the given ID.
 	StopETLProcess(ctx *context.Context, processID string) error
+
+	// RestartETLProcess restarts the ETL process with the given ID.
+	RestartETLProcess(ctx *context.Context, processID string) error
 
 	// GetETLProcess retrieves an ETL process by its ID.
 	GetETLProcess(processID string) (*ETLProcess, error)
@@ -55,9 +38,9 @@ type ETLManager interface {
 	RemoveScheduledETLProcess(processID string) error
 }
 
-type ETLManagerService interface {
-	ETLManager
-	system.SystemComponentInterface
+type ProcessManagerServiceInterface interface {
+	ProcessManagerInterface
+	system.SystemServiceInterface
 }
 
 // ScheduledETLProcess represents an ETL process scheduled for execution at specific intervals.
