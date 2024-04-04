@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/edward1christian/block-forge/pkg/etl"
 	"github.com/edward1christian/block-forge/pkg/etl/mocks"

@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/appl"
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -24,7 +24,7 @@ func (m *MockModule) Stop(ctx *context.Context) error {
 }
 
 // Initialize mocks the Initialize method of ApplicationComponent.
-func (m *MockModule) Initialize(ctx *context.Context, app appl.Application) error {
+func (m *MockModule) Initialize(ctx *context.Context, app appl.ApplicationInterface) error {
 	args := m.Called(ctx, app)
 	return args.Error(0)
 }
@@ -71,7 +71,7 @@ func (m *MockModuleManager) Description() string {
 }
 
 // Initialize mocks the Initialize method of ModuleManagerImpl.
-func (m *MockModuleManager) Initialize(ctx *context.Context, app appl.Application) error {
+func (m *MockModuleManager) Initialize(ctx *context.Context, app appl.ApplicationInterface) error {
 	args := m.Called(ctx, app)
 	return args.Error(0)
 }

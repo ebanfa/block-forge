@@ -3,32 +3,15 @@ package mocks
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/appl"
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
 
 // MockApplication represents a mock for the Application interface.
 type MockApplication struct {
+	appl.ApplicationInterface
 	mock.Mock
-}
-
-// ID mocks the ID method of the Application interface.
-func (m *MockApplication) ID() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-// Name mocks the Name method of the Application interface.
-func (m *MockApplication) Name() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-// Description mocks the Description method of the Application interface.
-func (m *MockApplication) Description() string {
-	args := m.Called()
-	return args.String(0)
 }
 
 // Initialize mocks the Initialize method of the Application interface.
@@ -50,9 +33,9 @@ func (m *MockApplication) Stop(ctx *context.Context) error {
 }
 
 // System mocks the System method of the Application interface.
-func (m *MockApplication) System() system.System {
+func (m *MockApplication) System() system.SystemInterface {
 	args := m.Called()
-	return args.Get(0).(system.System)
+	return args.Get(0).(system.SystemInterface)
 }
 
 // ModuleManager mocks the ModuleManager method of the Application interface.

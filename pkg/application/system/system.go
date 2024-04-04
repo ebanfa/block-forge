@@ -1,55 +1,39 @@
 package system
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/context"
-	"github.com/edward1christian/block-forge/pkg/application/event"
-	"github.com/edward1christian/block-forge/pkg/application/logger"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/event"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 )
 
-// Component represents a generic component.
-type Component interface {
-	// ID returns the unique identifier of the component.
-	ID() string
+// ComponentType represents the type of a component.
+type SystemStatusType int
 
-	// Name returns the name of the component.
-	Name() string
+const (
+	// OperationType represents the type of an operation component.
+	SystemInitializedType SystemStatusType = iota
 
-	// Description returns the description of the component.
-	Description() string
-}
+	// ServiceType represents the type of a service component.
+	SystemStartedType
 
-// ComponentFactory defines the function signature for creating a component.
-type ComponentFactory func(ctx *context.Context, config *ComponentConfig) (Component, error)
+	// ModuleType represents the type of a module component.
+	SystemStoppedType
+)
 
-// Startable defines the interface for instances that can be started and stopped.
-type Startable interface {
-	// Start starts the component.
-	Start(ctx *context.Context) error
-
-	// Stop stops the component.
-	Stop(ctx *context.Context) error
-}
-
-// StartableComponent defines the interface for components that can be started and stopped.
-type StartableComponent interface {
-	Component
-	Startable
-}
-
-// BootableComponent represents a component that can be initialized and started.
-type BootableComponent interface {
-	StartableComponent // Embedding StartableComponent interface
-
-	// Initialize initializes the component.
-	Initialize(ctx *context.Context) error
-}
-
-// SystemComponent represents a component in the system.
-type SystemComponent interface {
-	Component
+// SystemComponentInterface represents a component in the system.
+type SystemComponentInterface interface {
+	components.ComponentInterface
 
 	// Initialize initializes the module.
-	Initialize(ctx *context.Context, system System) error
+	// Returns an error if the initialization fails.
+	Initialize(ctx *context.Context, system SystemInterface) error
+}
+
+// SystemServiceInterface represents a service within the system.
+type SystemServiceInterface interface {
+	components.StartableInterface
+	SystemComponentInterface
 }
 
 // OperationInput represents the input data for an operation.
@@ -65,23 +49,18 @@ type OperationOutput struct {
 }
 
 // Operation represents a unit of work that can be executed.
-type Operation interface {
-	SystemComponent
+type OperationInterface interface {
+	SystemComponentInterface
 
 	// Execute performs the operation with the given context and input parameters,
 	// and returns any output or error encountered.
 	Execute(ctx *context.Context, input *OperationInput) (*OperationOutput, error)
 }
 
-// SystemService represents a service within the system.
-type SystemService interface {
-	Startable
-	SystemComponent
-}
-
-// System represents the core system in the application.
-type System interface {
-	BootableComponent
+// SystemInterface represents the core system in the application.
+type SystemInterface interface {
+	components.BootableInterface
+	components.StartableInterface
 
 	// Logger returns the system logger.
 	Logger() logger.LoggerInterface
@@ -90,41 +69,24 @@ type System interface {
 	EventBus() event.EventBusInterface
 
 	// Configuration returns the system configuration.
-	Configuration() Configuration
+	Configuration() components.Configuration
 
-	// RegisterOperation registers an operation with the given ID.
-	// Returns an error if the operation ID is already registered or if the operation is nil.
-	RegisterOperation(operationID string, operation Operation) error
-
-	// UnregisterOperation unregisters the operation with the given ID.
-	// Returns an error if the operation ID is not found.
-	UnregisterOperation(operationID string) error
+	// ComponentRegistry returns the component registry
+	ComponentRegistry() components.ComponentRegistrar
 
 	// ExecuteOperation executes the operation with the given ID and input data.
 	// Returns the output of the operation and an error if the operation is not found or if execution fails.
 	ExecuteOperation(ctx *context.Context, operationID string, data *OperationInput) (*OperationOutput, error)
 
-	// RegisterService registers a SystemService with the given ID.
-	// Returns an error if the service ID is already registered or if the service is nil.
-	RegisterService(serviceID string, service SystemService) error
-
-	// UnregisterService unregisters a SystemService with the given ID.
-	// Returns an error if the service ID is not found.
-	UnregisterService(serviceID string) error
-
 	// StartService starts the service with the given ID.
-	// Returns an error if the service ID is not found or other error
-	StartService(serviceID string, ctx *context.Context) error
+	// Returns an error if the service ID is not found or other error.
+	StartService(ctx *context.Context, serviceID string) error
 
 	// StopService stops the service with the given ID.
 	// Returns an error if the service ID is not found or other error.
-	StopService(serviceID string, ctx *context.Context) error
+	StopService(ctx *context.Context, serviceID string) error
 
-	// RegisterComponentFactory registers an component factory with the system.
-	// Returns an error if the component name is already registered or if the component is nil.
-	RegisterComponentFactory(name string, factory ComponentFactory) error
-
-	// GetComponentFactory retrieves the factory for creating components by name.
-	// Returns an error if the component name is not found or other error.
-	GetComponentFactory(name string) (ComponentFactory, error)
+	// RestartService restarts the service with the given ID.
+	// Returns an error if the service ID is not found or other error.
+	RestartService(ctx *context.Context, serviceID string) error
 }

@@ -1,26 +1,27 @@
 package components
 
 import (
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	blockchain "github.com/edward1christian/block-forge/pkg/blockchain/interfaces"
 )
 
 // ETLProcessComponent is an component that belongs to an ETL process
 type ETLProcessComponent interface {
-	system.Startable       // Interface for a startable component
-	system.SystemComponent // Interface for a system component
-	GetProcessID() string  // Gets the ID of the ETL process the component belongs to
+	components.StartableInterface   // Interface for a startable component
+	system.SystemComponentInterface // Interface for a system component
+	GetProcessID() string           // Gets the ID of the ETL process the component belongs to
 }
 
 // ETLProcessConfig represents the configuration for an ETL process.
 type ETLProcessConfig struct {
-	Components []*system.ComponentConfig // Components configuration for the ETL process
+	Components []*components.ComponentConfig // Components configuration for the ETL process
 }
 
 // PipelineConfig represents the configuration for a transformation pipeline.
 type PipelineConfig struct {
-	system.ComponentConfig
-	Stages []system.ComponentConfig // Stages configuration for the pipeline
+	components.ComponentConfig
+	Stages []components.ComponentConfig // Stages configuration for the pipeline
 }
 
 // BlockchainAdapter is responsible for extracting data from a source blockchain.

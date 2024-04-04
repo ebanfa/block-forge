@@ -3,7 +3,7 @@ package process
 import (
 	"time"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/edward1christian/block-forge/pkg/etl_beta/components"
 )
@@ -57,7 +57,7 @@ type ETLManager interface {
 
 type ETLManagerService interface {
 	ETLManager
-	system.SystemComponent
+	system.SystemComponentInterface
 }
 
 // ScheduledETLProcess represents an ETL process scheduled for execution at specific intervals.

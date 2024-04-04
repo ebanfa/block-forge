@@ -3,7 +3,7 @@ package mocks
 import (
 	"fmt"
 
-	"github.com/edward1christian/block-forge/pkg/application/logger"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 )
 
 type MockLogger struct {

@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
-	"github.com/edward1christian/block-forge/pkg/etl_beta/components"
+	etlComponents "github.com/edward1christian/block-forge/pkg/etl_beta/components"
 	"github.com/edward1christian/block-forge/pkg/etl_beta/utils"
 )
 
 // etlManagerService implements the ETLManagerService interface.
 type etlManagerService struct {
-	systemApi.SystemComponent
-	system    systemApi.System
+	systemApi.SystemComponentInterface
+	system    systemApi.SystemInterface
 	processes map[string]*ETLProcess          // Map to store ETL processes by ID
 	schedule  map[string]*ScheduledETLProcess // Map to store scheduled processes by ID
 	mutex     sync.Mutex                      // Mutex for concurrent access to maps
@@ -30,7 +31,7 @@ func NewETLManagerService() ETLManagerService {
 }
 
 // Initialize initializes the ETLManagerService.
-func (m *etlManagerService) Initialize(ctx *context.Context, system system.System) error {
+func (m *etlManagerService) Initialize(ctx *context.Context, system system.SystemInterface) error {
 	// Save reference to the system
 	m.system = system
 
@@ -41,7 +42,7 @@ func (m *etlManagerService) Initialize(ctx *context.Context, system system.Syste
 	processesConfig := config.CustomConfig
 
 	// Check if the processes configuration is of type []interface{}
-	etlProcessesConfig, ok := processesConfig.([]*components.ETLProcessConfig)
+	etlProcessesConfig, ok := processesConfig.([]*etlComponents.ETLProcessConfig)
 	if !ok {
 		return errors.New("processes configuration is not an array")
 	}
@@ -60,7 +61,7 @@ func (m *etlManagerService) Initialize(ctx *context.Context, system system.Syste
 }
 
 // InitializeETLProcess initializes an ETL process with the provided configuration.
-func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *components.ETLProcessConfig) (*ETLProcess, error) {
+func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *etlComponents.ETLProcessConfig) (*ETLProcess, error) {
 	// Generate a unique ID for the ETL process
 	processID, err := utils.NewProcessIDGenerator("").GenerateID()
 	if err != nil {
@@ -72,7 +73,7 @@ func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *c
 		ID:         processID,
 		Config:     config,
 		Status:     ETLProcessStatusInitialized,
-		Components: make(map[string]components.ETLProcessComponent),
+		Components: make(map[string]etlComponents.ETLProcessComponent),
 	}
 
 	// Add the process to the map
@@ -83,19 +84,19 @@ func (m *etlManagerService) InitializeETLProcess(ctx *context.Context, config *c
 	// Initialize each component of the ETL process
 	for _, compConfig := range config.Components {
 		// Retrieve the factory for the component type from the system
-		factory, err := m.system.GetComponentFactory(compConfig.FactoryName)
+		factory, err := m.system.ComponentRegistry().GetComponentFactory(compConfig.FactoryName)
 		if err != nil {
 			return nil, err
 		}
 
 		// Create an instance of the component using the factory
-		component, err := factory(ctx, compConfig)
+		component, err := factory.CreateComponent(compConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		// Check if the component implements the ETLProcessComponent interface
-		etlComponent, ok := component.(components.ETLProcessComponent)
+		etlComponent, ok := component.(etlComponents.ETLProcessComponent)
 		if !ok {
 			return nil, errors.New("component is not an ETLProcess component")
 		}
@@ -120,7 +121,7 @@ func (m *etlManagerService) StartETLProcess(ctx *context.Context, processID stri
 	// Start each component of the ETL process
 	for _, component := range process.Components {
 		// Check if the component is startable
-		startable, ok := component.(systemApi.Startable)
+		startable, ok := component.(components.StartableInterface)
 		if !ok {
 			continue
 		}
@@ -148,7 +149,7 @@ func (m *etlManagerService) StopETLProcess(ctx *context.Context, processID strin
 	// Stop each component of the ETL process
 	for _, component := range process.Components {
 		// Check if the component is startable
-		startable, ok := component.(systemApi.Startable)
+		startable, ok := component.(components.StartableInterface)
 		if !ok {
 			continue
 		}

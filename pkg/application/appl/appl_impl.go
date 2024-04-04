@@ -3,44 +3,26 @@ package appl
 import (
 	"fmt"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // ApplicationImpl represents the main application.
 type ApplicationImpl struct {
-	id            string
-	name          string
-	description   string
+	components.BootableInterface
+	components.StartableInterface
 	moduleManager ModuleManager
-	system        system.System
+	system        system.SystemInterface
 	started       bool
 }
 
 // NewApplication creates a new instance of the ApplicationImpl.
-func NewApplication(id, name, description string, moduleManager ModuleManager, system system.System) *ApplicationImpl {
+func NewApplication(moduleManager ModuleManager, system system.SystemInterface) *ApplicationImpl {
 	return &ApplicationImpl{
-		id:            id,
-		name:          name,
-		description:   description,
 		moduleManager: moduleManager,
 		system:        system,
 	}
-}
-
-// ID returns the unique identifier of the application.
-func (app *ApplicationImpl) ID() string {
-	return app.id
-}
-
-// Name returns the name of the application.
-func (app *ApplicationImpl) Name() string {
-	return app.name
-}
-
-// Description returns the description of the application.
-func (app *ApplicationImpl) Description() string {
-	return app.description
 }
 
 // ModuleManager returns the module manager of the application.
@@ -49,7 +31,7 @@ func (app *ApplicationImpl) ModuleManager() ModuleManager {
 }
 
 // System returns the system of the application.
-func (app *ApplicationImpl) System() system.System {
+func (app *ApplicationImpl) System() system.SystemInterface {
 	return app.system
 }
 

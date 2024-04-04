@@ -13,7 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 )
 
 // ModuleManagerImpl implements the ModuleManager interface.
@@ -25,7 +26,7 @@ type ModuleManagerImpl struct {
 	modules     map[string]Module
 	mutex       sync.RWMutex
 	stopChan    chan struct{}
-	application Application
+	application ApplicationInterface
 }
 
 // NewModuleManager creates a new instance of ModuleManager.
@@ -54,8 +55,13 @@ func (mm *ModuleManagerImpl) Description() string {
 	return mm.description
 }
 
+// Type returns the component type of the module manager.
+func (mm *ModuleManagerImpl) Type() components.ComponentType {
+	return components.ApplicationComponentType
+}
+
 // Initialize initializes the module manager.
-func (mm *ModuleManagerImpl) Initialize(ctx *context.Context, app Application) error {
+func (mm *ModuleManagerImpl) Initialize(ctx *context.Context, app ApplicationInterface) error {
 	// Initialize any global setup or resources required by the module manager.
 	mm.application = app
 

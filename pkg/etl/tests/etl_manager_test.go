@@ -6,7 +6,6 @@ import (
 
 	"github.com/edward1christian/block-forge/pkg/application/context"
 	applMocks "github.com/edward1christian/block-forge/pkg/application/mocks"
-	applSystem "github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/edward1christian/block-forge/pkg/etl"
 	"github.com/edward1christian/block-forge/pkg/etl/mocks"
 	etlSystem "github.com/edward1christian/block-forge/pkg/etl/system"
@@ -25,8 +24,8 @@ var (
 func TestMain(m *testing.M) {
 	ctx = context.Background()
 	eventBus := &applMocks.MockEventBus{}
-	configuration := applSystem.Configuration{}
-	system = etlSystem.NewETLSystem(eventBus, nil, configuration)
+	configuration := system.Configuration{}
+	system = etlSystem.NewETLSystem(eventBus, nil, nil, configuration)
 
 	mockETLComponent = &mocks.MockETLComponent{}
 	mockETLComponent.On("Initialize", ctx, system).Return(nil)

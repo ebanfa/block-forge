@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
@@ -40,7 +40,7 @@ func (m *MockPlugin) Stop(ctx *context.Context) error {
 }
 
 // Initialize initializes the plugin.
-func (m *MockPlugin) Initialize(ctx *context.Context, system system.System) error {
+func (m *MockPlugin) Initialize(ctx *context.Context, system system.SystemInterface) error {
 	args := m.Called(ctx, system)
 	return args.Error(0)
 }

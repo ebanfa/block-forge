@@ -1,16 +1,18 @@
 package appl
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // Application represents the main application.
-type Application interface {
-	system.BootableComponent
+type ApplicationInterface interface {
+	components.BootableInterface
+	components.StartableInterface
 
 	// System returns the system instance
-	System() system.System
+	System() system.SystemInterface
 
 	// ModuleManager returns the module manager instance
 	ModuleManager() ModuleManager
@@ -18,10 +20,11 @@ type Application interface {
 
 // Component represents a generic component in the system.
 type ApplicationComponent interface {
-	system.StartableComponent
+	components.ComponentInterface
+	components.StartableInterface
 
 	// Initialize starts the module with the given context and application instance
-	Initialize(ctx *context.Context, app Application) error
+	Initialize(ctx *context.Context, app ApplicationInterface) error
 }
 
 // Module represents a module component in the system.

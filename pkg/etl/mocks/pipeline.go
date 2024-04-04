@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/edward1christian/block-forge/pkg/etl"
 	"github.com/stretchr/testify/mock"

@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/event"
+	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/stretchr/testify/mock"
 )
 

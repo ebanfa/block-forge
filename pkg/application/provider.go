@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/pkg/application/appl"
+	"github.com/edward1christian/block-forge/pkg/application/common/event"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/config"
-	"github.com/edward1christian/block-forge/pkg/application/event"
-	"github.com/edward1christian/block-forge/pkg/application/logger"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"go.uber.org/fx"
 )
@@ -38,8 +39,12 @@ func ProvideModuleManager(id string, name string, description string) appl.Modul
 }
 
 // ProvideSystem provides a system interface.
-func ProvideSystem(eventBus event.EventBusInterface, logger logger.LoggerInterface, configuration system.Configuration) system.System {
-	return system.NewSystem(eventBus, logger, configuration)
+func ProvideSystem(
+	logger logger.LoggerInterface,
+	eventBus event.EventBusInterface,
+	configuration components.Configuration,
+	registrar components.ComponentRegistrar) system.SystemInterface {
+	return system.NewSystem(logger, eventBus, configuration, registrar)
 }
 
 // ProvideConfiguration loads and provides the application configuration.
@@ -73,11 +78,6 @@ func ProvideLogger() logger.LoggerInterface {
 }
 
 // ProvideApplication provides the application interface.
-func ProvideApplication(
-	ID string,
-	name string,
-	description string,
-	moduleManager appl.ModuleManager,
-	system system.System) appl.Application {
-	return appl.NewApplication(ID, name, description, moduleManager, system)
+func ProvideApplication(moduleManager appl.ModuleManager, system system.SystemInterface) appl.ApplicationInterface {
+	return appl.NewApplication(moduleManager, system)
 }

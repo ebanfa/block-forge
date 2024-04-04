@@ -5,185 +5,36 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
-	"github.com/edward1christian/block-forge/pkg/application/event"
-	"github.com/edward1christian/block-forge/pkg/application/logger"
-)
-
-// Custom errors
-var (
-	ErrComponentNil                  = errors.New("component is nil")
-	ErrComponentFactoryNil           = errors.New("component factory is nil")
-	ErrComponentFactoryAlreadyExists = errors.New("component factory already exists")
-	ErrComponentNotFound             = errors.New("component not found")
-	ErrServiceAlreadyExists          = errors.New("service already exists")
-	ErrServiceNotRegistered          = errors.New("service not registered")
-	ErrOperationNotRegistered        = errors.New("operation not registered")
-	ErrOperationAlreadyExists        = errors.New("operation already exists")
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/event"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 )
 
 // SystemImpl represents the core system in the application.
 type SystemImpl struct {
-	BootableComponent
-	mutex              sync.RWMutex
-	eventBus           event.EventBusInterface
-	logger             logger.LoggerInterface
-	configuration      Configuration
-	operations         map[string]Operation
-	services           map[string]SystemService
-	componentFactories map[string]ComponentFactory
+	SystemInterface
+	mutex         sync.RWMutex
+	configuration components.Configuration
+	componentReg  components.ComponentRegistrar
+	logger        logger.LoggerInterface
+	eventBus      event.EventBusInterface
+	status        SystemStatusType
 }
 
 // NewSystem creates a new instance of the SystemImpl.
 func NewSystem(
-	eventBus event.EventBusInterface,
 	logger logger.LoggerInterface,
-	configuration Configuration) *SystemImpl {
+	eventBus event.EventBusInterface,
+	configuration components.Configuration,
+	componentReg components.ComponentRegistrar) *SystemImpl {
 	return &SystemImpl{
-		eventBus:           eventBus,
-		logger:             logger,
-		configuration:      configuration,
-		operations:         make(map[string]Operation),
-		services:           make(map[string]SystemService),
-		componentFactories: make(map[string]ComponentFactory),
+		logger:        logger,
+		eventBus:      eventBus,
+		componentReg:  componentReg,
+		configuration: configuration,
+		status:        SystemStoppedType,
 	}
-}
-
-// ID returns the unique identifier of the system.
-func (s *SystemImpl) ID() string {
-	return "system"
-}
-
-// Name returns the name of the system.
-func (s *SystemImpl) Name() string {
-	return "System"
-}
-
-// Description returns the description of the system.
-func (s *SystemImpl) Description() string {
-	return "Core system in the application"
-}
-
-// Initialize initializes the system component by initializing services and operations.
-func (s *SystemImpl) Initialize(ctx *context.Context) error {
-	if err := s.InitializeServices(ctx); err != nil {
-		return err
-	}
-	if err := s.InitializeOperations(ctx); err != nil {
-		return err
-	}
-	return nil
-}
-
-// InitializeServices initializes all services defined in the system configuration.
-func (s *SystemImpl) InitializeServices(ctx *context.Context) error {
-	for _, serviceConfig := range s.configuration.Services {
-		if err := s.initializeService(ctx, serviceConfig); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// InitializeOperations initializes all operations defined in the system configuration.
-func (s *SystemImpl) InitializeOperations(ctx *context.Context) error {
-	for _, operationConfig := range s.configuration.Operations {
-		if err := s.initializeOperation(ctx, operationConfig); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// initializeService initializes a single service based on the provided configuration.
-func (s *SystemImpl) initializeService(ctx *context.Context, serviceConfig *ServiceConfiguration) error {
-	// Retrieve the factory for the service component
-	factory, err := s.GetComponentFactory(serviceConfig.FactoryName)
-	if err != nil {
-		return fmt.Errorf("failed to get component factory: %w", err)
-	}
-
-	// Create an instance of the service component using the factory
-	service, err := factory(ctx, &serviceConfig.ComponentConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
-	}
-
-	// Check if the service implements the SystemService interface
-	systemService, ok := service.(SystemService)
-	if !ok {
-		return errors.New("service is not a SystemService")
-	}
-
-	// Initialize the service
-	if err := systemService.Initialize(ctx, s); err != nil {
-		return fmt.Errorf("failed to initialize service: %w", err)
-	}
-
-	// Register the service
-	if err := s.RegisterService(serviceConfig.ID, systemService); err != nil {
-		return fmt.Errorf("failed to register service: %w", err)
-	}
-
-	return nil
-}
-
-// initializeOperation initializes a single operation based on the provided configuration.
-func (s *SystemImpl) initializeOperation(ctx *context.Context, operationConfig *OperationConfiguration) error {
-	// Retrieve the factory for the operation component
-	factory, err := s.GetComponentFactory(operationConfig.FactoryName)
-	if err != nil {
-		return fmt.Errorf("failed to get component factory: %w", err)
-	}
-
-	// Create an instance of the operation component using the factory
-	operation, err := factory(ctx, &operationConfig.ComponentConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create operation: %w", err)
-	}
-
-	// Check if the operation implements the Operation interface
-	systemOperation, ok := operation.(Operation)
-	if !ok {
-		return errors.New("Operation is not an Operation")
-	}
-
-	// Register the operation
-	if err := s.RegisterOperation(operationConfig.ID, systemOperation); err != nil {
-		return fmt.Errorf("failed to register operation: %w", err)
-	}
-
-	return nil
-}
-
-// Start starts the system component along with all registered services.
-func (s *SystemImpl) Start(ctx *context.Context) error {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	// Start each registered service
-	for _, service := range s.services {
-		if err := service.Start(ctx); err != nil {
-			return fmt.Errorf("failed to start service: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// Stop stops the system component along with all registered services.
-func (s *SystemImpl) Stop(ctx *context.Context) error {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	// Stop each registered service
-	for _, service := range s.services {
-		if err := service.Stop(ctx); err != nil {
-			s.logger.Log(logger.LevelError, "Error stopping service:", err)
-		}
-	}
-
-	return nil
 }
 
 // Logger returns the system logger.
@@ -197,44 +48,150 @@ func (s *SystemImpl) EventBus() event.EventBusInterface {
 }
 
 // Configuration returns the system configuration.
-func (s *SystemImpl) Configuration() Configuration {
+func (s *SystemImpl) Configuration() components.Configuration {
 	return s.configuration
 }
 
-// RegisterOperation registers an operation with the given ID.
-// Returns an error if the operation ID is already registered or if the operation is nil.
-func (s *SystemImpl) RegisterOperation(operationID string, operation Operation) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+// ComponentRegistry returns the component registry.
+func (s *SystemImpl) ComponentRegistry() components.ComponentRegistrar {
+	return s.componentReg
+}
 
-	// Check if the operation is nil
-	if operation == nil {
-		return ErrComponentNil
+// Initialize initializes the system component by executing the initialize operation.
+func (s *SystemImpl) Initialize(ctx *context.Context) error {
+
+	config := s.configuration
+
+	if s.status != SystemStoppedType {
+		return ErrSystemNotStopped
 	}
 
-	// Check if the operation ID is already registered
-	if _, exists := s.operations[operationID]; exists {
-		return ErrOperationAlreadyExists
+	for _, serviceConfig := range config.Services {
+		if err := s.InitializeService(ctx, serviceConfig); err != nil {
+			return fmt.Errorf("failed to initialize service %s: %w", serviceConfig.Name, err)
+		}
 	}
 
-	// Register the operation
-	s.operations[operationID] = operation
+	for _, operationConfig := range config.Operations {
+		if err := s.InitializeOperation(ctx, operationConfig); err != nil {
+			return fmt.Errorf("failed to initialize operation %s: %w", operationConfig.Name, err)
+		}
+	}
+	s.status = SystemInitializedType
+
 	return nil
 }
 
-// UnregisterOperation unregisters the operation with the given ID.
-// Returns an error if the operation ID is not found.
-func (s *SystemImpl) UnregisterOperation(operationID string) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	// Check if the operation ID is registered
-	if _, exists := s.operations[operationID]; !exists {
-		return ErrOperationNotRegistered
+// InitializeService initializes a single service based on the provided configuration.
+func (s *SystemImpl) InitializeService(ctx *context.Context, serviceConfig *components.ServiceConfiguration) error {
+	// Retrieve the factory for the service component
+	factory, err := s.ComponentRegistry().GetComponentFactory(serviceConfig.FactoryName)
+	if err != nil {
+		return fmt.Errorf("failed to get component factory for service %s: %w", serviceConfig.Name, err)
 	}
 
-	// Unregister the operation
-	delete(s.operations, operationID)
+	// Create an instance of the service component using the factory
+	service, err := factory.CreateComponent(&serviceConfig.ComponentConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create service %s: %w", serviceConfig.Name, err)
+	}
+	// Check if the service implements the SystemServiceInterface interface
+	systemService, ok := service.(SystemServiceInterface)
+	if !ok {
+		return errors.New("service does not implement SystemServiceInterface")
+	}
+
+	// Initialize the service
+	return systemService.Initialize(ctx, s)
+}
+
+// InitializeOperation initializes a single operation based on the provided configuration.
+func (s *SystemImpl) InitializeOperation(ctx *context.Context, operationConfig *components.OperationConfiguration) error {
+	// Retrieve the factory for the operation component
+	factory, err := s.ComponentRegistry().GetComponentFactory(operationConfig.FactoryName)
+	if err != nil {
+		return fmt.Errorf("failed to get component factory for operation %s: %w", operationConfig.Name, err)
+	}
+
+	// Create an instance of the operation component using the factory
+	operation, err := factory.CreateComponent(&operationConfig.ComponentConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create operation %s: %w", operationConfig.Name, err)
+	}
+
+	// Check if the operation implements the OperationInterface interface
+	systemOperation, ok := operation.(OperationInterface)
+	if !ok {
+		return errors.New("operation does not implement OperationInterface")
+	}
+
+	// Initialize the operation
+	return systemOperation.Initialize(ctx, s)
+}
+
+// Start starts the system component along with all registered services.
+func (s *SystemImpl) Start(ctx *context.Context) error {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	if s.status != SystemInitializedType {
+		return ErrSystemNotInitialized
+	}
+
+	// Retrieve all components of type ServiceType
+	components, err := s.ComponentRegistry().GetComponentByType(components.ServiceType)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve components: %w", err)
+	}
+
+	// Iterate over each service component and start it
+	for _, service := range components {
+		// Check if the component implements SystemServiceInterface
+		systemService, ok := service.(SystemServiceInterface)
+		if !ok {
+			return fmt.Errorf("failed to start service: component %v is not a service", service)
+		}
+
+		// Start the service
+		if err := systemService.Start(ctx); err != nil {
+			return fmt.Errorf("failed to start service: %w", err)
+		}
+	}
+
+	s.status = SystemStartedType
+	return nil
+}
+
+// Stop stops the system component along with all registered services.
+func (s *SystemImpl) Stop(ctx *context.Context) error {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	if s.status != SystemStartedType {
+		return ErrSystemNotStarted
+	}
+	// Retrieve all components of type ServiceType
+	components, err := s.ComponentRegistry().GetComponentByType(components.ServiceType)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve components: %w", err)
+	}
+
+	// Iterate over each service component and start it
+	for _, service := range components {
+		// Check if the component implements SystemServiceInterface
+		systemService, ok := service.(SystemServiceInterface)
+		if !ok {
+			return fmt.Errorf("failed to start service: component %v is not a service", service)
+		}
+
+		// Stop the service
+		if err := systemService.Stop(ctx); err != nil {
+			// Log the error, but continue stopping other services
+			s.logger.Log(logger.LevelError, "Error stopping service:", err)
+		}
+	}
+
+	s.status = SystemStoppedType
 	return nil
 }
 
@@ -245,62 +202,34 @@ func (s *SystemImpl) ExecuteOperation(ctx *context.Context, operationID string, 
 	defer s.mutex.RUnlock()
 
 	// Retrieve the operation by its ID
-	operation, exists := s.operations[operationID]
-	if !exists {
-		return nil, ErrOperationNotRegistered
+	component, err := s.ComponentRegistry().GetComponent(operationID)
+	if err != nil {
+		return nil, err
 	}
-
+	// Check if the component implements Operation interface
+	operation, ok := component.(OperationInterface)
+	if !ok {
+		return nil, fmt.Errorf("failed to start service: component %v is not an operation", operation)
+	}
 	// Execute the operation
 	return operation.Execute(ctx, data)
 }
 
-// RegisterService registers a SystemService with the given ID.
-// Returns an error if the service ID is already registered or if the service is nil.
-func (s *SystemImpl) RegisterService(serviceID string, service SystemService) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	// Check if the service is nil
-	if service == nil {
-		return ErrComponentNil
-	}
-
-	// Check if the service ID is already registered
-	if _, exists := s.services[serviceID]; exists {
-		return ErrServiceAlreadyExists
-	}
-
-	// Register the service
-	s.services[serviceID] = service
-	return nil
-}
-
-// UnregisterService unregisters a SystemService with the given ID.
-// Returns an error if the service ID is not found.
-func (s *SystemImpl) UnregisterService(serviceID string) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	// Check if the service ID is registered
-	if _, exists := s.services[serviceID]; !exists {
-		return ErrServiceNotRegistered
-	}
-
-	// Unregister the service
-	delete(s.services, serviceID)
-	return nil
-}
-
 // StartService starts the service with the given ID.
 // Returns an error if the service ID is not found or other error
-func (s *SystemImpl) StartService(serviceID string, ctx *context.Context) error {
+func (s *SystemImpl) StartService(ctx *context.Context, serviceID string) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
 	// Retrieve the service by its ID
-	service, exists := s.services[serviceID]
-	if !exists {
-		return ErrServiceNotRegistered
+	component, err := s.ComponentRegistry().GetComponent(serviceID)
+	if err != nil {
+		return err
+	}
+	// Check if the component implements SystemServiceInterface interface
+	service, ok := component.(SystemServiceInterface)
+	if !ok {
+		return fmt.Errorf("failed to start service: component %v is not a service", service)
 	}
 
 	// Start the service
@@ -309,52 +238,33 @@ func (s *SystemImpl) StartService(serviceID string, ctx *context.Context) error 
 
 // StopService stops the service with the given ID.
 // Returns an error if the service ID is not found or other error.
-func (s *SystemImpl) StopService(serviceID string, ctx *context.Context) error {
+func (s *SystemImpl) StopService(ctx *context.Context, serviceID string) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
 	// Retrieve the service by its ID
-	service, exists := s.services[serviceID]
-	if !exists {
-		return ErrServiceNotRegistered
+	component, err := s.ComponentRegistry().GetComponent(serviceID)
+	if err != nil {
+		return err
+	}
+	// Check if the component implements SystemServiceInterface interface
+	service, ok := component.(SystemServiceInterface)
+	if !ok {
+		return fmt.Errorf("failed to start service: component %v is not a service", service)
 	}
 
-	// Stop the service
+	// Start the service
 	return service.Stop(ctx)
 }
 
-// RegisterComponentFactory registers a component factory with the system.
-// Returns an error if the component name is already registered or if the component is nil.
-func (s *SystemImpl) RegisterComponentFactory(name string, factory ComponentFactory) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	// Check if the component factory is nil
-	if factory == nil {
-		return ErrComponentFactoryNil
+// RestartService restarts the service with the given ID.
+// Returns an error if the service ID is not found or other error.
+func (s *SystemImpl) RestartService(ctx *context.Context, serviceID string) error {
+	// Stop the service first
+	if err := s.StopService(ctx, serviceID); err != nil {
+		return err
 	}
 
-	// Check if the component name is already registered
-	if _, exists := s.componentFactories[name]; exists {
-		return ErrComponentFactoryAlreadyExists
-	}
-
-	// Register the component factory
-	s.componentFactories[name] = factory
-	return nil
-}
-
-// GetComponentFactory retrieves the factory for creating components by name.
-// Returns an error if the component name is not found or other error.
-func (s *SystemImpl) GetComponentFactory(name string) (ComponentFactory, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	// Retrieve the component factory by name
-	factory, exists := s.componentFactories[name]
-	if !exists {
-		return nil, ErrComponentNotFound
-	}
-
-	return factory, nil
+	// Start the service
+	return s.StartService(ctx, serviceID)
 }

@@ -11,7 +11,7 @@ import (
 	"plugin"
 
 	"github.com/edward1christian/block-forge/pkg/application/appl"
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 )
 
 // PluginManagerModule is a module that manages plugins in the system.
@@ -90,7 +90,7 @@ func (m *PluginManagerModule) Stop(ctx *context.Context) error {
 }
 
 // Initialize initializes the module with the given context and application instance.
-func (m *PluginManagerModule) Initialize(ctx *context.Context, app appl.Application) error {
+func (m *PluginManagerModule) Initialize(ctx *context.Context, app appl.ApplicationInterface) error {
 	// Discover and load plugins
 	plugins, err := m.DiscoverPlugins(ctx)
 	if err != nil {

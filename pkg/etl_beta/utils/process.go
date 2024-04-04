@@ -1,14 +1,14 @@
 package utils
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // ExecuteOperationWithConfig executes an operation with the provided configuration and returns the result.
 func ExecuteSystemOp(
 	ctx *context.Context,
-	sys system.System,
+	sys system.SystemInterface,
 	operationID string,
 	data interface{}) (*system.OperationOutput, error) {
 

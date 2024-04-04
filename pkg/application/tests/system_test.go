@@ -2,563 +2,440 @@ package tests
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
-	"github.com/edward1christian/block-forge/pkg/application/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/components"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
-	"github.com/edward1christian/block-forge/pkg/application/system"
+	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// MockComponentFactory is a mock implementation of ComponentFactory for testing.
+// Mocking the logger, event bus, and component registrar is assumed to be done elsewhere
 
 var (
-	eventBus *mocks.MockEventBus
-	logger   *mocks.MockLogger
-	sys      *system.SystemImpl
+	ctx                    *context.Context
+	logger                 *mocks.MockLogger
+	system                 systemApi.SystemInterface
+	registrar              *mocks.MockComponentRegistrar
+	serviceFactory         *mocks.MockComponentFactory
+	operationFactory       *mocks.MockComponentFactory
+	mockServiceComponent   *mocks.MockSystemService
+	mockOperationComponent *mocks.MockOperation
 )
 
-// TestMain initializes common variables used across tests.
 func TestMain(m *testing.M) {
-	eventBus = eventBus
-	logger = new(mocks.MockLogger)
-	configuration := system.Configuration{
-		Services: []*system.ServiceConfiguration{
+	ctx = context.Background()
+	logger = &mocks.MockLogger{}
+	eventBus := &mocks.MockEventBus{}
+	registrar = &mocks.MockComponentRegistrar{}
+	serviceFactory = &mocks.MockComponentFactory{}
+	operationFactory = &mocks.MockComponentFactory{}
+	mockServiceComponent = &mocks.MockSystemService{}
+	mockOperationComponent = &mocks.MockOperation{}
+
+	configuration := components.Configuration{
+		Services: []*components.ServiceConfiguration{
 			{
-				ComponentConfig: system.ComponentConfig{
-					ID:          "service1",
-					FactoryName: "sysServiceFactory",
-					Name:        "testService",
-					Description: "Test Service",
+				ComponentConfig: components.ComponentConfig{
+					ID:          "Service1_ID",
+					Name:        "Service1",
+					FactoryName: "Service1Factory",
 				},
 			},
 		},
-		Operations: []*system.OperationConfiguration{
+		Operations: []*components.OperationConfiguration{
 			{
-				ComponentConfig: system.ComponentConfig{
-					ID:          "testOp1",
-					FactoryName: "sysServiceFactory",
-					Name:        "testOperation",
-					Description: "Test Operation",
+				ComponentConfig: components.ComponentConfig{
+					ID:          "Operation1_ID",
+					Name:        "Operation1",
+					FactoryName: "Operation1Factory",
 				},
 			},
 		},
 	}
 
-	sys = system.NewSystem(eventBus, logger, configuration)
+	system = systemApi.NewSystem(logger, eventBus, configuration, registrar)
 
-	sysServiceFactory := func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		return new(mocks.MockSystemService), nil
+	// Mock the behavior of the component and factory
+	mockServiceComponent.On("Type").Return(components.ServiceType)
+	mockServiceComponent.On("Initialize", mock.Anything, mock.Anything).Return(nil)
+
+	mockOperationComponent.On("Type").Return(components.OperationType)
+	mockOperationComponent.On("Initialize", mock.Anything, mock.Anything).Return(nil)
+
+	serviceFactory.On("CreateComponent", mock.Anything).Return(mockServiceComponent, nil)
+	operationFactory.On("CreateComponent", mock.Anything).Return(mockOperationComponent, nil)
+
+	// Run tests
+	exitCode := m.Run()
+
+	// Clean up any global resources here if needed
+
+	// Exit with the proper exit code
+	os.Exit(exitCode)
+}
+
+func TestSystemImpl_Initialize_Success(t *testing.T) {
+	// Define different behaviors based on the arguments
+	registrar.On("GetComponentFactory", "Service1Factory").Return(serviceFactory, nil)
+	registrar.On("GetComponentFactory", "Operation1Factory").Return(operationFactory, nil)
+
+	// Test initialization
+	err := system.Initialize(ctx)
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_Initialize_Error(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Define different behaviors based on the arguments
+	registrar.On("GetComponentFactory", "NonexistentFactory").Return(
+		operationFactory, components.ErrComponentFactoryNil)
+
+	// Mock configuration with invalid data
+	configuration := components.Configuration{
+		Services: []*components.ServiceConfiguration{
+			{
+				ComponentConfig: components.ComponentConfig{
+					ID:          "Operation1_ID",
+					Name:        "Operation1",
+					FactoryName: "NonexistentFactory",
+				},
+			},
+		},
+		Operations: []*components.OperationConfiguration{
+			{
+				ComponentConfig: components.ComponentConfig{
+					ID:          "Service1_ID",
+					Name:        "Service1",
+					FactoryName: "NonexistentFactory",
+				},
+			},
+		},
 	}
 
-	sysOpFactory := func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		return new(mocks.MockOperation), nil
-	}
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, configuration, registrar)
 
-	sys.RegisterComponentFactory("sysServiceFactory", sysServiceFactory)
-	sys.RegisterComponentFactory("sysOpFactory", sysOpFactory)
-
-	m.Run()
-}
-
-// Tests for NewSystem function
-
-// TestNewSystem tests the creation of a new SystemImpl instance.
-func TestNewSystem(t *testing.T) {
-	assert.NotNil(t, sys)
-	assert.Equal(t, "system", sys.ID())
-	assert.Equal(t, "System", sys.Name())
-	assert.Equal(t, "Core system in the application", sys.Description())
-}
-
-// TestSystem_RegisterComponentFactory_Success tests registering a component factory successfully.
-func TestSystem_RegisterComponentFactory_Success(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	factoryName := "testRegisterComponentFactory_Success"
-	factory := func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		// Mock factory implementation
-		return new(mocks.MockSystemService), nil
-	}
-
-	// Register a component factory
-	err := sys.RegisterComponentFactory(factoryName, factory)
-
-	// Assert that no error occurred
-	assert.NoError(t, err)
-}
-
-// TestSystem_RegisterComponentFactory_Error tests registering a component factory when a factory with the same name already exists.
-func TestSystem_RegisterComponentFactory_Error(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	factoryName := "testRegisterComponentFactory_Error"
-	factory := func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		// Mock factory implementation
-		return new(mocks.MockSystemService), nil
-	}
-
-	// Register a component factory
-	err := sys.RegisterComponentFactory(factoryName, factory)
-	assert.NoError(t, err)
-
-	// Attempt to register the same component factory again
-	err = sys.RegisterComponentFactory(factoryName, factory)
-
-	// Assert that an error occurred and it matches the expected error
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrComponentFactoryAlreadyExists, err)
-}
-
-// TestSystem_GetComponentFactory_Success tests retrieving a component factory.
-func TestSystem_GetComponentFactory_Success(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	factoryName := "testGetComponentFactory_Success"
-
-	// Define a custom type for the component factory function
-	type ComponentFactoryFunc func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error)
-
-	// Create a factory function
-	factoryFunc := ComponentFactoryFunc(func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		// Mock factory implementation
-		return new(mocks.MockSystemService), nil
-	})
-
-	// Conversion function to convert ComponentFactoryFunc to system.ComponentFactory
-	convertFunc := func(ctx *context.Context, config *system.ComponentConfig) (system.Component, error) {
-		return factoryFunc(ctx, config)
-	}
-
-	// Register a component factory
-	err := sys.RegisterComponentFactory(factoryName, convertFunc)
-	assert.NoError(t, err)
-
-	// Retrieve the registered component factory
-	fetchedFactory, err := sys.GetComponentFactory(factoryName)
-
-	// Assert that no error occurred and the fetched factory matches the registered factory
-	assert.NoError(t, err)
-	assert.NotNil(t, fetchedFactory)
-}
-
-// TestSystem_GetComponentFactory_Error tests retrieving a component factory that does not exist.
-func TestSystem_GetComponentFactory_Error(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Attempt to retrieve a component factory that does not exist
-	_, err := sys.GetComponentFactory("nonexistentFactory")
-
-	// Assert that the expected error occurred
-	assert.Equal(t, system.ErrComponentNotFound, err)
-}
-
-// TestSystem_RegisterService_Success tests registering a service successfully.
-func TestSystem_RegisterService_Success(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testRegisterService_Success"
-	service := new(mocks.MockSystemService)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-
-	// Assert that no error occurred during registration
-	assert.NoError(t, err)
-}
-
-// TestSystem_RegisterService_Error tests registering a service that already exists.
-func TestSystem_RegisterService_Error(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testRegisterService_Error"
-	service := new(mocks.MockSystemService)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Attempt to register the same service again
-	err = sys.RegisterService(serviceID, service)
-
-	// Assert that the expected error occurred
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrServiceAlreadyExists, err)
-}
-
-// TestSystem_UnregisterService_Success tests unregistering a service successfully.
-func TestSystem_UnregisterService_Success(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testUnregisterService_Success"
-	service := new(mocks.MockSystemService)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Unregister the service
-	err = sys.UnregisterService(serviceID)
-
-	// Assert that no error occurred during unregistering
-	assert.NoError(t, err)
-}
-
-// TestSystem_UnregisterService_NotFound tests unregistering a service that does not exist.
-func TestSystem_UnregisterService_NotFound(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testUnregisterService_NotFound"
-	service := new(mocks.MockSystemService)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Unregister the service
-	err = sys.UnregisterService(serviceID)
-	assert.NoError(t, err)
-
-	// Attempt to unregister a nonexistent service
-	err = sys.UnregisterService("nonexistentService")
-
-	// Assert that the expected error occurred
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrServiceNotRegistered, err)
-}
-
-// TestSystem_StartService_Success tests starting a service successfully.
-func TestSystem_StartService_Success(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testStartService_Success"
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Mock the service's Start method to return nil
-	service.On("Start", ctx).Return(nil)
-
-	// Start the service
-	err = sys.StartService(serviceID, ctx)
-
-	// Assert that no error occurred during service start
-	assert.NoError(t, err)
-}
-
-// TestSystem_StartService_NotRegistered tests starting a service that is not registered.
-func TestSystem_StartService_NotRegistered(t *testing.T) {
-	// Create a new system with mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	serviceID := "testStartService_NotRegistered"
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
-
-	// Register a service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Attempt to start a nonexistent service
-	err = sys.StartService("nonexistentService", ctx)
-
-	// Assert that the expected error occurred
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrServiceNotRegistered, err)
-}
-
-// TestSystem_StopService_Success tests stopping a registered service successfully.
-func TestSystem_StopService_Success(t *testing.T) {
-	// Initialize system, service, and context
-	serviceID := "testStopService_Success"
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Register the service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Mock the service's Stop method to return no error
-	service.On("Stop", ctx).Return(nil)
-
-	// Stop the service
-	err = sys.StopService(serviceID, ctx)
-	assert.NoError(t, err)
-}
-
-// TestSystem_StopService_NotRegistered tests stopping a service that is not registered.
-func TestSystem_StopService_NotRegistered(t *testing.T) {
-	// Initialize system and context
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	ctx := new(context.Context)
-
-	// Attempt to stop a nonexistent service
-	err := sys.StopService("nonexistentService", ctx)
-
-	// Assert error occurred and it's the correct error
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrServiceNotRegistered, err)
-}
-
-// TestSystem_StopService_Error tests stopping a service that returns an error.
-func TestSystem_StopService_Error(t *testing.T) {
-	// Initialize system, service, and context
-	serviceID := "testStopService_Error"
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Register the service
-	err := sys.RegisterService(serviceID, service)
-	assert.NoError(t, err)
-
-	// Define the expected error
-	expectedErr := errors.New("service stop error")
-
-	// Mock the service's Stop method to return an error
-	service.On("Stop", ctx).Return(expectedErr)
-
-	// Attempt to stop the service
-	err = sys.StopService(serviceID, ctx)
-
-	// Assert error occurred and it's the expected error
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-}
-
-// TestSystem_RegisterOperation_Success tests registering an operation successfully.
-func TestSystem_RegisterOperation_Success(t *testing.T) {
-	// Initialize system and mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	operationID := "testRegisterOperation_Success"
-	operation := new(mocks.MockOperation)
-
-	// Register the operation
-	err := sys.RegisterOperation(operationID, operation)
-
-	// Assert no error occurred
-	assert.NoError(t, err)
-}
-
-// TestSystem_RegisterOperation_AlreadyExists tests registering an operation that already exists.
-func TestSystem_RegisterOperation_AlreadyExists(t *testing.T) {
-	// Initialize system and mocks
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	operationID := "testRegisterOperation_AlreadyExists"
-	operation := new(mocks.MockOperation)
-
-	// Register the operation twice to simulate the already existing scenario
-	err := sys.RegisterOperation(operationID, operation)
-	assert.NoError(t, err)
-
-	// Attempt to register the same operation again
-	err = sys.RegisterOperation(operationID, operation)
-
-	// Assert error occurred and it's the correct error
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrOperationAlreadyExists, err)
-}
-
-// TestSystem_UnregisterOperation_Success tests unregistering a registered operation successfully.
-func TestSystem_UnregisterOperation_Success(t *testing.T) {
-	// Initialize system and operation
-	operationID := "testUnregisterOperation_Success"
-	operation := new(mocks.MockOperation)
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Register the operation
-	err := sys.RegisterOperation(operationID, operation)
-	assert.NoError(t, err)
-
-	// Unregister the operation
-	err = sys.UnregisterOperation(operationID)
-	assert.NoError(t, err)
-}
-
-// TestSystem_UnregisterOperation_NotRegistered tests unregistering an operation that is not registered.
-func TestSystem_UnregisterOperation_NotRegistered(t *testing.T) {
-	// Initialize system
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Attempt to unregister a nonexistent operation
-	err := sys.UnregisterOperation("nonexistentOperation")
-
-	// Assert error occurred and it's the correct error
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrOperationNotRegistered, err)
-}
-
-// TestSystem_ExecuteOperation_Success tests executing a registered operation successfully.
-func TestSystem_ExecuteOperation_Success(t *testing.T) {
-	// Initialize system, operation, context, input, and output
-	operationID := "testExecuteOperation_Success"
-	operation := new(mocks.MockOperation)
-	ctx := new(context.Context)
-	input := &system.OperationInput{}
-	output := &system.OperationOutput{}
-
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Register the operation
-	err := sys.RegisterOperation(operationID, operation)
-	assert.NoError(t, err)
-
-	// Mock the Execute method of the operation
-	operation.On("Execute", ctx, input).Return(output, nil)
-
-	// Execute the operation
-	resOutput, err := sys.ExecuteOperation(ctx, operationID, input)
-
-	// Assert no error occurred and the output matches the expected output
-	assert.NoError(t, err)
-	assert.Equal(t, output, resOutput)
-}
-
-// TestSystem_ExecuteOperation_NotRegistered tests executing an operation that is not registered.
-func TestSystem_ExecuteOperation_NotRegistered(t *testing.T) {
-	// Initialize system, context, and input
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	ctx := new(context.Context)
-	input := &system.OperationInput{}
-
-	// Execute an operation that is not registered
-	_, err := sys.ExecuteOperation(ctx, "nonexistentOperation", input)
-
-	// Assert error occurred and it's the correct error
-	assert.Error(t, err)
-	assert.Equal(t, system.ErrOperationNotRegistered, err)
-}
-
-// TestSystem_ExecuteOperation_Error tests executing a registered operation that returns an error.
-func TestSystem_ExecuteOperation_Error(t *testing.T) {
-	// Initialize system, operation, context, and input
-	operationID := "testExecuteOperation_Error"
-	operation := new(mocks.MockOperation)
-	ctx := new(context.Context)
-	input := &system.OperationInput{}
-	output := &system.OperationOutput{}
-	expectedErr := errors.New("operation execution error")
-
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-
-	// Register the operation
-	err := sys.RegisterOperation(operationID, operation)
-	assert.NoError(t, err)
-
-	// Mock the Execute method of the operation to return an error
-	operation.On("Execute", ctx, input).Return(output, expectedErr)
-
-	// Execute the operation
-	_, err = sys.ExecuteOperation(ctx, operationID, input)
-
-	// Assert an error occurred and it's the expected error
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-}
-
-// TestSystem_Initialize_Success tests initializing the system successfully.
-func TestSystem_Initialize_Success(t *testing.T) {
-	// Initialize system and context
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	ctx := new(context.Context)
-
-	// Attempt to initialize the system
+	// Test initialization with error
 	err := sys.Initialize(ctx)
+	assert.Error(t, err)
+}
 
-	// Assert no error occurred
+func TestSystemImpl_Start_Success(t *testing.T) {
+	// Define different behaviors based on the arguments
+	registrar.On("GetComponentFactory", "Service1Factory").Return(serviceFactory, nil)
+	registrar.On("GetComponentFactory", "Operation1Factory").Return(operationFactory, nil)
+
+	registrar.On("GetComponentByType", components.ServiceType).Return([]components.ComponentInterface{mockServiceComponent}, nil)
+	registrar.On("GetComponentByType", components.OperationType).Return([]components.ComponentInterface{mockOperationComponent}, nil)
+
+	// Mock the behavior of the component and factory
+	mockServiceComponent.On("Start", ctx).Return(nil)
+
+	// Test starting the system
+	err := system.Start(ctx)
 	assert.NoError(t, err)
 }
 
-// TestSystem_Initialize_Error tests initializing the system when an error occurs.
-func TestSystem_Initialize_Error(t *testing.T) {
-	// Initialize system and context
-	configuration := system.Configuration{
-		Services: []*system.ServiceConfiguration{
-			{
-				ComponentConfig: system.ComponentConfig{
-					ID:          "service1",
-					FactoryName: "sysServiceFactory",
-					Name:        "testService",
-					Description: "Test Service",
-				},
-			},
+func TestSystemImpl_Start_Error(t *testing.T) {
+
+	registrar.On("GetComponentFactory", "Service1Factory").Return(serviceFactory, nil)
+	registrar.On("GetComponentFactory", "Operation1Factory").Return(operationFactory, nil)
+
+	registrar.On("GetComponentByType", components.ServiceType).Return([]components.ComponentInterface{mockServiceComponent}, nil)
+	registrar.On("GetComponentByType", components.OperationType).Return([]components.ComponentInterface{mockOperationComponent}, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
+
+	// Test starting the system with error
+	err := sys.Start(ctx)
+	assert.Error(t, err)
+}
+
+func TestSystemImpl_InitializeOperation_Success(t *testing.T) {
+	// Mock operation configuration
+	operationConfig := &components.OperationConfiguration{
+		ComponentConfig: components.ComponentConfig{
+			ID:          "operation_id",
+			Name:        "testOperation",
+			FactoryName: "testFactory",
 		},
 	}
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), configuration)
-	ctx := new(context.Context)
-	// Simulate an error during initialization
-	expectedErr := errors.New("failed to get component factory: component not found")
+	registrar.On("GetComponentFactory", "testFactory").Return(operationFactory, nil)
+	registrar.On("GetComponentByType", components.OperationType).Return([]components.ComponentInterface{mockOperationComponent}, nil)
 
-	// Attempt to initialize the system
-	err := sys.Initialize(ctx)
+	operationFactory.On("CreateComponent", mock.Anything).Return(mockOperationComponent, nil)
 
-	// Assert that the expected error occurred
-	assert.EqualError(t, err, expectedErr.Error())
-}
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
 
-// TestSystem_Start_Success tests starting the system successfully.
-func TestSystem_Start_Success(t *testing.T) {
-	// Initialize system, service, and context
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
-
-	// Register service
-	sys.RegisterService("serviceStart_Success", service)
-
-	// Mock service start function
-	service.On("Start", ctx).Return(nil)
-
-	// Attempt to start the system
-	err := sys.Start(ctx)
-
-	// Assert no error occurred
+	// Test initializing an operation
+	err := sys.InitializeOperation(ctx, operationConfig)
 	assert.NoError(t, err)
 }
 
-// TestSystem_Start_Error tests starting the system when an error occurs.
-func TestSystem_Start_Error(t *testing.T) {
-	// Initialize system, service, and context
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
+func TestSystemImpl_InitializeOperation_Error(t *testing.T) {
+	// Mock operation configuration
+	operationConfig := &components.OperationConfiguration{
+		// Missing FactoryName
+		ComponentConfig: components.ComponentConfig{
+			ID:          "operation_id",
+			Name:        "testOperation",
+			FactoryName: "",
+		},
+	}
+	registrar.On("GetComponentFactory", "").Return(operationFactory, components.ErrFactoryNotFound)
+	registrar.On("GetComponentByType", components.OperationType).Return([]components.ComponentInterface{mockOperationComponent}, nil)
 
-	// Register service
-	sys.RegisterService("serviceStart_Error", service)
+	operationFactory.On("CreateComponent", mock.Anything).Return(mockOperationComponent, nil)
 
-	// Simulate an error during service start
-	expectedErr := errors.New("error during service start")
-	service.On("Start", ctx).Return(expectedErr)
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
 
-	// Attempt to start the system
-	err := sys.Start(ctx)
-
-	// Assert that the expected error occurred
-	assert.Equal(t, err.Error(), "failed to start service: error during service start")
+	// Test initializing an operation with error
+	err := sys.InitializeOperation(ctx, operationConfig)
+	assert.Error(t, err)
 }
 
-// TestSystem_Stop_Success tests stopping the system successfully.
-func TestSystem_Stop_Success(t *testing.T) {
-	// Initialize system, service, and context
-	sys := system.NewSystem(eventBus, new(mocks.MockLogger), system.Configuration{})
-	service := new(mocks.MockSystemService)
-	ctx := new(context.Context)
+func TestSystemImpl_InitializeService_Success(t *testing.T) {
 
-	// Register service
-	sys.RegisterService("serviceStop_Success", service)
+	// Mock service configuration
+	serviceConfig := &components.ServiceConfiguration{
+		ComponentConfig: components.ComponentConfig{
+			ID:          "service_id",
+			Name:        "testInitializeServiceSuccess",
+			FactoryName: "testFactoryInitializeServiceSuccess",
+		},
+	}
 
-	// Mock service stop function
-	service.On("Stop", ctx).Return(nil)
+	registrar.On("GetComponentFactory", "testFactoryInitializeServiceSuccess").Return(serviceFactory, nil)
+	registrar.On("GetComponentByType", components.ServiceType).Return([]components.ComponentInterface{mockServiceComponent}, nil)
 
-	// Attempt to stop the system
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
+
+	// Test initializing a service
+	err := sys.InitializeService(ctx, serviceConfig)
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_InitializeService_Error(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock service configuration with missing factory name
+	serviceConfig := &components.ServiceConfiguration{
+		// Missing FactoryName
+		ComponentConfig: components.ComponentConfig{
+			ID:          "service_id",
+			Name:        "testService",
+			FactoryName: "",
+		},
+	}
+
+	registrar.On("GetComponentFactory", "").Return(operationFactory, components.ErrFactoryNotFound)
+	registrar.On("GetComponentByType", components.OperationType).Return([]components.ComponentInterface{mockOperationComponent}, nil)
+
+	operationFactory.On("CreateComponent", mock.Anything).Return(mockOperationComponent, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
+
+	// Test initializing a service with error
+	err := sys.InitializeService(ctx, serviceConfig)
+	assert.Error(t, err)
+}
+
+func TestSystemImpl_Stop_Success(t *testing.T) {
+	// Mock service configuration
+	registrar.On("GetComponentFactory", "testFactoryInitializeServiceSuccess").Return(serviceFactory, nil)
+	registrar.On("GetComponentByType", components.ServiceType).Return([]components.ComponentInterface{}, nil)
+	mockServiceComponent.On("Stop", ctx).Return(nil)
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, registrar)
+
+	err := sys.Initialize(ctx)
+	assert.NoError(t, err)
+
+	err = sys.Start(ctx)
+	assert.NoError(t, err)
+
+	// Test stopping the system
+	err = sys.Stop(ctx)
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_Stop_Error(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock component registrar with error
+	componentReg := &mocks.MockComponentRegistrar{}
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test stopping the system with error
 	err := sys.Stop(ctx)
+	assert.Error(t, err)
+}
 
-	// Assert no error occurred
+func TestSystemImpl_ExecuteOperation_Success(t *testing.T) {
+	// Mocks
+	operationInput := &systemApi.OperationInput{}
+	expectedOutput := &systemApi.OperationOutput{}
+
+	registrar.On("GetComponent", "Operation1_ID").Return(mockOperationComponent, nil)
+	mockOperationComponent.On("Execute", ctx, operationInput).Return(expectedOutput, nil)
+
+	// Test executing an operation
+	output, err := system.ExecuteOperation(ctx, "Operation1_ID", operationInput)
 	assert.NoError(t, err)
+	assert.Equal(t, expectedOutput, output)
+}
+
+func TestSystemImpl_ExecuteOperation_Error_ComponentNotFound(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock operation input
+	operationInput := &systemApi.OperationInput{}
+
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "operation_id").Return(mockOperationComponent, components.ErrComponentNotFound)
+
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test executing an operation with component not found error
+	output, err := sys.ExecuteOperation(ctx, "operation_id", operationInput)
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestSystemImpl_ExecuteOperation_Error_ComponentNotOperation(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock operation input
+	operationInput := &systemApi.OperationInput{}
+
+	// Mock component registrar returning a non-operation component
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "operation_id").Return(mockServiceComponent, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test executing an operation with component not an operation error
+	output, err := sys.ExecuteOperation(ctx, "operation_id", operationInput)
+	assert.Error(t, err)
+	assert.Nil(t, output)
+}
+
+func TestSystemImpl_StartService_Success(t *testing.T) {
+	// Mock component registrar
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test starting a service
+	err := sys.StartService(ctx, "service_id")
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_StartService_Error_ComponentNotFound(t *testing.T) {
+
+	// Mock component registrar with error
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, components.ErrComponentNotFound)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test starting a service with component not found error
+	err := sys.StartService(ctx, "service_id")
+	assert.Error(t, err)
+}
+
+func TestSystemImpl_StopService_Success(t *testing.T) {
+	// Mock component registrar
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test stopping a service
+	err := sys.StopService(ctx, "service_id")
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_StopService_Error_ComponentNotFound(t *testing.T) {
+	// Mock component registrar with error
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, components.ErrComponentNotFound)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test stopping a service with component not found error
+	err := sys.StopService(ctx, "service_id")
+	assert.Error(t, err)
+}
+
+func TestSystemImpl_RestartService_Success(t *testing.T) {
+	// Mock component registrar
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test restarting a service
+	err := sys.RestartService(ctx, "service_id")
+	assert.NoError(t, err)
+}
+
+func TestSystemImpl_RestartService_Error_StopService(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock component registrar
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
+	mockServiceComponent.On("Stop", ctx).Return(errors.New("Error stopping service"))
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test restarting a service with error while stopping service
+	err := sys.RestartService(ctx, "service_id")
+	assert.Error(t, err)
+}
+
+func TestSystemImpl_RestartService_Error_StartService(t *testing.T) {
+	// Mock context
+	ctx := &context.Context{}
+
+	// Mock component registrar
+	componentReg := &mocks.MockComponentRegistrar{}
+	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
+	mockServiceComponent.On("Stop", ctx).Return(nil)
+	mockServiceComponent.On("Start", ctx).Return(errors.New("Error starting service"))
+
+	// Create a system instance
+	sys := systemApi.NewSystem(nil, nil, components.Configuration{}, componentReg)
+
+	// Test restarting a service with error while starting service
+	err := sys.RestartService(ctx, "service_id")
+	assert.Error(t, err)
 }
