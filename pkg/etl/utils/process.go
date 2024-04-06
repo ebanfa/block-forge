@@ -8,7 +8,7 @@ import (
 // ExecuteOperationWithConfig executes an operation with the provided configuration and returns the result.
 func ExecuteSystemOp(
 	ctx *context.Context,
-	sys system.System,
+	sys system.SystemInterface,
 	operationID string,
 	data interface{}) (*system.OperationOutput, error) {
 

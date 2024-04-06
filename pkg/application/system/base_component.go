@@ -1,8 +1,6 @@
 package system
 
 import (
-	"errors"
-
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/components"
 )
@@ -10,6 +8,7 @@ import (
 // BaseComponent represents a concrete implementation of the OperationInterface.
 type BaseSystemComponent struct {
 	components.BaseComponent // Embedding BaseComponent
+	System                   SystemInterface
 }
 
 // Type returns the type of the component.
@@ -30,6 +29,6 @@ func NewBaseSystemComponent(id, name, description string) *BaseSystemComponent {
 // Initialize initializes the module.
 // Returns an error if the initialization fails.
 func (bo *BaseSystemComponent) Initialize(ctx *context.Context, system SystemInterface) error {
-	// Perform initialization tasks specific to operation component if needed.
-	return errors.New("initialize not implemented")
+	bo.System = system
+	return nil
 }

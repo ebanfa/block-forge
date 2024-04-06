@@ -14,7 +14,7 @@ type BaseSystemService struct {
 
 // Type returns the type of the component.
 func (bo *BaseSystemService) Type() components.ComponentType {
-	return components.BasicComponentType
+	return components.ServiceType
 }
 
 // NewBaseSystemService creates a new instance of BaseSystemService.
