@@ -1,32 +1,27 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/components"
-	"github.com/edward1christian/block-forge/pkg/application/system"
+	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/etl"
 	"github.com/edward1christian/block-forge/pkg/etl/process"
 )
 
-// BaseComponent represents a concrete implementation of the OperationInterface.
+// ProcessManagerService represents a service for managing ETL processes.
 type ProcessManagerService struct {
-	system.BaseSystemService // Embedding BaseComponent
-	manager                  process.ProcessManagerInterface
+	systemApi.BaseSystemService                                 // Embedding BaseComponent for component properties
+	manager                     process.ProcessManagerInterface // Process manager interface
+	system                      systemApi.SystemInterface       // System interface
 }
 
-// Type returns the type of the component.
-func (pms *ProcessManagerService) Type() components.ComponentType {
-	return components.ServiceType
-}
-
+// NewProcessManagerService creates a new instance of ProcessManagerService.
 func NewProcessManagerService(id, name, description string, manager process.ProcessManagerInterface) *ProcessManagerService {
 	return &ProcessManagerService{
-		manager: manager,
-
-		BaseSystemService: system.BaseSystemService{
-			BaseSystemComponent: system.BaseSystemComponent{
+		BaseSystemService: systemApi.BaseSystemService{
+			BaseSystemComponent: systemApi.BaseSystemComponent{
 				BaseComponent: components.BaseComponent{
 					Id:   id,
 					Nm:   name,
@@ -34,64 +29,58 @@ func NewProcessManagerService(id, name, description string, manager process.Proc
 				},
 			},
 		},
+		manager: manager,
 	}
 }
 
-// Initialize initializes the module.
-// Returns an error if the initialization fails.
-func (pms *ProcessManagerService) Initialize(ctx *context.Context, system system.SystemInterface) error {
-	pms.System = system
-	// Get the system configuration
+// Initialize initializes the ProcessManagerService.
+// It initializes ETL processes based on the configuration provided by the systemApi.
+func (pms *ProcessManagerService) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
+	pms.system = system
+
+	// Retrieve processes configuration from system configuration
 	config := system.Configuration()
-
-	// Retrieve the process definitions from the configuration
-	processesConfig := config.CustomConfig
-
-	// Check if the processes configuration is of type []interface{}
-	etlProcessesConfig, ok := processesConfig.([]*process.ETLProcessConfig)
+	processesConfig, ok := config.CustomConfig.([]*process.ETLProcessConfig)
 	if !ok {
-		return errors.New("processes configuration is not an array")
+		return etl.ErrInvalidProcessesConfig
 	}
 
 	// Iterate over each process configuration and initialize the corresponding ETL process
-	for _, etlProcessConfig := range etlProcessesConfig {
-
-		// Initialize the ETL process using the ETLManagerService method
+	for _, etlProcessConfig := range processesConfig {
 		_, err := pms.manager.InitializeProcess(ctx, etlProcessConfig)
 		if err != nil {
-			return fmt.Errorf("error initializing ETL process: %v", err)
+			return fmt.Errorf("failed to initialize ETL process: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// Start starts the component.
-// Returns an error if the start operation fails.
+// Start starts the ProcessManagerService.
+// It starts all initialized ETL processes.
 func (pms *ProcessManagerService) Start(ctx *context.Context) error {
-	// Iterate over each process and start it
 	for _, etlProcess := range pms.manager.GetAllProcesses() {
-
-		// Start the process
 		err := pms.manager.StartProcess(ctx, etlProcess.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to start ETL process: %w", err)
 		}
 	}
 	return nil
 }
 
-// Stop stops the component.
-// Returns an error if the stop operation fails.
+// Stop stops the ProcessManagerService.
+// It stops all running ETL processes.
 func (pms *ProcessManagerService) Stop(ctx *context.Context) error {
-	// Iterate over each process and start it
 	for _, etlProcess := range pms.manager.GetAllProcesses() {
-
-		// Start the process
 		err := pms.manager.StopProcess(ctx, etlProcess.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to stop ETL process: %w", err)
 		}
 	}
 	return nil
+}
+
+// Type returns the type of the component.
+func (pms *ProcessManagerService) Type() components.ComponentType {
+	return components.ServiceType
 }

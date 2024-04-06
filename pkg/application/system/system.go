@@ -69,7 +69,7 @@ type SystemInterface interface {
 	EventBus() event.EventBusInterface
 
 	// Configuration returns the system configuration.
-	Configuration() components.Configuration
+	Configuration() *components.Configuration
 
 	// ComponentRegistry returns the component registry
 	ComponentRegistry() components.ComponentRegistrar

@@ -42,7 +42,7 @@ func ProvideModuleManager(id string, name string, description string) appl.Modul
 func ProvideSystem(
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
-	configuration components.Configuration,
+	configuration *components.Configuration,
 	registrar components.ComponentRegistrar) system.SystemInterface {
 	return system.NewSystem(logger, eventBus, configuration, registrar)
 }

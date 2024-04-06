@@ -32,9 +32,9 @@ func (m *MockSystem) EventBus() event.EventBusInterface {
 }
 
 // Configuration provides a mock implementation of the Configuration method.
-func (m *MockSystem) Configuration() components.Configuration {
+func (m *MockSystem) Configuration() *components.Configuration {
 	args := m.Called()
-	return args.Get(0).(components.Configuration)
+	return args.Get(0).(*components.Configuration)
 }
 
 // ComponentRegistry provides a mock implementation of the ComponentRegistry method.

@@ -15,7 +15,7 @@ import (
 type SystemImpl struct {
 	SystemInterface
 	mutex         sync.RWMutex
-	configuration components.Configuration
+	configuration *components.Configuration
 	componentReg  components.ComponentRegistrar
 	logger        logger.LoggerInterface
 	eventBus      event.EventBusInterface
@@ -26,7 +26,7 @@ type SystemImpl struct {
 func NewSystem(
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
-	configuration components.Configuration,
+	configuration *components.Configuration,
 	componentReg components.ComponentRegistrar) *SystemImpl {
 	return &SystemImpl{
 		logger:        logger,
@@ -48,7 +48,7 @@ func (s *SystemImpl) EventBus() event.EventBusInterface {
 }
 
 // Configuration returns the system configuration.
-func (s *SystemImpl) Configuration() components.Configuration {
+func (s *SystemImpl) Configuration() *components.Configuration {
 	return s.configuration
 }
 
