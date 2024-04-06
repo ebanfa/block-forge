@@ -1,107 +1,102 @@
 # Blockchain ETL Package
 
-The Blockchain ETL Package is designed to provide tools for Extract, Transform, and Load (ETL) processes within blockchain applications. It offers functionalities to manage and execute ETL processes efficiently. This package is implemented in Golang and provides a set of interfaces and structures to facilitate the development of ETL pipelines tailored for blockchain data processing.
+This GoLang package provides functionality for managing and executing Extract, Transform, Load (ETL) processes in the context of blockchain data. It offers an interface for initializing, starting, stopping, restarting, and managing ETL processes.
 
-## Features
+## Table of Contents
 
-- **ETL Process Management**: Manage the lifecycle of ETL processes, including initialization, starting, stopping, restarting, and removal.
-- **Configuration Flexibility**: Configurable components and pipelines to adapt to various blockchain data processing requirements.
-- **Concurrent Access Handling**: Safely handle concurrent access to ETL processes with mutex locks.
-- **Extensible Interfaces**: Interfaces are provided for customization and extension according to specific application needs.
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Components
+## Overview
 
-### `ProcessManagerInterface`
-- Interface for managing and executing ETL processes.
-- Defines methods for initializing, starting, stopping, restarting, retrieving, and removing ETL processes.
+The package includes several key components:
 
-### `ProcessManagerServiceInterface`
-- Extends `ProcessManagerInterface` and `SystemServiceInterface`.
-- Represents a service for managing ETL processes within the application.
+- **Process Management**: Interfaces and implementations for managing ETL processes.
+- **ETL Process**: Structs and methods for representing individual ETL processes, including initialization, status tracking, and configuration.
+- **Scheduled ETL Process**: Structs and methods for scheduling ETL processes for execution at specific intervals.
+- **Process Manager Service**: Service for managing ETL processes, including initialization, starting, and stopping of processes.
+- **Pipeline Configuration**: Configuration for defining transformation pipelines.
 
-### `ETLProcessConfig`
-- Configuration structure for an ETL process, including components configuration.
+## Installation
 
-### `PipelineConfig`
-- Configuration structure for a transformation pipeline, including stages configuration.
+To install the package, you can use Go modules:
 
-### `ETLProcessStatus`
-- Enum type representing the status of an ETL process.
-
-### `ETLProcess`
-- Structure representing an individual ETL process, including its configuration and status.
-
-### `ProcessManagerService`
-- Service for managing ETL processes within the application.
-- Implements `ProcessManagerInterface` and `SystemServiceInterface`.
-
-### `ProcessManager`
-- Implementation of `ProcessManagerService`.
-- Manages the lifecycle of ETL processes, handling initialization, starting, stopping, and restarting.
+```bash
+go get github.com/edward1christian/block-forge/pkg/etl/process
+```
 
 ## Usage
 
-### Initialization
-```go
-// Initialize the ProcessManagerService
-processManager := process.NewProcessManagerService("id", "name", "description")
+Here's a basic example demonstrating how to use the package:
 
-// Initialize ETL processes based on the configuration provided by the system
-err := processManager.InitializeProcess(ctx, processConfig)
-if err != nil {
-    // Handle error
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/etl/process"
+)
+
+func main() {
+	// Initialize context and system
+	ctx := context.NewContext()
+	sys := system.NewSystem()
+
+	// Initialize process manager service
+	manager := process.NewProcessManagerService("1", "Process Manager", "Manages ETL processes")
+	pms := services.NewProcessManagerService("1", "Process Manager", "Manages ETL processes", manager)
+
+	// Initialize and start ETL processes
+	if err := pms.Initialize(ctx, sys); err != nil {
+		fmt.Println("Failed to initialize ETL processes:", err)
+		return
+	}
+	if err := pms.Start(ctx); err != nil {
+		fmt.Println("Failed to start ETL processes:", err)
+		return
+	}
+
+	// Stop ETL processes after a duration
+	time.Sleep(10 * time.Second)
+	if err := pms.Stop(ctx); err != nil {
+		fmt.Println("Failed to stop ETL processes:", err)
+		return
+	}
 }
 ```
 
-### Starting ETL Processes
-```go
-// Start all initialized ETL processes
-err := processManager.StartProcess(ctx, processID)
-if err != nil {
-    // Handle error
-}
-```
+## API Reference
 
-### Stopping ETL Processes
-```go
-// Stop all running ETL processes
-err := processManager.StopProcess(ctx,processID)
-if err != nil {
-    // Handle error
-}
-```
+### Interfaces
 
-### Retrieving ETL Processes
-```go
-// Get an ETL process by its ID
-etlProcess, err := processManager.GetProcess(processID)
-if err != nil {
-    // Handle error
-}
-```
+- **`ProcessManagerInterface`**: Interface for managing and executing ETL processes.
 
-### Retrieving ETL All Processes
-```go
-// Get an ETL process by its ID
-etlProcesses, err := processManager.GetAllProcesses()
-if err != nil {
-    // Handle error
-}
-```
+### Structs
 
-### Removing ETL Processes
-```go
-// Remove an ETL process by its ID
-err := processManager.RemoveProcess(processID)
-if err != nil {
-    // Handle error
-}
-```
+- **`ETLProcessConfig`**: Configuration for an ETL process, including component configurations.
+- **`PipelineConfig`**: Configuration for a transformation pipeline.
+- **`ETLProcessStatus`**: Enum representing the status of an ETL process.
+- **`ETLProcess`**: Struct representing an individual ETL process, including its ID, status, configuration, and instantiated components.
+
+### Services
+
+- **`ProcessManagerService`**: Service for managing ETL processes, implementing.
+- **`ProcessManager`**: Implementation of `ProcessManagerInterface`, providing methods for initializing, starting, stopping, and managing ETL processes.
+
+## Contributing
+
+Contributions to this package are welcome! Feel free to submit issues or pull requests.
+
+## License
+
+This package is licensed under the [MIT License](LICENSE).
 
 ---
-
-This README provides an overview of the Blockchain ETL Package, its components, features, and usage guidelines. For detailed documentation and examples, please refer to the source code and documentation comments.
-
-For any questions, issues, or contributions, feel free to contact the package maintainer.
-
---- 
