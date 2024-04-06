@@ -18,7 +18,7 @@ BlockForge is designed to foster the development of cutting-edge blockchain solu
 
 The following projects are currently hosted within the BlockForge monorepo:
 
-- **Necta**: An  ETL (Extract, Transform, Load) tool for blockchain data.
+- **Necta**: An  ETL (Extract, Transform, Load) tool for blockchain data. Necta can play a crucial role in ensuring data availability and accessibility when dealing with parent and child blockchains
 - **Nova**: A blockchain building tool that enables rapid scaffolding of Cosmos SDK-based blockchains.
 
 Additional projects, such as a decentralized bridge, a decentralized business process management blockchain, and a ZK Rollup chain, are planned for future development within the monorepo.
@@ -77,6 +77,3 @@ Please make sure to follow our [Code of Conduct](CODE_OF_CONDUCT.md) and [Contri
 
 BlockForge is licensed under the [MIT License](LICENSE).
 
----
-
-This README provides an overview of the BlockForge monorepo, lists the current projects, guides users on how to get started, outlines the contribution process, and specifies the license. It follows best practices by including a table of contents, clear sections, and placeholders for additional documentation (e.g., Code of Conduct, Contributing Guidelines).

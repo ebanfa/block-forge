@@ -17,7 +17,6 @@ The package includes several key components:
 
 - **Process Management**: Interfaces and implementations for managing ETL processes.
 - **ETL Process**: Structs and methods for representing individual ETL processes, including initialization, status tracking, and configuration.
-- **Scheduled ETL Process**: Structs and methods for scheduling ETL processes for execution at specific intervals.
 - **Process Manager Service**: Service for managing ETL processes, including initialization, starting, and stopping of processes.
 - **Pipeline Configuration**: Configuration for defining transformation pipelines.
 
@@ -77,6 +76,15 @@ func main() {
 
 ### Interfaces
 
+The `ProcessManagerInterface` interface defines methods for managing ETL processes:
+
+- `InitializeProcess`: Initializes an ETL process with the provided configuration.
+- `StartProcess`: Starts the ETL process with the given ID.
+- `StopProcess`: Stops the ETL process with the given ID.
+- `RestartProcess`: Restarts the ETL process with the given ID.
+- `GetProcess`: Retrieves an ETL process by its ID.
+- `GetAllProcesses`: Retrieves all ETL processes.
+- `RemoveProcess`: Removes a scheduled ETL process by its ID.
 - **`ProcessManagerInterface`**: Interface for managing and executing ETL processes.
 
 ### Structs
@@ -100,3 +108,8 @@ Contributions to this package are welcome! Feel free to submit issues or pull re
 This package is licensed under the [MIT License](LICENSE).
 
 ---
+
+
+
+
+
