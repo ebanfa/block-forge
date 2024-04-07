@@ -26,10 +26,13 @@ const (
 type ComponentInterface interface {
 	// ID returns the unique identifier of the component.
 	ID() string
+
 	// Name returns the name of the component.
 	Name() string
+
 	// Type returns the type of the component.
 	Type() ComponentType
+
 	// Description returns the description of the component.
 	Description() string
 }
