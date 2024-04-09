@@ -32,7 +32,7 @@ To get started with BlockForge, follow these steps:
 2. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-username/blockforge.git
+   git clone https://github.com/ebanfa/block-forge.git
    ```
 
 3. **Navigate to the monorepo directory**:
