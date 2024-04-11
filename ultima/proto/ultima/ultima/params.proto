@@ -1,0 +1,15 @@
+syntax = "proto3";
+package ultima.ultima;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "ultima/x/ultima/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "ultima/x/ultima/Params";
+  option (gogoproto.equal) = true;
+
+  
+}
