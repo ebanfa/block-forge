@@ -1,0 +1,17 @@
+syntax = "proto3";
+package davail.davail;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "davail/davail/params.proto";
+
+option go_package = "davail/x/davail/types";
+
+// GenesisState defines the davail module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
