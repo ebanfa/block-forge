@@ -18,10 +18,18 @@ BlockForge is designed to foster the development of cutting-edge blockchain solu
 
 The following projects are currently hosted within the BlockForge monorepo:
 
-- **Necta**: An  ETL (Extract, Transform, Load) tool for blockchain data. Necta can play a crucial role in ensuring data availability and accessibility when dealing with parent and child blockchains
+- **Davail**: The Data Availability Service chain dedicated to providing a reliable and decentralized platform for storing and managing blockchain datam. Davail offers data availability and accessibility services to other blockchains.
+
+- **Cipher**: The Data Encoder Service chain responsible for data encoding functionalities and preprocess data before storing it in the Davail Chain. Cipher provides data encoding services to ensure data security and efficiency for other blockchains.
+
+- **Ultima**: The Settlement Service chain serving as a settlement layer for transactions and payments facilitating a secure and transparent settlement processes between participants in the network. Ultima offers settlement services to facilitate transactions between other blockchains.
+
+- **Necta**: An ETL (Extract, Transform, Load) tool for blockchain data.
+
 - **Nova**: A blockchain building tool that enables rapid scaffolding of Cosmos SDK-based blockchains.
 
 Additional projects, such as a decentralized bridge, a decentralized business process management blockchain, and a ZK Rollup chain, are planned for future development within the monorepo.
+
 
 ## Getting Started
 
