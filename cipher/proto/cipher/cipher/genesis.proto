@@ -1,0 +1,17 @@
+syntax = "proto3";
+package cipher.cipher;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "cipher/cipher/params.proto";
+
+option go_package = "cipher/x/cipher/types";
+
+// GenesisState defines the cipher module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
