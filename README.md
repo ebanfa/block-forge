@@ -16,13 +16,13 @@ BlockForge is designed to foster the development of cutting-edge blockchain solu
 
 ## Projects
 
-The following projects are currently hosted within the BlockForge monorepo:
+The following projects are currently under development within the BlockForge monorepo:
 
-- **Davail**: The Data Availability Service chain dedicated to providing a reliable and decentralized platform for storing and managing blockchain datam. Davail offers data availability and accessibility services to other blockchains.
+- **Davail**: A decentralized data availability service dedicated to providing a reliable and decentralized platform for storing and managing blockchain data. Davail offers data availability and accessibility services to other blockchains.
 
-- **Cipher**: The Data Encoder Service chain responsible for data encoding functionalities and preprocess data before storing it in the Davail Chain. Cipher provides data encoding services to ensure data security and efficiency for other blockchains.
+- **Cipher**: A decentralized data encoder service responsible for data encoding functionalities and preprocess data before storing it in the Davail chain. Cipher provides data encoding services to ensure data security and efficiency for other blockchains.
 
-- **Ultima**: The Settlement Service chain serving as a settlement layer for transactions and payments facilitating a secure and transparent settlement processes between participants in the network. Ultima offers settlement services to facilitate transactions between other blockchains.
+- **Ultima**: A decentralized settlement service serving as a settlement layer for transactions and payments facilitating a secure and transparent settlement processes between participants in the network. Ultima offers settlement services to facilitate transactions between other blockchains.
 
 - **Necta**: An ETL (Extract, Transform, Load) tool for blockchain data.
 
