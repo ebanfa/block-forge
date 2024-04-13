@@ -6,51 +6,48 @@ import (
 	"github.com/klauspost/reedsolomon"
 )
 
-// Options contains common configuration options.
-type Options struct {
-	// Reed-Solomon code parameters
-	DataSegments   int // Number of data segments
-	ParitySegments int // Number of parity segments
-
-	// Other configuration options
-	// Add fields as needed
-}
-
-// EncoderOptions contains configuration options for the encoder.
-type EncoderOptions struct {
-	Options
-	// Add encoder-specific configuration options if needed
-}
-
-// DecoderOptions contains configuration options for the decoder.
-type DecoderOptions struct {
-	Options
-	// Add decoder-specific configuration options if needed
-}
-
-// Encoder is an interface that defines the operations for encoding and decoding data
+// ReedSolomonEncoderInterface is an interface that defines the operations for encoding and decoding data
 // using the Reed-Solomon error-correcting code.
 type ReedSolomonEncoderInterface interface {
 	// Encode takes the input data and encodes it using the Reed-Solomon algorithm,
 	// returning the encoded data segments and parity segments.
 	// The number of data segments is k, and the number of parity segments is (n - k),
 	// where n is the total number of segments.
-	// The `options` parameter allows passing additional configuration options to the encoder.
-	Encode(data []byte, options *EncoderOptions) (dataSegments, paritySegments [][]byte, err error)
+	Encode(data []byte) (dataSegments, paritySegments [][]byte, err error)
 
 	// Decode takes the encoded data segments and parity segments and decodes the
 	// original data, even if some of the segments are missing or corrupted.
-	// The `options` parameter allows passing additional configuration options to the decoder.
-	Decode(dataSegments, paritySegments [][]byte, options *DecoderOptions) ([]byte, error)
+	Decode(dataSegments, paritySegments [][]byte) ([]byte, error)
+
+	// Split splits the input data into segments of equal size, suitable for encoding.
+	// The size of each segment is determined based on the total size of the data and
+	// the number of data and parity segments required for encoding.
+	Split(data []byte) ([][]byte, error)
 }
 
 // ReedSolomonEncoder implements the Encoder interface using the github.com/klauspost/reedsolomon package.
-type ReedSolomonEncoder struct{}
+type ReedSolomonEncoder struct {
+	dataShards   int // Number of data shards
+	parityShards int // Number of parity shards
+	enc          reedsolomon.Encoder
+}
+
+func NewReedSolomonEncoder(dataShards, parityShards int) (ReedSolomonEncoderInterface, error) {
+	enc, err := reedsolomon.New(dataShards, parityShards)
+	if err != nil {
+		return nil, err
+	}
+	return &ReedSolomonEncoder{
+		enc:          enc,
+		dataShards:   dataShards,
+		parityShards: parityShards,
+	}, nil
+}
 
 // Encode encodes the input data using the Reed-Solomon algorithm.
-func (r *ReedSolomonEncoder) Encode(data []byte, options *EncoderOptions) (dataSegments, paritySegments [][]byte, err error) {
+func (r *ReedSolomonEncoder) Encode(data []byte) (dataSegments, paritySegments [][]byte, err error) {
 	// Create encoding matrix.
-	enc, err := reedsolomon.New(options.DataSegments, options.ParitySegments)
+	enc, err := reedsolomon.New(r.dataShards, r.parityShards)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -65,15 +62,16 @@ func (r *ReedSolomonEncoder) Encode(data []byte, options *EncoderOptions) (dataS
 	if err := enc.Encode(shards); err != nil {
 		return nil, nil, err
 	}
-
+	fmt.Printf("Shards %d, %d, %d", len(shards), len(shards[:r.dataShards]), len(shards[r.dataShards:]))
 	// Return the encoded data segments and parity segments.
-	return shards[:options.DataSegments], shards[options.DataSegments:], nil
+	//return shards[:r.dataShards], shards[r.parityShards:], nil
+	return shards[:r.dataShards], shards[r.dataShards:], nil
 }
 
 // Decode takes the encoded data segments and parity segments and decodes the data
-func (r *ReedSolomonEncoder) Decode(dataSegments, paritySegments [][]byte, options *DecoderOptions) ([]byte, error) {
+func (r *ReedSolomonEncoder) Decode(dataSegments, paritySegments [][]byte) ([]byte, error) {
 	// Create decoder with the specified number of data and parity shards.
-	dec, err := reedsolomon.New(options.DataSegments, options.ParitySegments)
+	dec, err := reedsolomon.New(r.dataShards, r.parityShards)
 	if err != nil {
 		return nil, err
 	}
@@ -93,4 +91,14 @@ func (r *ReedSolomonEncoder) Decode(dataSegments, paritySegments [][]byte, optio
 	}
 
 	return decodedData, nil
+}
+
+// Split a data slice into the number of shards given to the encoder,
+// and create empty parity shards if necessary.
+func (r *ReedSolomonEncoder) Split(data []byte) ([][]byte, error) {
+	dataShards, err := r.enc.Split(data)
+	if err != nil {
+		return nil, err
+	}
+	return dataShards, nil
 }
