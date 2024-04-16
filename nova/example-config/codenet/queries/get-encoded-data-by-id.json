@@ -1,0 +1,11 @@
+{
+    "name": "get-encoded-data-by-id",
+    "description": "Queries encoded data by its unique identifier in the DEX module.",
+    "fields": [
+        {
+            "name": "encodedDataId",
+            "type": "uint",
+            "description": "The unique identifier of the encoded data to retrieve."
+        }
+    ]
+}

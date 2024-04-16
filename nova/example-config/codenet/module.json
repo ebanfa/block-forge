@@ -1,0 +1,11 @@
+{
+    "name": "dex",
+    "ibc": true,
+    "dependencies": [
+        "account",
+        "bank"
+    ],
+    "entityConfigDir": "dex/entities",
+    "messageConfigDir": "dex/messages",
+    "queryConfigDir": "dex/queries"
+}

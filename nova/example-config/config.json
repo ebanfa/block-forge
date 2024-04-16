@@ -1,0 +1,10 @@
+{
+    "name": "bitscale",
+    "frontends": ["vue"],
+    "coins": [],
+    "abciHandlers": [],
+    "modules": [
+        "dex",
+        "other_module"
+    ]
+}

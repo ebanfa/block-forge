@@ -1,0 +1,56 @@
+{
+    "name": "encoded-data",
+    "description": "Represents encoded data.",
+    "fields": [
+        {
+            "name": "dataSegments",
+            "type": "uint",
+            "description": "The number of data segments."
+        },
+        {
+            "name": "paritySegments",
+            "type": "uint",
+            "description": "The number of parity segments."
+        },
+        {
+            "name": "encodingProof",
+            "type": "uints",
+            "description": "Proof of encoding."
+        },
+        {
+            "name": "timestamp",
+            "type": "uint",
+            "description": "The timestamp when the data was encoded."
+        },
+        {
+            "name": "creator",
+            "type": "string",
+            "description": "The creator of the encoded data."
+        },
+        {
+            "name": "encodedDataID",
+            "type": "uint",
+            "description": "The unique identifier for the encoded data."
+        },
+        {
+            "name": "encodingAlgorithm",
+            "type": "string",
+            "description": "The algorithm used for encoding."
+        },
+        {
+            "name": "dataSize",
+            "type": "uint",
+            "description": "The size of the encoded data."
+        },
+        {
+            "name": "checksum",
+            "type": "string",
+            "description": "The checksum for data integrity."
+        },
+        {
+            "name": "version",
+            "type": "uint",
+            "description": "The version of the encoding format."
+        }
+    ]
+}
