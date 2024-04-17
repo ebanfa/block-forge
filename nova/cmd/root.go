@@ -7,15 +7,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/edward1christian/block-forge/nova/internal"
 	"github.com/spf13/cobra"
 )
 
 var (
-	force      bool
-	debug      bool
-	verbose    bool
-	configFile string
-	outputDir  string
+	force          bool
+	debug          bool
+	verbose        bool
+	configFilePath string
+	outputDir      string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -32,6 +33,11 @@ var rootCmd = &cobra.Command{
 		fmt.Println("start called")
 		//internal.Init()
 		//application.Init(appConfigFile)
+		internal.Init(&internal.InitOptions{
+			Debug:          debug,
+			Verbose:        verbose,
+			ConfigFilePath: configFilePath,
+		})
 	},
 }
 
@@ -53,7 +59,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().StringVarP(&configFile, "config", "c", "", "Specify the path to the configuration file")
+	rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
 	rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Specify the output directory for generated files")
 	rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force overwrite of existing files in the output directory")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
