@@ -10,16 +10,41 @@ import (
 	"path/filepath"
 	"plugin"
 
-	"github.com/edward1christian/block-forge/pkg/application/appl"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 )
+
+// PluginManager represents functionality for managing plugins.
+type PluginManagerInterface interface {
+
+	// AddPlugin adds a plugin to the plugin manager.
+	AddPlugin(plugin PluginInterface) error
+
+	// RemovePlugin removes a plugin from the plugin manager.
+	RemovePlugin(name string) error
+
+	// GetPlugin returns the plugin with the given name.
+	GetPlugin(name string) (PluginInterface, error)
+
+	// StartPlugins starts all plugins managed by the plugin manager.
+	StartPlugins(ctx context.Context) error
+
+	// StopPlugins stops all plugins managed by the plugin manager.
+	StopPlugins(ctx context.Context) error
+
+	// DiscoverPlugins discovers available plugins within the system.
+	DiscoverPlugins(ctx context.Context) ([]PluginInterface, error)
+
+	// LoadRemotePlugin loads a plugin from a remote source.
+	LoadRemotePlugin(ctx context.Context, pluginURL string) (PluginInterface, error)
+}
 
 // PluginManagerModule is a module that manages plugins in the system.
 type PluginManagerModule struct {
 	id          string
 	name        string
 	description string
-	plugins     map[string]Plugin
+	plugins     map[string]PluginInterface
 	mu          sync.RWMutex
 	started     bool
 }
@@ -30,7 +55,7 @@ func NewPluginManagerModule(id, name, description string) *PluginManagerModule {
 		id:          id,
 		name:        name,
 		description: description,
-		plugins:     make(map[string]Plugin),
+		plugins:     make(map[string]PluginInterface),
 	}
 }
 
@@ -90,7 +115,7 @@ func (m *PluginManagerModule) Stop(ctx *context.Context) error {
 }
 
 // Initialize initializes the module with the given context and application instance.
-func (m *PluginManagerModule) Initialize(ctx *context.Context, app appl.ApplicationInterface) error {
+func (m *PluginManagerModule) Initialize(ctx *context.Context, sys system.SystemInterface) error {
 	// Discover and load plugins
 	plugins, err := m.DiscoverPlugins(ctx)
 	if err != nil {
@@ -99,7 +124,7 @@ func (m *PluginManagerModule) Initialize(ctx *context.Context, app appl.Applicat
 
 	for _, plugin := range plugins {
 		// Initialize the plugin
-		if err := plugin.Initialize(ctx, app.System()); err != nil {
+		if err := plugin.Initialize(ctx, sys); err != nil {
 			return err
 		}
 
@@ -113,7 +138,7 @@ func (m *PluginManagerModule) Initialize(ctx *context.Context, app appl.Applicat
 }
 
 // AddPlugin adds a plugin to the plugin manager.
-func (m *PluginManagerModule) AddPlugin(plugin Plugin) error {
+func (m *PluginManagerModule) AddPlugin(plugin PluginInterface) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -139,7 +164,7 @@ func (m *PluginManagerModule) RemovePlugin(id string) error {
 }
 
 // GetPlugin returns the plugin with the given id.
-func (m *PluginManagerModule) GetPlugin(id string) (Plugin, error) {
+func (m *PluginManagerModule) GetPlugin(id string) (PluginInterface, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -167,8 +192,8 @@ type PluginManagerModuleConfig struct {
 	RemotePlugins []string `json:"remote_plugins"`
 }
 
-func (m *PluginManagerModule) DiscoverPlugins(ctx *context.Context) ([]Plugin, error) {
-	var plugins []Plugin
+func (m *PluginManagerModule) DiscoverPlugins(ctx *context.Context) ([]PluginInterface, error) {
+	var plugins []PluginInterface
 
 	// Get the module configuration
 	config, err := m.getModuleConfig()
@@ -212,7 +237,7 @@ func (m *PluginManagerModule) DiscoverPlugins(ctx *context.Context) ([]Plugin, e
 	return plugins, nil
 }
 
-func (m *PluginManagerModule) LoadRemotePlugin(ctx *context.Context, pluginURL string) (Plugin, error) {
+func (m *PluginManagerModule) LoadRemotePlugin(ctx *context.Context, pluginURL string) (PluginInterface, error) {
 	// Download the compressed plugin archive
 	resp, err := http.Get(pluginURL)
 	if err != nil {
@@ -252,7 +277,7 @@ func (m *PluginManagerModule) getModuleConfig() (interface{}, error) {
 	}, nil
 }
 
-func (m *PluginManagerModule) loadPlugin(pluginPath string) (Plugin, error) {
+func (m *PluginManagerModule) loadPlugin(pluginPath string) (PluginInterface, error) {
 	// Load the plugin using the Go plugin system
 	plug, err := plugin.Open(pluginPath)
 	if err != nil {
@@ -266,7 +291,7 @@ func (m *PluginManagerModule) loadPlugin(pluginPath string) (Plugin, error) {
 	}
 
 	// Create an instance of the plugin
-	pluginFactory, ok := symPlugin.(func() (Plugin, error))
+	pluginFactory, ok := symPlugin.(func() (PluginInterface, error))
 	if !ok {
 		return nil, errors.New("invalid plugin factory function")
 	}

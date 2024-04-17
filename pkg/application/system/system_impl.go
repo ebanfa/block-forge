@@ -59,24 +59,8 @@ func (s *SystemImpl) ComponentRegistry() components.ComponentRegistrar {
 
 // Initialize initializes the system component by executing the initialize operation.
 func (s *SystemImpl) Initialize(ctx *context.Context) error {
+	// Override this function to customize system initialization
 
-	config := s.configuration
-
-	if s.status != SystemStoppedType {
-		return ErrSystemNotStopped
-	}
-
-	for _, serviceConfig := range config.Services {
-		if err := s.InitializeService(ctx, serviceConfig); err != nil {
-			return fmt.Errorf("failed to initialize service %s: %w", serviceConfig.Name, err)
-		}
-	}
-
-	for _, operationConfig := range config.Operations {
-		if err := s.InitializeOperation(ctx, operationConfig); err != nil {
-			return fmt.Errorf("failed to initialize operation %s: %w", operationConfig.Name, err)
-		}
-	}
 	s.status = SystemInitializedType
 
 	return nil

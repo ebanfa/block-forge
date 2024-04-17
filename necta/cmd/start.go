@@ -3,13 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/edward1christian/block-forge/pkg/application"
 	"github.com/spf13/cobra"
 )
 
 var (
-	appConfigFile       string
-	frameworkConfigFile string
+	appConfigFile string
 )
 
 // startCmd represents the start command
@@ -25,12 +23,11 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("start called")
 		//internal.Init()
-		application.Init(appConfigFile, frameworkConfigFile)
+		//application.Init(appConfigFile)
 	},
 }
 
 func init() {
-	startCmd.Flags().StringVar(&frameworkConfigFile, "framework-config", "f", "Path to the framework configuration file (optional)")
 	startCmd.Flags().StringVar(&appConfigFile, "app-config", "a", "Path to the application configuration file")
 
 	// Mark the "app-config" flag as required

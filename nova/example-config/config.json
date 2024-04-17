@@ -1,10 +1,9 @@
 {
-    "name": "bitscale",
+    "name": "codenet",
     "frontends": ["vue"],
     "coins": [],
     "abciHandlers": [],
     "modules": [
-        "dex",
-        "other_module"
+        "codenet"
     ]
 }
