@@ -60,14 +60,19 @@ func ProvideEventBus() event.EventBusInterface {
 	return event.NewSystemEventBus()
 }
 
-// ProvidComponentRegistrar provides a component registrar interface.
-func ProvidComponentRegistrar() components.ComponentRegistrar {
-	return components.NewComponentRegistrar()
-}
-
 // ProvideLogger provides a logger interface.
 func ProvideLogger() logger.LoggerInterface {
 	return logger.NewLogrusLogger()
+}
+
+// ProvidComponentRegistrar provides a component registrar interface.
+func ProvidPluginManager() system.PluginManagerInterface {
+	return system.NewPluginManager()
+}
+
+// ProvidComponentRegistrar provides a component registrar interface.
+func ProvidComponentRegistrar() components.ComponentRegistrar {
+	return components.NewComponentRegistrar()
 }
 
 // ProvideSystem provides a system interface.
@@ -76,24 +81,34 @@ func ProvideSystem(
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
+	pluginManager system.PluginManagerInterface,
 	registrar components.ComponentRegistrar) system.SystemInterface {
 
-	sys := system.NewSystem(logger, eventBus, configuration, registrar)
+	sys := system.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			contx := contextApi.WithContext(ctx)
-			err := sys.Initialize(contx)
-			if err != nil {
-				return err
-			}
-
-			return sys.Start(contx)
-		},
-		OnStop: func(ctx context.Context) error {
-			contx := contextApi.WithContext(ctx)
-			return sys.Stop(contx)
-		},
+		OnStart: OnStart(sys),
+		OnStop:  OnStop(sys),
 	})
 	return sys
+}
+
+func OnStart(sys system.SystemInterface) func(ctx context.Context) error {
+	return func(ctx context.Context) error {
+		contx := contextApi.WithContext(ctx)
+		err := sys.Initialize(contx)
+		sys.PluginManager().AddPlugin(NewNovaPlugin())
+		if err != nil {
+			return err
+		}
+
+		return sys.Start(contx)
+	}
+}
+
+func OnStop(sys system.SystemInterface) func(ctx context.Context) error {
+	return func(ctx context.Context) error {
+		contx := contextApi.WithContext(ctx)
+		return sys.Stop(contx)
+	}
 }

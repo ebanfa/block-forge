@@ -1,8 +1,10 @@
 package application
 
 import (
+	"context"
 	"fmt"
 
+	contextApi "github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/components"
@@ -63,9 +65,29 @@ func ProvideLogger() logger.LoggerInterface {
 
 // ProvideSystem provides a system interface.
 func ProvideSystem(
+	lc fx.Lifecycle,
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
-	configuration *components.Configuration,
+	configuration *config.Configuration,
+	pluginManager system.PluginManagerInterface,
 	registrar components.ComponentRegistrar) system.SystemInterface {
-	return system.NewSystem(logger, eventBus, configuration, registrar)
+
+	sys := system.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			contx := contextApi.WithContext(ctx)
+			err := sys.Initialize(contx)
+			if err != nil {
+				return err
+			}
+
+			return sys.Start(contx)
+		},
+		OnStop: func(ctx context.Context) error {
+			contx := contextApi.WithContext(ctx)
+			return sys.Stop(contx)
+		},
+	})
+	return sys
 }

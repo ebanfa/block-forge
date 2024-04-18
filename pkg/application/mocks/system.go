@@ -5,6 +5,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/components"
+	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,15 +33,21 @@ func (m *MockSystem) EventBus() event.EventBusInterface {
 }
 
 // Configuration provides a mock implementation of the Configuration method.
-func (m *MockSystem) Configuration() *components.Configuration {
+func (m *MockSystem) Configuration() *configApi.Configuration {
 	args := m.Called()
-	return args.Get(0).(*components.Configuration)
+	return args.Get(0).(*configApi.Configuration)
 }
 
 // ComponentRegistry provides a mock implementation of the ComponentRegistry method.
 func (m *MockSystem) ComponentRegistry() components.ComponentRegistrar {
 	args := m.Called()
 	return args.Get(0).(components.ComponentRegistrar)
+}
+
+// PluginManager provides a mock implementation of the PluginManager method.
+func (m *MockSystem) PluginManager() system.PluginManagerInterface {
+	args := m.Called()
+	return args.Get(0).(system.PluginManagerInterface)
 }
 
 // Initialize provides a mock implementation of the Initialize method.

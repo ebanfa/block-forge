@@ -6,6 +6,7 @@ import (
 
 	"github.com/edward1christian/block-forge/pkg/application/components"
 	componentsApi "github.com/edward1christian/block-forge/pkg/application/components"
+	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,7 +23,7 @@ func TestRegisterComponent_Success(t *testing.T) {
 	mockComponent.On("Type").Return(components.OperationType)
 	mockFactory.On("CreateComponent", mock.Anything).Return(mockComponent, nil)
 
-	config := &componentsApi.ComponentConfig{
+	config := &configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "factory_name",
 	}
@@ -41,7 +42,7 @@ func TestRegisterComponent_Success(t *testing.T) {
 func TestRegisterComponent_Failure_FactoryNotFound(t *testing.T) {
 	registrar := componentsApi.NewComponentRegistrar()
 
-	config := &componentsApi.ComponentConfig{
+	config := &configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "nonexistent_factory",
 	}
@@ -68,7 +69,7 @@ func TestGetComponent_Success(t *testing.T) {
 	err := registrar.RegisterFactory("factory_name", mockFactory)
 	assert.NoError(t, err)
 
-	err = registrar.RegisterComponent(&componentsApi.ComponentConfig{
+	err = registrar.RegisterComponent(&configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "factory_name",
 	})
@@ -107,32 +108,17 @@ func TestGetComponentByType_Success(t *testing.T) {
 	err := registrar.RegisterFactory("factory_name", mockFactory)
 	assert.NoError(t, err)
 
-	err = registrar.RegisterComponent(&componentsApi.ComponentConfig{
+	err = registrar.RegisterComponent(&configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "factory_name",
 	})
 	assert.NoError(t, err)
 
 	// Retrieve components by type
-	components, err := registrar.GetComponentByType(componentsApi.OperationType)
+	components := registrar.GetComponentByType(componentsApi.OperationType)
 
-	assert.NoError(t, err)
 	assert.Len(t, components, 1)
 	assert.Equal(t, mockComponent, components[0])
-}
-
-// TestGetComponentByType_Failure_NotFound tests failure when components by type are not found.
-func TestGetComponentByType_Failure_NotFound(t *testing.T) {
-	registrar := componentsApi.NewComponentRegistrar()
-
-	// Attempt to retrieve components by an nonexistent type
-	components, err := registrar.GetComponentByType(componentsApi.ComponentType(0))
-
-	expectedErrorMessage := "components not found of type"
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), expectedErrorMessage)
-	assert.Nil(t, components)
 }
 
 // TestRegisterFactory_Success tests successful registration of a factory.
@@ -176,7 +162,7 @@ func TestUnregisterComponent_Success(t *testing.T) {
 	err := registrar.RegisterFactory("factory_name", mockFactory)
 	assert.NoError(t, err)
 
-	err = registrar.RegisterComponent(&componentsApi.ComponentConfig{
+	err = registrar.RegisterComponent(&configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "factory_name",
 	})
@@ -240,7 +226,7 @@ func TestGetAllComponents(t *testing.T) {
 	err := registrar.RegisterFactory("factory_name", mockFactory)
 	assert.NoError(t, err)
 
-	err = registrar.RegisterComponent(&componentsApi.ComponentConfig{
+	err = registrar.RegisterComponent(&configApi.ComponentConfig{
 		ID:          "component_id",
 		FactoryName: "factory_name",
 	})

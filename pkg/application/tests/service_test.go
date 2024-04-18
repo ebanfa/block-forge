@@ -36,7 +36,7 @@ func TestBaseSystemService_Type(t *testing.T) {
 	componentType := service.Type()
 
 	// Check if the returned component type matches the expected value
-	assert.Equal(t, components.BasicComponentType, componentType)
+	assert.Equal(t, components.ServiceType, componentType)
 }
 
 // TestBaseSystemService_ImplementingInterface tests if BaseSystemService implements the StartableInterface.
@@ -57,10 +57,7 @@ func TestBaseSystemService_Initialize(t *testing.T) {
 	err := service.Initialize(mockContext, nil)
 
 	// Check if an error is returned
-	assert.Error(t, err)
-
-	// Check if the error message matches the expected value
-	assert.EqualError(t, err, "initialize not implemented")
+	assert.NoError(t, err)
 }
 
 // TestBaseSystemService_Start tests the Start method of BaseSystemService.

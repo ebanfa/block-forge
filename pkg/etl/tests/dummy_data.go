@@ -56,20 +56,8 @@ func DummySystemConfiguration() *components.Configuration {
 		// Add other operation-specific configuration options if needed
 	}
 
-	// Dummy logger configuration
-	loggerConfig := components.LoggerConfiguration{
-		Level:  "info",
-		Format: "json",
-		// Add other logger configuration options if needed
-	}
-
-	// Dummy event bus configuration
-	eventBusConfig := components.EventBusConfiguration{}
-
 	// Create and return the dummy configuration
 	return &components.Configuration{
-		Logger:       loggerConfig,
-		EventBus:     eventBusConfig,
 		Services:     []*components.ServiceConfiguration{serviceConfig},
 		Operations:   []*components.OperationConfiguration{operationConfig},
 		CustomConfig: DummyProcessConfiguration(), // Add custom configuration if needed

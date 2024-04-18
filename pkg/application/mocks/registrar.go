@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/components"
+	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,7 +12,7 @@ type MockComponentRegistrar struct {
 }
 
 // RegisterComponent mocks the RegisterComponent method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) RegisterComponent(config *components.ComponentConfig) error {
+func (m *MockComponentRegistrar) RegisterComponent(config *configApi.ComponentConfig) error {
 	args := m.Called(config)
 	return args.Error(0)
 }
@@ -23,9 +24,9 @@ func (m *MockComponentRegistrar) GetComponent(id string) (components.ComponentIn
 }
 
 // GetComponentByType mocks the GetComponentByType method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetComponentByType(componentType components.ComponentType) ([]components.ComponentInterface, error) {
+func (m *MockComponentRegistrar) GetComponentByType(componentType components.ComponentType) []components.ComponentInterface {
 	args := m.Called(componentType)
-	return args.Get(0).([]components.ComponentInterface), args.Error(1)
+	return args.Get(0).([]components.ComponentInterface)
 }
 
 // RegisterFactory mocks the RegisterFactory method of ComponentRegistrarImpl.

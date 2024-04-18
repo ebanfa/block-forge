@@ -78,8 +78,5 @@ func TestBaseSystemOperation_Initialize(t *testing.T) {
 	err := operation.Initialize(mockContext, nil)
 
 	// Check if an error is returned
-	assert.Error(t, err)
-
-	// Check if the error message matches the expected value
-	assert.EqualError(t, err, "initialize not implemented")
+	assert.NoError(t, err)
 }

@@ -57,8 +57,6 @@ func TestBaseSystemComponent_Initialize(t *testing.T) {
 	err := component.Initialize(mockContext, nil)
 
 	// Check if an error is returned
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
-	// Check if the error message matches the expected value
-	assert.EqualError(t, err, "initialize not implemented")
 }
