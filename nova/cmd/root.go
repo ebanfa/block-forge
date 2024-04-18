@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/edward1christian/block-forge/nova/internal"
+	"github.com/edward1christian/block-forge/nova/pkg/internal"
 	"github.com/spf13/cobra"
 )
 
