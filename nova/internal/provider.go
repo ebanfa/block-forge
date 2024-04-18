@@ -97,7 +97,7 @@ func OnStart(sys system.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
 		err := sys.Initialize(contx)
-		sys.PluginManager().AddPlugin(NewNovaPlugin())
+		sys.PluginManager().AddPlugin(contx, NewNovaPlugin())
 		if err != nil {
 			return err
 		}
