@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/edward1christian/block-forge/nova/pkg/internal"
+	provider "github.com/edward1christian/block-forge/nova/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println("start called")
 		//internal.Init()
 		//application.Init(appConfigFile)
-		internal.Init(&internal.InitOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:          debug,
 			Verbose:        verbose,
 			ConfigFilePath: configFilePath,

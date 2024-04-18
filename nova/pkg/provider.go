@@ -1,9 +1,10 @@
-package internal
+package provider
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/edward1christian/block-forge/nova/pkg/plugin"
 	contextApi "github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
@@ -97,7 +98,7 @@ func OnStart(sys system.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
 		err := sys.Initialize(contx)
-		sys.PluginManager().AddPlugin(contx, NewNovaPlugin())
+		sys.PluginManager().AddPlugin(contx, plugin.NewNovaPlugin())
 		if err != nil {
 			return err
 		}
