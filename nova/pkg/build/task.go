@@ -1,4 +1,4 @@
-package internal
+package build
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/system"
