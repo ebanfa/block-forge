@@ -56,7 +56,7 @@ func (bs *BuildStage) GetTasks() []BuildTaskInterface {
 // ExecuteTasks executes all tasks within the stage.
 func (bs *BuildStage) ExecuteTasks(ctx *context.Context) error {
 	for _, task := range bs.Tasks {
-		_, err := task.Execute(ctx, &system.OperationInput{})
+		_, err := task.Execute(ctx, &system.SystemOperationInput{})
 		if err != nil {
 			return err
 		}

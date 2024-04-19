@@ -7,7 +7,7 @@ type ComponentConfig struct {
 	ID           string      `json:"id"`
 	Name         string      `json:"name"`
 	Description  string      `json:"description"`
-	FactoryName  string      // Name of the factory to use for creating the service
+	FactoryID    string      `json:"factoryId"`
 	CustomConfig interface{} // Custom configuration
 }
 

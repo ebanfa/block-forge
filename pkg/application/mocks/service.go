@@ -4,13 +4,12 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
-	"github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // MockSystemService represents a mock for the SystemService interface.
 type MockSystemService struct {
-	system.SystemServiceInterface
 	mock.Mock
 }
 
@@ -33,13 +32,13 @@ func (m *MockSystemService) Description() string {
 }
 
 // Description returns the description of the component.
-func (m *MockSystemService) Type() components.ComponentType {
+func (m *MockSystemService) Type() component.ComponentType {
 	args := m.Called()
-	return args.Get(0).(components.ComponentType)
+	return args.Get(0).(component.ComponentType)
 }
 
 // Start mocks the Start method of the SystemService interface.
-func (m *MockSystemService) Initialize(ctx *context.Context, system system.SystemInterface) error {
+func (m *MockSystemService) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
 	args := m.Called(ctx, system)
 	return args.Error(0)
 }

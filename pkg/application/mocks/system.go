@@ -4,7 +4,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
@@ -39,9 +39,9 @@ func (m *MockSystem) Configuration() *configApi.Configuration {
 }
 
 // ComponentRegistry provides a mock implementation of the ComponentRegistry method.
-func (m *MockSystem) ComponentRegistry() components.ComponentRegistrar {
+func (m *MockSystem) ComponentRegistry() component.ComponentRegistrarInterface {
 	args := m.Called()
-	return args.Get(0).(components.ComponentRegistrar)
+	return args.Get(0).(component.ComponentRegistrarInterface)
 }
 
 // PluginManager provides a mock implementation of the PluginManager method.
@@ -69,12 +69,12 @@ func (m *MockSystem) Stop(ctx *context.Context) error {
 }
 
 // ExecuteOperation provides a mock implementation of the ExecuteOperation method.
-func (m *MockSystem) ExecuteOperation(ctx *context.Context, operationID string, data *system.OperationInput) (*system.OperationOutput, error) {
+func (m *MockSystem) ExecuteOperation(ctx *context.Context, operationID string, data *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	args := m.Called(ctx, operationID, data)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*system.OperationOutput), args.Error(1)
+	return args.Get(0).(*system.SystemOperationOutput), args.Error(1)
 }
 
 // StartService provides a mock implementation of the StartService method.

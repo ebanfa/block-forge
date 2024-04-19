@@ -52,7 +52,7 @@ func TestBuildStage_ExecuteTasks_Success(t *testing.T) {
 
 	// Mock behavior
 	mockTask.On("GetName").Return("TestTask")
-	mockTask.On("Execute", ctx, mock.Anything).Return(&system.OperationOutput{}, nil)
+	mockTask.On("Execute", ctx, mock.Anything).Return(&system.SystemOperationOutput{}, nil)
 
 	stage.AddTask(mockTask)
 
@@ -72,7 +72,7 @@ func TestBuildStage_ExecuteTasks_Error(t *testing.T) {
 
 	// Mock behavior
 	mockTask.On("GetName").Return("TestTask")
-	mockTask.On("Execute", mock.Anything, mock.Anything).Return(&system.OperationOutput{}, errors.New("execution error"))
+	mockTask.On("Execute", mock.Anything, mock.Anything).Return(&system.SystemOperationOutput{}, errors.New("execution error"))
 
 	stage.AddTask(mockTask)
 

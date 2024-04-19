@@ -2,8 +2,8 @@ package mocks
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
-	"github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -31,13 +31,13 @@ func (m *MockPlugin) Description() string {
 }
 
 // Description returns the description of the component.
-func (m *MockPlugin) Type() components.ComponentType {
+func (m *MockPlugin) Type() component.ComponentType {
 	args := m.Called()
-	return args.Get(0).(components.ComponentType)
+	return args.Get(0).(component.ComponentType)
 }
 
 // Initialize initializes the plugin.
-func (m *MockPlugin) Initialize(ctx *context.Context, system system.SystemInterface) error {
+func (m *MockPlugin) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
 	args := m.Called(ctx, system)
 	return args.Error(0)
 }

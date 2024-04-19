@@ -6,7 +6,7 @@ import (
 
 // BuildTaskInterface represents a build task.
 type BuildTaskInterface interface {
-	system.OperationInterface
+	system.SystemOperationInterface
 
 	// GetName returns the name of the build task.
 	GetName() string

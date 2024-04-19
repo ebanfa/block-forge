@@ -17,4 +17,5 @@ var (
 	ErrSystemNotInitialized          = errors.New("system not initialized")
 	ErrSystemNotStarted              = errors.New("system not started")
 	ErrSystemNotStopped              = errors.New("system not stopped")
+	ErrComponentTypeNotFound         = errors.New("component type not found")
 )

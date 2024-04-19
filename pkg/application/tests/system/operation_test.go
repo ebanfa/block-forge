@@ -1,18 +1,18 @@
-package tests
+package system_test
 
 import (
 	"testing"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
-	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestNewBaseSystemOperation tests the NewBaseSystemOperation function.
 func TestNewBaseSystemOperation(t *testing.T) {
 	// Call the NewBaseSystemOperation function to create a new BaseSystemOperation instance
-	operation := systemApi.NewBaseSystemOperation("1", "Operation1", "Description1")
+	operation := system.NewBaseSystemOperation("1", "Operation1", "Description1")
 
 	// Check if the instance is not nil
 	assert.NotNil(t, operation)
@@ -30,25 +30,25 @@ func TestNewBaseSystemOperation(t *testing.T) {
 // TestBaseSystemOperation_Type tests the Type method of BaseSystemOperation.
 func TestBaseSystemOperation_Type(t *testing.T) {
 	// Create a new BaseSystemOperation instance
-	operation := systemApi.NewBaseSystemOperation("1", "Operation1", "Description1")
+	operation := system.NewBaseSystemOperation("1", "Operation1", "Description1")
 
 	// Call the Type method to get the component type
 	componentType := operation.Type()
 
 	// Check if the returned component type matches the expected value
-	assert.Equal(t, components.BasicComponentType, componentType)
+	assert.Equal(t, component.BasicComponentType, componentType)
 }
 
 // TestBaseSystemOperation_ImplementingInterface tests if BaseSystemOperation implements the OperationInterface.
 func TestBaseSystemOperation_ImplementingInterface(t *testing.T) {
 	// Ensure that BaseSystemOperation implements the OperationInterface
-	var _ systemApi.OperationInterface = (*systemApi.BaseSystemOperation)(nil)
+	var _ system.SystemOperationInterface = (*system.BaseSystemOperation)(nil)
 }
 
 // TestBaseSystemOperation_Execute tests the Execute method of BaseSystemOperation.
 func TestBaseSystemOperation_Execute(t *testing.T) {
 	// Create a new BaseSystemOperation instance
-	operation := systemApi.NewBaseSystemOperation("1", "Operation1", "Description1")
+	operation := system.NewBaseSystemOperation("1", "Operation1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}
@@ -69,7 +69,7 @@ func TestBaseSystemOperation_Execute(t *testing.T) {
 // TestBaseSystemOperation_Initialize tests the Initialize method of BaseSystemOperation.
 func TestBaseSystemOperation_Initialize(t *testing.T) {
 	// Create a new BaseSystemOperation instance
-	operation := systemApi.NewBaseSystemOperation("1", "Operation1", "Description1")
+	operation := system.NewBaseSystemOperation("1", "Operation1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}

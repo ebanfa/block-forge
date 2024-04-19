@@ -1,18 +1,18 @@
-package tests
+package system_test
 
 import (
 	"testing"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
-	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestNewBaseSystemService tests the NewBaseSystemService function.
 func TestNewBaseSystemService(t *testing.T) {
 	// Call the NewBaseSystemService function to create a new BaseSystemService instance
-	service := systemApi.NewBaseSystemService("1", "Service1", "Description1")
+	service := system.NewBaseSystemService("1", "Service1", "Description1")
 
 	// Check if the instance is not nil
 	assert.NotNil(t, service)
@@ -30,25 +30,25 @@ func TestNewBaseSystemService(t *testing.T) {
 // TestBaseSystemService_Type tests the Type method of BaseSystemService.
 func TestBaseSystemService_Type(t *testing.T) {
 	// Create a new BaseSystemService instance
-	service := systemApi.NewBaseSystemService("1", "Service1", "Description1")
+	service := system.NewBaseSystemService("1", "Service1", "Description1")
 
 	// Call the Type method to get the component type
 	componentType := service.Type()
 
 	// Check if the returned component type matches the expected value
-	assert.Equal(t, components.ServiceType, componentType)
+	assert.Equal(t, component.ServiceType, componentType)
 }
 
 // TestBaseSystemService_ImplementingInterface tests if BaseSystemService implements the StartableInterface.
 func TestBaseSystemService_ImplementingInterface(t *testing.T) {
 	// Ensure that BaseSystemService implements the StartableInterface
-	var _ components.StartableInterface = (*systemApi.BaseSystemService)(nil)
+	var _ component.StartableInterface = (*system.BaseSystemService)(nil)
 }
 
 // TestBaseSystemService_Initialize tests the Initialize method of BaseSystemService.
 func TestBaseSystemService_Initialize(t *testing.T) {
 	// Create a new BaseSystemService instance
-	service := systemApi.NewBaseSystemService("1", "Service1", "Description1")
+	service := system.NewBaseSystemService("1", "Service1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}
@@ -63,7 +63,7 @@ func TestBaseSystemService_Initialize(t *testing.T) {
 // TestBaseSystemService_Start tests the Start method of BaseSystemService.
 func TestBaseSystemService_Start(t *testing.T) {
 	// Create a new BaseSystemService instance
-	service := systemApi.NewBaseSystemService("1", "Service1", "Description1")
+	service := system.NewBaseSystemService("1", "Service1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}
@@ -81,7 +81,7 @@ func TestBaseSystemService_Start(t *testing.T) {
 // TestBaseSystemService_Stop tests the Stop method of BaseSystemService.
 func TestBaseSystemService_Stop(t *testing.T) {
 	// Create a new BaseSystemService instance
-	service := systemApi.NewBaseSystemService("1", "Service1", "Description1")
+	service := system.NewBaseSystemService("1", "Service1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 )
 
 // BaseSystemService represents a concrete implementation of the OperationInterface.
@@ -13,15 +13,15 @@ type BaseSystemService struct {
 }
 
 // Type returns the type of the component.
-func (bo *BaseSystemService) Type() components.ComponentType {
-	return components.ServiceType
+func (bo *BaseSystemService) Type() component.ComponentType {
+	return component.ServiceType
 }
 
 // NewBaseSystemService creates a new instance of BaseSystemService.
 func NewBaseSystemService(id, name, description string) *BaseSystemService {
 	return &BaseSystemService{
 		BaseSystemComponent: BaseSystemComponent{
-			BaseComponent: components.BaseComponent{
+			BaseComponent: component.BaseComponent{
 				Id:   id,
 				Nm:   name,
 				Desc: description,

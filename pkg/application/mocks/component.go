@@ -1,9 +1,11 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/stretchr/testify/mock"
 )
+
+type MockComponentType int
 
 // MockComponent is a mock implementation of the ComponentInterface interface.
 type MockComponent struct {
@@ -23,9 +25,9 @@ func (m *MockComponent) Name() string {
 }
 
 // Type returns the type of the component.
-func (m *MockComponent) Type() components.ComponentType {
+func (m *MockComponent) Type() component.ComponentType {
 	args := m.Called()
-	return args.Get(0).(components.ComponentType)
+	return args.Get(0).(component.ComponentType)
 }
 
 // Description returns the description of the component.

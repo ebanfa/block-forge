@@ -1,18 +1,18 @@
-package tests
+package system_test
 
 import (
 	"testing"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
-	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestNewBaseSystemComponent tests the NewBaseSystemComponent function.
 func TestNewBaseSystemComponent(t *testing.T) {
 	// Call the NewBaseSystemComponent function to create a new BaseSystemComponent instance
-	component := systemApi.NewBaseSystemComponent("1", "Component1", "Description1")
+	component := system.NewBaseSystemComponent("1", "Component1", "Description1")
 
 	// Check if the instance is not nil
 	assert.NotNil(t, component)
@@ -30,25 +30,25 @@ func TestNewBaseSystemComponent(t *testing.T) {
 // TestBaseSystemComponent_Type tests the Type method of BaseSystemComponent.
 func TestBaseSystemComponent_Type(t *testing.T) {
 	// Create a new BaseSystemComponent instance
-	component := systemApi.NewBaseSystemComponent("1", "Component1", "Description1")
+	comp := system.NewBaseSystemComponent("1", "Component1", "Description1")
 
 	// Call the Type method to get the component type
-	componentType := component.Type()
+	componentType := comp.Type()
 
 	// Check if the returned component type matches the expected value
-	assert.Equal(t, components.SystemComponentType, componentType)
+	assert.Equal(t, component.SystemComponentType, componentType)
 }
 
 // TestBaseSystemComponent_ImplementingInterface tests if BaseSystemComponent implements the ComponentInterface.
 func TestBaseSystemComponent_ImplementingInterface(t *testing.T) {
 	// Ensure that BaseSystemComponent implements the ComponentInterface
-	var _ components.ComponentInterface = (*systemApi.BaseSystemComponent)(nil)
+	var _ component.ComponentInterface = (*system.BaseSystemComponent)(nil)
 }
 
 // TestBaseSystemComponent_Initialize tests the Initialize method of BaseSystemComponent.
 func TestBaseSystemComponent_Initialize(t *testing.T) {
 	// Create a new BaseSystemComponent instance
-	component := systemApi.NewBaseSystemComponent("1", "Component1", "Description1")
+	component := system.NewBaseSystemComponent("1", "Component1", "Description1")
 
 	// Create a mock context
 	mockContext := &context.Context{}

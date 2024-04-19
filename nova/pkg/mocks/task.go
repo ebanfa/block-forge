@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
@@ -31,9 +31,9 @@ func (m *MockBuildTask) Description() string {
 }
 
 // Description returns the description of the component.
-func (m *MockBuildTask) Type() components.ComponentType {
+func (m *MockBuildTask) Type() component.ComponentType {
 	args := m.Called()
-	return args.Get(0).(components.ComponentType)
+	return args.Get(0).(component.ComponentType)
 }
 
 // GetName implements the GetName method of the BuildTaskInterface.
@@ -48,8 +48,8 @@ func (m *MockBuildTask) Initialize(ctx *context.Context, system system.SystemInt
 	return args.Error(0)
 }
 
-// Execute mocks the Execute method of the Operation interface.
-func (m *MockBuildTask) Execute(ctx *context.Context, input *system.OperationInput) (*system.OperationOutput, error) {
+// Execute mocks the Execute method of the SystemOperation interface.
+func (m *MockBuildTask) Execute(ctx *context.Context, input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	args := m.Called(ctx, input)
-	return args.Get(0).(*system.OperationOutput), args.Error(1)
+	return args.Get(0).(*system.SystemOperationOutput), args.Error(1)
 }

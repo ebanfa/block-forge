@@ -1,21 +1,56 @@
 package system
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 )
 
+// SystemComponentInterface represents a component in the system.
+type SystemComponentInterface interface {
+	component.ComponentInterface
+
+	// Initialize initializes the module.
+	// Returns an error if the initialization fails.
+	Initialize(ctx *context.Context, system SystemInterface) error
+}
+
+// SystemServiceInterface represents a service within the system.
+type SystemServiceInterface interface {
+	component.StartableInterface
+	SystemComponentInterface
+}
+
+// SystemOperationInput represents the input data for an operation.
+type SystemOperationInput struct {
+	// Data is the input data for the operation.
+	Data interface{}
+}
+
+// SystemOperationOutput represents the response data from an operation.
+type SystemOperationOutput struct {
+	// Data is the response data from the operation.
+	Data interface{}
+}
+
+// SystemOperation represents a unit of work that can be executed.
+type SystemOperationInterface interface {
+	SystemComponentInterface
+
+	// Execute performs the operation with the given context and input parameters,
+	// and returns any output or error encountered.
+	Execute(ctx *context.Context, input *SystemOperationInput) (*SystemOperationOutput, error)
+}
+
 // SystemInterface represents the core system in the application.
 type SystemInterface interface {
-	components.BootableInterface
-	components.StartableInterface
+	component.BootableInterface
+	component.StartableInterface
 
 	// Logger returns the system logger.
 	Logger() logger.LoggerInterface
@@ -27,14 +62,14 @@ type SystemInterface interface {
 	Configuration() *config.Configuration
 
 	// ComponentRegistry returns the component registry
-	ComponentRegistry() components.ComponentRegistrar
+	ComponentRegistry() component.ComponentRegistrarInterface
 
 	// PluginManager returns the plugin manager
 	PluginManager() PluginManagerInterface
 
 	// ExecuteOperation executes the operation with the given ID and input data.
 	// Returns the output of the operation and an error if the operation is not found or if execution fails.
-	ExecuteOperation(ctx *context.Context, operationID string, data *OperationInput) (*OperationOutput, error)
+	ExecuteOperation(ctx *context.Context, operationID string, data *SystemOperationInput) (*SystemOperationOutput, error)
 
 	// StartService starts the service with the given ID.
 	// Returns an error if the service ID is not found or other error.
@@ -49,12 +84,21 @@ type SystemInterface interface {
 	RestartService(ctx *context.Context, serviceID string) error
 }
 
+// System status.
+type SystemStatusType int
+
+const (
+	SystemInitializedType SystemStatusType = iota
+	SystemStartedType
+	SystemStoppedType
+)
+
 // SystemImpl represents the core system in the application.
 type SystemImpl struct {
 	SystemInterface
 	mutex         sync.RWMutex
 	configuration *config.Configuration
-	componentReg  components.ComponentRegistrar
+	componentReg  component.ComponentRegistrarInterface
 	logger        logger.LoggerInterface
 	eventBus      event.EventBusInterface
 	pluginManager PluginManagerInterface
@@ -67,7 +111,7 @@ func NewSystem(
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
 	pluginManager PluginManagerInterface,
-	componentReg components.ComponentRegistrar) *SystemImpl {
+	componentReg component.ComponentRegistrarInterface) *SystemImpl {
 	return &SystemImpl{
 		logger:        logger,
 		eventBus:      eventBus,
@@ -94,7 +138,7 @@ func (s *SystemImpl) Configuration() *config.Configuration {
 }
 
 // ComponentRegistry returns the component registry.
-func (s *SystemImpl) ComponentRegistry() components.ComponentRegistrar {
+func (s *SystemImpl) ComponentRegistry() component.ComponentRegistrarInterface {
 	return s.componentReg
 }
 
@@ -107,53 +151,6 @@ func (s *SystemImpl) Initialize(ctx *context.Context) error {
 	return nil
 }
 
-// InitializeService initializes a single service based on the provided configuration.
-func (s *SystemImpl) InitializeService(ctx *context.Context, serviceConfig *config.ServiceConfiguration) error {
-	// Retrieve the factory for the service component
-	factory, err := s.ComponentRegistry().GetComponentFactory(serviceConfig.FactoryName)
-	if err != nil {
-		return fmt.Errorf("failed to get component factory for service %s: %w", serviceConfig.Name, err)
-	}
-
-	// Create an instance of the service component using the factory
-	service, err := factory.CreateComponent(&serviceConfig.ComponentConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create service %s: %w", serviceConfig.Name, err)
-	}
-	// Check if the service implements the SystemServiceInterface interface
-	systemService, ok := service.(SystemServiceInterface)
-	if !ok {
-		return errors.New("service does not implement SystemServiceInterface")
-	}
-
-	// Initialize the service
-	return systemService.Initialize(ctx, s)
-}
-
-// InitializeOperation initializes a single operation based on the provided configuration.
-func (s *SystemImpl) InitializeOperation(ctx *context.Context, operationConfig *config.OperationConfiguration) error {
-	// Retrieve the factory for the operation component
-	factory, err := s.ComponentRegistry().GetComponentFactory(operationConfig.FactoryName)
-	if err != nil {
-		return fmt.Errorf("failed to get component factory for operation %s: %w", operationConfig.Name, err)
-	}
-
-	// Create an instance of the operation component using the factory
-	operation, err := factory.CreateComponent(&operationConfig.ComponentConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create operation %s: %w", operationConfig.Name, err)
-	}
-
-	// Check if the operation implements the OperationInterface interface
-	systemOperation, ok := operation.(OperationInterface)
-	if !ok {
-		return errors.New("operation does not implement OperationInterface")
-	}
-
-	// Initialize the operation
-	return systemOperation.Initialize(ctx, s)
-}
-
 // Start starts the system component along with all registered services.
 func (s *SystemImpl) Start(ctx *context.Context) error {
 	s.mutex.RLock()
@@ -164,7 +161,7 @@ func (s *SystemImpl) Start(ctx *context.Context) error {
 	}
 
 	// Retrieve all components of type ServiceType
-	components := s.ComponentRegistry().GetComponentByType(components.ServiceType)
+	components := s.ComponentRegistry().GetComponentsByType(component.ServiceType)
 
 	// Iterate over each service component and start it
 	for _, service := range components {
@@ -193,7 +190,7 @@ func (s *SystemImpl) Stop(ctx *context.Context) error {
 		return ErrSystemNotStarted
 	}
 	// Retrieve all components of type ServiceType
-	components := s.ComponentRegistry().GetComponentByType(components.ServiceType)
+	components := s.ComponentRegistry().GetComponentsByType(component.ServiceType)
 
 	// Iterate over each service component and start it
 	for _, service := range components {
@@ -216,7 +213,7 @@ func (s *SystemImpl) Stop(ctx *context.Context) error {
 
 // ExecuteOperation executes the operation with the given ID and input data.
 // Returns the output of the operation and an error if the operation is not found or if execution fails.
-func (s *SystemImpl) ExecuteOperation(ctx *context.Context, operationID string, data *OperationInput) (*OperationOutput, error) {
+func (s *SystemImpl) ExecuteOperation(ctx *context.Context, operationID string, data *SystemOperationInput) (*SystemOperationOutput, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -226,9 +223,9 @@ func (s *SystemImpl) ExecuteOperation(ctx *context.Context, operationID string, 
 		return nil, err
 	}
 	// Check if the component implements Operation interface
-	operation, ok := component.(OperationInterface)
+	operation, ok := component.(SystemOperationInterface)
 	if !ok {
-		return nil, fmt.Errorf("failed to start service: component %v is not an operation", operation)
+		return nil, fmt.Errorf("failed to execute operation: component %v is not an operation", operation)
 	}
 	// Execute the operation
 	return operation.Execute(ctx, data)

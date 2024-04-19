@@ -1,4 +1,4 @@
-package tests
+package system_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
-	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -14,7 +14,7 @@ import (
 func TestAddPlugin_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin := new(mocks.MockPlugin)
 
 	// Mock behavior
@@ -32,7 +32,7 @@ func TestAddPlugin_Success(t *testing.T) {
 func TestAddPlugin_Error_DuplicateID(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin := new(mocks.MockPlugin)
 
 	// Mock behavior
@@ -56,7 +56,7 @@ func TestAddPlugin_Error_DuplicateID(t *testing.T) {
 func TestRemovePlugin_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin := new(mocks.MockPlugin)
 
 	// Mock behavior
@@ -77,7 +77,7 @@ func TestRemovePlugin_Success(t *testing.T) {
 
 func TestRemovePlugin_Error_NotFound(t *testing.T) {
 	// Arrange
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin := new(mocks.MockPlugin)
 
 	// Mock behavior
@@ -94,7 +94,7 @@ func TestRemovePlugin_Error_NotFound(t *testing.T) {
 func TestGetPlugin_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin := new(mocks.MockPlugin)
 
 	// Mock behavior
@@ -116,7 +116,7 @@ func TestGetPlugin_Success(t *testing.T) {
 
 func TestGetPlugin_Error_NotFound(t *testing.T) {
 	// Arrange
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 
 	// Act
 	_, err := pluginManager.GetPlugin("non_existent_plugin")
@@ -129,7 +129,7 @@ func TestGetPlugin_Error_NotFound(t *testing.T) {
 func TestStartPlugins_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin1 := new(mocks.MockPlugin)
 	mockPlugin2 := new(mocks.MockPlugin)
 
@@ -163,7 +163,7 @@ func TestStartPlugins_Success(t *testing.T) {
 func TestStartPlugins_Error(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin1 := new(mocks.MockPlugin)
 	mockPlugin2 := new(mocks.MockPlugin)
 
@@ -196,7 +196,7 @@ func TestStartPlugins_Error(t *testing.T) {
 func TestStopPlugins_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin1 := new(mocks.MockPlugin)
 	mockPlugin2 := new(mocks.MockPlugin)
 
@@ -227,7 +227,7 @@ func TestStopPlugins_Success(t *testing.T) {
 func TestStopPlugins_Error(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
-	pluginManager := systemApi.NewPluginManager()
+	pluginManager := system.NewPluginManager()
 	mockPlugin1 := new(mocks.MockPlugin)
 	mockPlugin2 := new(mocks.MockPlugin)
 

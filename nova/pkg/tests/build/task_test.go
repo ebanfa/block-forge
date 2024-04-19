@@ -32,7 +32,7 @@ func TestMockBuildTask_Execute_Success(t *testing.T) {
 
 	// Mock behavior
 	task.On("GetName").Return("TestTask")
-	task.On("Execute", mock.Anything, mock.Anything).Return(&system.OperationOutput{}, nil)
+	task.On("Execute", mock.Anything, mock.Anything).Return(&system.SystemOperationOutput{}, nil)
 
 	// Act
 	_, err := task.Execute(nil, nil)
@@ -49,7 +49,7 @@ func TestMockBuildTask_Execute_Error(t *testing.T) {
 
 	// Mock behavior
 	task.On("GetName").Return("TestTask")
-	task.On("Execute", mock.Anything, mock.Anything).Return(&system.OperationOutput{}, expectedErr)
+	task.On("Execute", mock.Anything, mock.Anything).Return(&system.SystemOperationOutput{}, expectedErr)
 
 	// Act
 	_, err := task.Execute(nil, nil)

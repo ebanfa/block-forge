@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/edward1christian/block-forge/nova/pkg/plugin"
+	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	contextApi "github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"go.uber.org/fx"
@@ -72,8 +72,8 @@ func ProvidPluginManager() system.PluginManagerInterface {
 }
 
 // ProvidComponentRegistrar provides a component registrar interface.
-func ProvidComponentRegistrar() components.ComponentRegistrar {
-	return components.NewComponentRegistrar()
+func ProvidComponentRegistrar() component.ComponentRegistrarInterface {
+	return component.NewComponentRegistrar()
 }
 
 // ProvideSystem provides a system interface.
@@ -83,7 +83,7 @@ func ProvideSystem(
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
 	pluginManager system.PluginManagerInterface,
-	registrar components.ComponentRegistrar) system.SystemInterface {
+	registrar component.ComponentRegistrarInterface) system.SystemInterface {
 
 	sys := system.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
 

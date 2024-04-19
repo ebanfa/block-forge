@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/stretchr/testify/mock"
 )
@@ -18,19 +18,25 @@ func (m *MockComponentRegistrar) RegisterComponent(config *configApi.ComponentCo
 }
 
 // GetComponent mocks the GetComponent method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetComponent(id string) (components.ComponentInterface, error) {
+func (m *MockComponentRegistrar) GetComponent(id string) (component.ComponentInterface, error) {
 	args := m.Called(id)
-	return args.Get(0).(components.ComponentInterface), args.Error(1)
+	return args.Get(0).(component.ComponentInterface), args.Error(1)
 }
 
 // GetComponentByType mocks the GetComponentByType method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetComponentByType(componentType components.ComponentType) []components.ComponentInterface {
+func (m *MockComponentRegistrar) GetComponentsByType(componentType component.ComponentType) []component.ComponentInterface {
 	args := m.Called(componentType)
-	return args.Get(0).([]components.ComponentInterface)
+	return args.Get(0).([]component.ComponentInterface)
+}
+
+// CreateComponent creates and registers a new instance of the component.
+func (m *MockComponentRegistrar) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
+	args := m.Called(config)
+	return args.Get(0).(component.ComponentInterface), args.Error(1)
 }
 
 // RegisterFactory mocks the RegisterFactory method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) RegisterFactory(id string, factory components.ComponentFactoryInterface) error {
+func (m *MockComponentRegistrar) RegisterFactory(id string, factory component.ComponentFactoryInterface) error {
 	args := m.Called(id, factory)
 	return args.Error(0)
 }
@@ -48,19 +54,19 @@ func (m *MockComponentRegistrar) UnregisterFactory(id string) error {
 }
 
 // GetAllComponents mocks the GetAllComponents method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetAllComponents() []components.ComponentInterface {
+func (m *MockComponentRegistrar) GetAllComponents() []component.ComponentInterface {
 	args := m.Called()
-	return args.Get(0).([]components.ComponentInterface)
+	return args.Get(0).([]component.ComponentInterface)
 }
 
 // GetAllFactories mocks the GetAllFactories method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetAllFactories() []components.ComponentFactoryInterface {
+func (m *MockComponentRegistrar) GetAllFactories() []component.ComponentFactoryInterface {
 	args := m.Called()
-	return args.Get(0).([]components.ComponentFactoryInterface)
+	return args.Get(0).([]component.ComponentFactoryInterface)
 }
 
 // GetComponentFactory mocks the GetComponentFactory method of ComponentRegistrarImpl.
-func (m *MockComponentRegistrar) GetComponentFactory(id string) (components.ComponentFactoryInterface, error) {
+func (m *MockComponentRegistrar) GetComponentFactory(id string) (component.ComponentFactoryInterface, error) {
 	args := m.Called(id)
-	return args.Get(0).(components.ComponentFactoryInterface), args.Error(1)
+	return args.Get(0).(component.ComponentFactoryInterface), args.Error(1)
 }

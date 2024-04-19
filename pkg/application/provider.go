@@ -7,7 +7,7 @@ import (
 	contextApi "github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/common/event"
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"go.uber.org/fx"
@@ -70,7 +70,7 @@ func ProvideSystem(
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
 	pluginManager system.PluginManagerInterface,
-	registrar components.ComponentRegistrar) system.SystemInterface {
+	registrar component.ComponentRegistrarInterface) system.SystemInterface {
 
 	sys := system.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
 

@@ -1,21 +1,8 @@
-package components
+package component
 
 import (
-	"errors"
-
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
-)
-
-// Custom errors
-var (
-	ErrComponentNil                  = errors.New("component is nil")
-	ErrComponentAlreadyExist         = errors.New("component already exists")
-	ErrFactoryNotFound               = errors.New("factory not found")
-	ErrComponentFactoryNil           = errors.New("component factory is nil")
-	ErrComponentFactoryAlreadyExists = errors.New("component factory already exists")
-	ErrComponentNotFound             = errors.New("component not found")
-	ErrComponentTypeNotFound         = errors.New("component type not found")
 )
 
 // ComponentType represents the type of a component.
@@ -53,7 +40,7 @@ type ComponentInterface interface {
 	Description() string
 }
 
-// ComponentFactoryInterface is responsible for creating components.
+// ComponentFactoryInterface is responsible for creating
 type ComponentFactoryInterface interface {
 	// CreateComponent creates a new instance of the component.
 	// Returns the created component and an error if the creation fails.
@@ -76,35 +63,4 @@ type StartableInterface interface {
 	// Stop stops the component.
 	// Returns an error if the stop operation fails.
 	Stop(ctx *context.Context) error
-}
-
-// BaseComponent represents a concrete implementation of the OperationInterface.
-type BaseComponent struct {
-	Id   string
-	Nm   string
-	Desc string
-}
-
-func NewComponentImpl(Id, Nm, Desc string) *BaseComponent {
-	return &BaseComponent{Id: Id, Nm: Nm, Desc: Desc}
-}
-
-// ID returns the unique identifier of the component.
-func (bc *BaseComponent) ID() string {
-	return bc.Id
-}
-
-// Name returns the Nm of the component.
-func (bc *BaseComponent) Name() string {
-	return bc.Nm
-}
-
-// Type returns the type of the component.
-func (bc *BaseComponent) Type() ComponentType {
-	return BasicComponentType
-}
-
-// Description returns the Desc of the component.
-func (bc *BaseComponent) Description() string {
-	return bc.Desc
 }

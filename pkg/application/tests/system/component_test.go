@@ -1,9 +1,9 @@
-package tests
+package system_test
 
 import (
 	"testing"
 
-	"github.com/edward1christian/block-forge/pkg/application/components"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -46,7 +46,7 @@ func TestBaseComponent_Type(t *testing.T) {
 	mockComponent := new(mocks.MockComponent)
 
 	// Define the expected behavior
-	expectedType := components.BasicComponentType
+	expectedType := component.BasicComponentType
 	mockComponent.On("Type").Return(expectedType)
 
 	// Call the method being tested
@@ -75,5 +75,5 @@ func TestBaseComponent_Description(t *testing.T) {
 // TestBaseComponent_ImplementingInterface tests if BaseComponent implements the ComponentInterface.
 func TestBaseComponent_ImplementingInterface(t *testing.T) {
 	// Ensure that BaseComponent implements the ComponentInterface
-	var _ components.ComponentInterface = (*components.BaseComponent)(nil)
+	var _ component.ComponentInterface = (*component.BaseComponent)(nil)
 }
