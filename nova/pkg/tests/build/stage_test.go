@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// TestBuildStage_GetName tests the GetName method of BuildStageInterface.
+// TestBuildStage_GetName tests the GetName method of StageInterface.
 func TestBuildStage_GetName(t *testing.T) {
 	// Arrange
 	expectedName := "TestStage"
@@ -25,7 +25,7 @@ func TestBuildStage_GetName(t *testing.T) {
 	assert.Equal(t, expectedName, name, "Expected and actual names should match")
 }
 
-// TestBuildStage_GetTasks tests the GetTasks method of BuildStageInterface.
+// TestBuildStage_GetTasks tests the GetTasks method of StageInterface.
 func TestBuildStage_GetTasks(t *testing.T) {
 	// Arrange
 	stage := build.NewBuildStage("TestStage")
@@ -43,7 +43,7 @@ func TestBuildStage_GetTasks(t *testing.T) {
 	assert.Len(t, tasks, 1, "Number of tasks should be 1")
 }
 
-// TestBuildStage_ExecuteTasks_Success tests the ExecuteTasks method of BuildStageInterface for success.
+// TestBuildStage_ExecuteTasks_Success tests the ExecuteTasks method of StageInterface for success.
 func TestBuildStage_ExecuteTasks_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
@@ -64,7 +64,7 @@ func TestBuildStage_ExecuteTasks_Success(t *testing.T) {
 	mockTask.AssertCalled(t, "Execute", mock.Anything, mock.Anything)
 }
 
-// TestBuildStage_ExecuteTasks_Error tests the ExecuteTasks method of BuildStageInterface for error.
+// TestBuildStage_ExecuteTasks_Error tests the ExecuteTasks method of StageInterface for error.
 func TestBuildStage_ExecuteTasks_Error(t *testing.T) {
 	// Arrange
 	stage := build.NewBuildStage("TestStage")
@@ -84,7 +84,7 @@ func TestBuildStage_ExecuteTasks_Error(t *testing.T) {
 	mockTask.AssertCalled(t, "Execute", mock.Anything, mock.Anything)
 }
 
-// TestBuildStage_GetTaskByName_Success tests the GetTaskByName method of BuildStageInterface for success.
+// TestBuildStage_GetTaskByName_Success tests the GetTaskByName method of StageInterface for success.
 func TestBuildStage_GetTaskByName_Success(t *testing.T) {
 	// Arrange
 	stage := build.NewBuildStage("TestStage")
@@ -103,7 +103,7 @@ func TestBuildStage_GetTaskByName_Success(t *testing.T) {
 	assert.Equal(t, mockTask, task, "Retrieved task should match the added task")
 }
 
-// TestBuildStage_GetTaskByName_Error tests the GetTaskByName method of BuildStageInterface for error.
+// TestBuildStage_GetTaskByName_Error tests the GetTaskByName method of StageInterface for error.
 func TestBuildStage_GetTaskByName_Error(t *testing.T) {
 	// Arrange
 	stage := build.NewBuildStage("TestStage")

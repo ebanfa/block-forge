@@ -5,16 +5,18 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockBuilderFactory is a mock implementation of BuilderFactoryInterface for testing purposes.
+// MockBuilderFactory is a mock implementation of BuilderFactoryInterface.
 type MockBuilderFactory struct {
 	mock.Mock
 }
 
-// CreatePipelineBuilder is a mock implementation for creating a pipeline builder instance.
+// CreatePipelineBuilder mocks the CreatePipelineBuilder method of BuilderFactoryInterface.
 func (m *MockBuilderFactory) CreatePipelineBuilder(name, builderType string) (build.PipelineBuilderInterface, error) {
 	args := m.Called(name, builderType)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
 	return args.Get(0).(build.PipelineBuilderInterface), args.Error(1)
+}
+
+// RegisterBuilderType mocks the RegisterBuilderType method of BuilderFactoryInterface.
+func (m *MockBuilderFactory) RegisterBuilderType(builderType string, creator func(name string) build.PipelineBuilderInterface) {
+	m.Called(builderType, creator)
 }

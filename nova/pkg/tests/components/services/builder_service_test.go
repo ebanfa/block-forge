@@ -1,10 +1,10 @@
-package build_test
+package components
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/edward1christian/block-forge/nova/pkg/build"
+	"github.com/edward1christian/block-forge/nova/pkg/components/services"
 	"github.com/edward1christian/block-forge/nova/pkg/mocks"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ func TestBuilderService_Start_Success(t *testing.T) {
 	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
 
 	// Create a new BuilderService instance
-	builderService := build.NewBuilderService("id", "name", "description", factory)
+	builderService := services.NewBuilderService("id", "name", "description", factory)
 
 	// Call Start method
 	err := builderService.Start(ctx)
@@ -45,7 +45,7 @@ func TestBuilderService_Start_FailedToCreateBuilder(t *testing.T) {
 		mockBuilder, errors.New("failed to create pipeline builder"))
 
 	// Create a new BuilderService instance
-	builderService := build.NewBuilderService("id", "name", "description", factory)
+	builderService := services.NewBuilderService("id", "name", "description", factory)
 
 	// Call Start method with a factory that returns nil
 	err := builderService.Start(ctx)
@@ -67,7 +67,7 @@ func TestBuilderService_Start_FailedToBuildPipeline(t *testing.T) {
 	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
 
 	// Create a new BuilderService instance
-	builderService := build.NewBuilderService("id", "name", "description", factory)
+	builderService := services.NewBuilderService("id", "name", "description", factory)
 
 	// Override the factory method to return a builder that returns nil when Build is called
 	factory.On("ExecuteTasks", mock.Anything).Return(nil)

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// TestBuildPipeline_GetName tests the GetName method of BuildPipelineInterface.
+// TestBuildPipeline_GetName tests the GetName method of PipelineInterface.
 func TestBuildPipeline_GetName(t *testing.T) {
 	// Arrange
 	expectedName := "TestPipeline"
@@ -24,7 +24,7 @@ func TestBuildPipeline_GetName(t *testing.T) {
 	assert.Equal(t, expectedName, name, "Expected and actual names should match")
 }
 
-// TestBuildPipeline_AddStage_Success tests the AddStage method of BuildPipelineInterface for success.
+// TestBuildPipeline_AddStage_Success tests the AddStage method of PipelineInterface for success.
 func TestBuildPipeline_AddStage_Success(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -40,7 +40,7 @@ func TestBuildPipeline_AddStage_Success(t *testing.T) {
 	assert.NoError(t, err, "Adding stage should not return an error")
 }
 
-// TestBuildPipeline_AddStage_Error tests the AddStage method of BuildPipelineInterface for error when adding duplicate stage.
+// TestBuildPipeline_AddStage_Error tests the AddStage method of PipelineInterface for error when adding duplicate stage.
 func TestBuildPipeline_AddStage_Error(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -56,7 +56,7 @@ func TestBuildPipeline_AddStage_Error(t *testing.T) {
 	assert.Error(t, err, "Adding stage with same name should return an error")
 }
 
-// TestBuildPipeline_GetStage_Success tests the GetStage method of BuildPipelineInterface for success.
+// TestBuildPipeline_GetStage_Success tests the GetStage method of PipelineInterface for success.
 func TestBuildPipeline_GetStage_Success(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -73,7 +73,7 @@ func TestBuildPipeline_GetStage_Success(t *testing.T) {
 	assert.NotNil(t, stage, "Stage should not be nil")
 }
 
-// TestBuildPipeline_GetStage_Error tests the GetStage method of BuildPipelineInterface for error when getting non-existent stage.
+// TestBuildPipeline_GetStage_Error tests the GetStage method of PipelineInterface for error when getting non-existent stage.
 func TestBuildPipeline_GetStage_Error(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -89,7 +89,7 @@ func TestBuildPipeline_GetStage_Error(t *testing.T) {
 	assert.Error(t, err, "Getting non-existent stage should return an error")
 }
 
-// TestBuildPipeline_GetStages tests the GetStages method of BuildPipelineInterface.
+// TestBuildPipeline_GetStages tests the GetStages method of PipelineInterface.
 func TestBuildPipeline_GetStages(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -106,7 +106,7 @@ func TestBuildPipeline_GetStages(t *testing.T) {
 	assert.Len(t, stages, 1, "Number of stages should be 1")
 }
 
-// TestBuildPipeline_Execute_Success tests the Execute method of BuildPipelineInterface for success.
+// TestBuildPipeline_Execute_Success tests the Execute method of PipelineInterface for success.
 func TestBuildPipeline_Execute_Success(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")
@@ -124,7 +124,7 @@ func TestBuildPipeline_Execute_Success(t *testing.T) {
 	mockStage.AssertCalled(t, "ExecuteTasks", mock.Anything)
 }
 
-// TestBuildPipeline_Execute_Error tests the Execute method of BuildPipelineInterface for error.
+// TestBuildPipeline_Execute_Error tests the Execute method of PipelineInterface for error.
 func TestBuildPipeline_Execute_Error(t *testing.T) {
 	// Arrange
 	mockPipeline := build.NewBuildPipeline("testPipeline")

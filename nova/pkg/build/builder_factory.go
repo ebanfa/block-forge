@@ -5,6 +5,7 @@ import "errors"
 // BuilderFactoryInterface defines the interface for the builder factory.
 type BuilderFactoryInterface interface {
 	CreatePipelineBuilder(name, builderType string) (PipelineBuilderInterface, error)
+	RegisterBuilderType(builderType string, creator func(name string) PipelineBuilderInterface)
 }
 
 // PipelineBuilderFactory is a factory for creating different types of PipelineBuilders.

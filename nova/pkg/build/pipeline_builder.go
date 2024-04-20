@@ -10,10 +10,10 @@ type PipelineBuilderInterface interface {
 	AddStage(name string) (PipelineBuilderInterface, error)
 
 	// AddTask adds a task to the current stage.
-	AddTask(task BuildTaskInterface) (PipelineBuilderInterface, error)
+	AddTask(task TaskInterface) (PipelineBuilderInterface, error)
 
 	// Build constructs the pipeline.
-	Build() (BuildPipelineInterface, error)
+	Build() (PipelineInterface, error)
 }
 
 // PipelineBuilder is a builder for creating a pipeline.
@@ -40,7 +40,7 @@ func (b *PipelineBuilder) AddStage(name string) (PipelineBuilderInterface, error
 }
 
 // AddTask adds a task to the current stage.
-func (b *PipelineBuilder) AddTask(task BuildTaskInterface) (PipelineBuilderInterface, error) {
+func (b *PipelineBuilder) AddTask(task TaskInterface) (PipelineBuilderInterface, error) {
 	if b.currentStage == nil {
 		return nil, errors.New("no stage added. Please add a stage first")
 	}
@@ -51,7 +51,7 @@ func (b *PipelineBuilder) AddTask(task BuildTaskInterface) (PipelineBuilderInter
 }
 
 // Build constructs the pipeline.
-func (b *PipelineBuilder) Build() (BuildPipelineInterface, error) {
+func (b *PipelineBuilder) Build() (PipelineInterface, error) {
 	if len(b.pipeline.Stages) == 0 {
 		return nil, errors.New("no stages added. Please add stages before building the pipeline")
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockBuildTask is a mock implementation of the BuildTaskInterface.
+// MockBuildTask is a mock implementation of the TaskInterface.
 type MockBuildTask struct {
 	mock.Mock
 }
@@ -36,7 +36,7 @@ func (m *MockBuildTask) Type() component.ComponentType {
 	return args.Get(0).(component.ComponentType)
 }
 
-// GetName implements the GetName method of the BuildTaskInterface.
+// GetName implements the GetName method of the TaskInterface.
 func (m *MockBuildTask) GetName() string {
 	args := m.Called()
 	return args.String(0)

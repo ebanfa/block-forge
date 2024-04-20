@@ -7,35 +7,35 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// BuildStageInterface represents a stage within a build pipeline.
-type BuildStageInterface interface {
+// StageInterface represents a stage within a build pipeline.
+type StageInterface interface {
 	// GetName returns the name of the build stage.
 	GetName() string
 
 	// GetTasks returns the tasks within the build stage.
-	GetTasks() []BuildTaskInterface
+	GetTasks() []TaskInterface
 
 	// ExecuteTasks executes all tasks within the stage.
 	ExecuteTasks(ctx *context.Context) error
 
 	// GetTaskByName returns the task with the given name from the stage.
-	GetTaskByName(name string) (BuildTaskInterface, error)
+	GetTaskByName(name string) (TaskInterface, error)
 
 	// AddTask adds a task to the stage.
-	AddTask(task BuildTaskInterface) error
+	AddTask(task TaskInterface) error
 }
 
 // BuildStage represents a stage within a build pipeline.
 type BuildStage struct {
 	Name  string
-	Tasks map[string]BuildTaskInterface
+	Tasks map[string]TaskInterface
 }
 
 // NewBuildStage creates a new instance of BuildStage.
 func NewBuildStage(name string) *BuildStage {
 	return &BuildStage{
 		Name:  name,
-		Tasks: make(map[string]BuildTaskInterface),
+		Tasks: make(map[string]TaskInterface),
 	}
 }
 
@@ -45,8 +45,8 @@ func (bs *BuildStage) GetName() string {
 }
 
 // GetTasks returns the tasks within the build stage.
-func (bs *BuildStage) GetTasks() []BuildTaskInterface {
-	tasks := make([]BuildTaskInterface, 0, len(bs.Tasks))
+func (bs *BuildStage) GetTasks() []TaskInterface {
+	tasks := make([]TaskInterface, 0, len(bs.Tasks))
 	for _, task := range bs.Tasks {
 		tasks = append(tasks, task)
 	}
@@ -65,7 +65,7 @@ func (bs *BuildStage) ExecuteTasks(ctx *context.Context) error {
 }
 
 // GetTaskByName returns the task with the given name from the stage.
-func (bs *BuildStage) GetTaskByName(name string) (BuildTaskInterface, error) {
+func (bs *BuildStage) GetTaskByName(name string) (TaskInterface, error) {
 	task, exists := bs.Tasks[name]
 	if !exists {
 		return nil, errors.New("task not found")
@@ -74,7 +74,7 @@ func (bs *BuildStage) GetTaskByName(name string) (BuildTaskInterface, error) {
 }
 
 // AddTask adds a task to the stage.
-func (bs *BuildStage) AddTask(task BuildTaskInterface) error {
+func (bs *BuildStage) AddTask(task TaskInterface) error {
 	if _, exists := bs.Tasks[task.GetName()]; exists {
 		return errors.New("task with the same name already exists")
 	}

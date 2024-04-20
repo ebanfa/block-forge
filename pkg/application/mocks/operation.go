@@ -30,7 +30,6 @@ func NewMockOperationOutput(data interface{}) *MockOperationOutput {
 
 // MockOperation represents a mock for the Operation interface.
 type MockOperation struct {
-	system.SystemOperationInterface
 	mock.Mock
 }
 

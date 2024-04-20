@@ -1,8 +1,9 @@
-package build
+package services
 
 import (
 	"errors"
 
+	"github.com/edward1christian/block-forge/nova/pkg/build"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
@@ -11,11 +12,11 @@ import (
 // BuilderService represents a service for managing build pipelines.
 type BuilderService struct {
 	systemApi.BaseSystemService // Embedding BaseComponent
-	factory                     BuilderFactoryInterface
+	factory                     build.BuilderFactoryInterface
 }
 
 // NewBuilderService creates a new instance of BuilderService.
-func NewBuilderService(id, name, description string, factory BuilderFactoryInterface) *BuilderService {
+func NewBuilderService(id, name, description string, factory build.BuilderFactoryInterface) *BuilderService {
 	return &BuilderService{
 		BaseSystemService: systemApi.BaseSystemService{
 			BaseSystemComponent: systemApi.BaseSystemComponent{
@@ -33,6 +34,7 @@ func NewBuilderService(id, name, description string, factory BuilderFactoryInter
 // Initialize initializes the BuilderService.
 func (bs *BuilderService) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
 	bs.System = system
+	bs.factory.RegisterBuilderType("Pipeline1", createPipelineBuilder)
 	// Additional initialization logic can be added here
 	return nil
 }
@@ -62,4 +64,9 @@ func (bs *BuilderService) Start(ctx *context.Context) error {
 func (bs *BuilderService) Stop(ctx *context.Context) error {
 	// Additional cleanup logic can be added here
 	return nil
+}
+func createPipelineBuilder(name string) build.PipelineBuilderInterface {
+	builder := build.NewPipelineBuilder(name)
+	builder.AddStage("Test")
+	return builder
 }
