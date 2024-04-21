@@ -34,7 +34,8 @@ func (f *PipelineBuilderFactory) CreatePipelineBuilder(name, builderType string)
 	creator, exists := f.builderCreators[builderType]
 	if !exists {
 		return nil, fmt.Errorf(
-			"cannot create pipeline builder. Unsupported builder type %s", builderType)
+			"pipeline builder factory cannot create pipeline builder. "+
+				"Unsupported builder type %s %v", builderType, len(f.builderCreators))
 	}
 	builder := creator(name)
 	if builder == nil {

@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/edward1christian/block-forge/nova/pkg/build"
+	"github.com/edward1christian/block-forge/nova/pkg/build/builders"
+	"github.com/edward1christian/block-forge/nova/pkg/common"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
@@ -34,15 +36,14 @@ func NewBuilderService(id, name, description string, factory build.BuilderFactor
 // Initialize initializes the BuilderService.
 func (bs *BuilderService) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
 	bs.System = system
-	bs.factory.RegisterBuilderType("Pipeline1", createPipelineBuilder)
-	// Additional initialization logic can be added here
+	bs.factory.RegisterBuilderType(common.IgnitePipelineBuilder, builders.CosmosSDKBlockchainPipelineBuilder)
 	return nil
 }
 
 // Start starts the BuilderService.
 func (bs *BuilderService) Start(ctx *context.Context) error {
 	// Create a new instance of the pipeline builder
-	builder, err := bs.factory.CreatePipelineBuilder("Pipeline1", "type1")
+	builder, err := bs.factory.CreatePipelineBuilder("Pipeline1", common.IgnitePipelineBuilder)
 	if err != nil {
 		return err
 	}
@@ -64,9 +65,4 @@ func (bs *BuilderService) Start(ctx *context.Context) error {
 func (bs *BuilderService) Stop(ctx *context.Context) error {
 	// Additional cleanup logic can be added here
 	return nil
-}
-func createPipelineBuilder(name string) build.PipelineBuilderInterface {
-	builder := build.NewPipelineBuilder(name)
-	builder.AddStage("Test")
-	return builder
 }

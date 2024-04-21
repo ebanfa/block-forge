@@ -38,6 +38,5 @@ func RegisterAndCreateComponent(registrar component.ComponentRegistrarInterface,
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
