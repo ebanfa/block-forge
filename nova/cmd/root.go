@@ -4,7 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	provider "github.com/edward1christian/block-forge/nova/pkg"
@@ -21,7 +20,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "buildnet",
+	Use:   "nova",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 			examples and usage of using your application. For example:
@@ -30,9 +29,7 @@ var rootCmd = &cobra.Command{
 			This application is a tool to generate the needed files
 			to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("start called")
-		//internal.Init()
-		//application.Init(appConfigFile)
+
 		provider.Init(&provider.InitOptions{
 			Debug:          debug,
 			Verbose:        verbose,
@@ -55,10 +52,9 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.buildnet.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nova.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	// Define flags for command-line options
 	rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
 	rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Specify the output directory for generated files")
 	rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force overwrite of existing files in the output directory")
@@ -69,4 +65,7 @@ func init() {
 	rootCmd.Flags().BoolP("help", "h", false, "Show this help message and exit")
 	rootCmd.Flags().BoolP("version", "v", false, "Display the version of Codenet")
 
+	// Mark config and output flags as required
+	_ = rootCmd.MarkFlagRequired("config")
+	_ = rootCmd.MarkFlagRequired("output")
 }

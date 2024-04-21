@@ -99,8 +99,6 @@ func OnStart(sys system.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
 		err := sys.Initialize(contx)
-		sys.PluginManager().Initialize(contx, sys)
-		fmt.Printf("@@@@@@@@@This is the value: %v", sys.Configuration())
 		sys.PluginManager().AddPlugin(contx, plugin.NewNovaPlugin())
 		if err != nil {
 			return err

@@ -152,7 +152,7 @@ func (s *SystemImpl) Initialize(ctx *context.Context) error {
 	// Override this function to customize system initialization
 
 	s.status = SystemInitializedType
-
+	s.pluginManager.Initialize(ctx, s)
 	return nil
 }
 
