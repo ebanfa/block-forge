@@ -1,6 +1,9 @@
 package build
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // BuilderFactoryInterface defines the interface for the builder factory.
 type BuilderFactoryInterface interface {
@@ -30,11 +33,12 @@ func (f *PipelineBuilderFactory) RegisterBuilderType(builderType string, creator
 func (f *PipelineBuilderFactory) CreatePipelineBuilder(name, builderType string) (PipelineBuilderInterface, error) {
 	creator, exists := f.builderCreators[builderType]
 	if !exists {
-		return nil, errors.New("unsupported builder type")
+		return nil, fmt.Errorf(
+			"cannot create pipeline builder. Unsupported builder type %s", builderType)
 	}
 	builder := creator(name)
 	if builder == nil {
-		return nil, errors.New("builder creator returned nil")
+		return nil, errors.New("cannot create pipeline builder. Builder creator returned nil")
 	}
 	return builder, nil
 }
