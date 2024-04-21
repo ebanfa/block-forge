@@ -28,7 +28,6 @@ func (p *NovaPlugin) Initialize(ctx *context.Context, system systemApi.SystemInt
 	// Initialization logic
 	p.system = system
 	// Initialize the
-	fmt.Println("NovaPlugin initialized")
 	return nil
 }
 
@@ -54,7 +53,6 @@ func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
 		return fmt.Errorf("failed to create and register builder service: %w", err)
 	}
 
-	fmt.Println("Resources registered for NovaPlugin")
 	return nil
 }
 
@@ -78,7 +76,6 @@ func (p *NovaPlugin) Start(ctx *context.Context) error {
 		return fmt.Errorf("failed to start BuilderService: %v", err)
 	}
 
-	fmt.Println("NovaPlugin started")
 	return nil
 }
 

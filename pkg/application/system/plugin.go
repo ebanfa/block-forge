@@ -20,6 +20,11 @@ type PluginInterface interface {
 
 // PluginManagerInterface represents functionality for managing plugins.
 type PluginManagerInterface interface {
+
+	// Initialize initializes the manager.
+	// Returns an error if the initialization fails.
+	Initialize(ctx *context.Context, system SystemInterface) error
+
 	// AddPlugin adds a plugin to the plugin manager.
 	AddPlugin(ctx *context.Context, plugin PluginInterface) error
 
@@ -44,19 +49,25 @@ type PluginManagerInterface interface {
 
 // PluginManager represents functionality for managing plugins.
 type PluginManager struct {
-	BaseSystemComponent
 	PluginManagerInterface
-	SystemComponentInterface
 	mu      sync.RWMutex               // Mutex for synchronizing access to plugins map
 	plugins map[string]PluginInterface // Map to store plugins by ID
 	started bool                       // Flag to track whether the plugins have been started
+	System  SystemInterface
 }
 
 // NewPluginManager creates a new instance of PluginManager.
-func NewPluginManager() *PluginManager {
+func NewPluginManager() PluginManagerInterface {
 	return &PluginManager{
 		plugins: make(map[string]PluginInterface),
 	}
+}
+
+// Initialize initializes the manager.
+// Returns an error if the initialization fails.
+func (m *PluginManager) Initialize(ctx *context.Context, system SystemInterface) error {
+	m.System = system
+	return nil
 }
 
 // AddPlugin adds a plugin to the plugin manager, initializes it, and registers its resources.

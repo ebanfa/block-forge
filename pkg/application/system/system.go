@@ -142,6 +142,11 @@ func (s *SystemImpl) ComponentRegistry() component.ComponentRegistrarInterface {
 	return s.componentReg
 }
 
+// ComponentRegistry returns the component registry.
+func (s *SystemImpl) PluginManager() PluginManagerInterface {
+	return s.pluginManager
+}
+
 // Initialize initializes the system component by executing the initialize operation.
 func (s *SystemImpl) Initialize(ctx *context.Context) error {
 	// Override this function to customize system initialization
