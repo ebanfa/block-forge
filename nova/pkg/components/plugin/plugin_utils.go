@@ -3,10 +3,23 @@ package plugin
 import (
 	"fmt"
 
+	"github.com/edward1christian/block-forge/nova/pkg/common"
 	"github.com/edward1christian/block-forge/nova/pkg/components/factories"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 )
+
+// RegisterBuildService registers and creates the build service component.
+// Returns an error if registration or creation fails.
+func RegisterBuildService(registrar component.ComponentRegistrarInterface) error {
+	buildServiceConfig := &configApi.ComponentConfig{
+		ID:        common.IgniteBuildService,
+		FactoryID: common.IgniteBuildServiceFactory,
+	}
+
+	// Register and create the build service component
+	return RegisterAndCreateComponent(registrar, buildServiceConfig)
+}
 
 // RegisterAndCreateComponent registers and creates a component using the provided registrar.
 func RegisterAndCreateComponent(registrar component.ComponentRegistrarInterface, config *configApi.ComponentConfig) error {
@@ -23,7 +36,7 @@ func RegisterAndCreateComponent(registrar component.ComponentRegistrarInterface,
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to create and register component %s: %w", config.ID, err)
+		return err
 	}
 
 	return nil

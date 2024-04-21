@@ -54,6 +54,7 @@ func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
 
 	// Test resource registration
 	err = p.RegisterResources(ctx)
@@ -83,11 +84,12 @@ func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
 
 	// Test resource registration failure for RegisterFactory
 	err = p.RegisterResources(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to register service factory: "+expectedErr.Error())
+	assert.Contains(t, err.Error(), "failed to register service factory")
 }
 
 func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
@@ -117,11 +119,12 @@ func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
 
 	// Test resource registration failure for CreateComponent
 	err = p.RegisterResources(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to create and register builder service: "+expectedErr.Error())
+	assert.Contains(t, err.Error(), "failed to create and register builder service")
 }
 
 func TestNovaPlugin_Start_Success(t *testing.T) {

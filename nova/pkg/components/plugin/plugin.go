@@ -5,9 +5,7 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
-	"github.com/edward1christian/block-forge/nova/pkg/components/factories"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/config"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
@@ -36,21 +34,10 @@ func (p *NovaPlugin) Initialize(ctx *context.Context, system systemApi.SystemInt
 func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
 	registrar := p.system.ComponentRegistry()
 
-	// Register the service factory
-	err := registrar.RegisterFactory(
-		common.IgniteBuildServiceFactory, &factories.BuilderServiceFactory{})
+	// Register and create the build service component
+	err := RegisterBuildService(registrar)
 	if err != nil {
-		return fmt.Errorf("failed to register service factory: %w", err)
-	}
-
-	// Create and register the builder service
-	_, err = registrar.CreateComponent(&config.ComponentConfig{
-		ID:        common.IgniteBuildService,
-		FactoryID: common.IgniteBuildServiceFactory,
-	})
-
-	if err != nil {
-		return fmt.Errorf("failed to create and register builder service: %w", err)
+		return fmt.Errorf("failed to register and create build service: %w", err)
 	}
 
 	return nil
