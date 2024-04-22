@@ -2,6 +2,7 @@ package component
 
 // BaseComponent represents a concrete implementation of the OperationInterface.
 type BaseComponent struct {
+	ComponentInterface
 	Id   string
 	Nm   string
 	Desc string

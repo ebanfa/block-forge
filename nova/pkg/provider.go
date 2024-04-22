@@ -25,9 +25,9 @@ func Init(options *InitOptions) {
 	// Create an Fx application.
 	app := fx.New(
 		// Provide dependencies.
+		fx.Provide(ProvideConfiguration(options)),
 		fx.Provide(ProvideLogger),
 		fx.Provide(ProvideEventBus),
-		fx.Provide(ProvideConfiguration(options)),
 		fx.Provide(ProvidComponentRegistrar),
 		fx.Provide(ProvidPluginManager),
 		fx.Provide(ProvideSystem),

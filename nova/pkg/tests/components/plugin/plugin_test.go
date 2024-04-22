@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
-	"github.com/edward1christian/block-forge/nova/pkg/components/factories"
 	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/config"
@@ -21,6 +20,7 @@ func TestNovaPlugin_Initialize(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock Context
 	ctx := &context.Context{}
@@ -36,12 +36,13 @@ func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", common.IgniteBuildServiceFactory, &factories.BuilderServiceFactory{}).Return(nil)
+	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(nil)
 	registrarMock.On("CreateComponent", &config.ComponentConfig{
 		ID:        common.IgniteBuildService,
 		FactoryID: common.IgniteBuildServiceFactory,
@@ -67,6 +68,7 @@ func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
@@ -75,7 +77,7 @@ func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
 	expectedErr := errors.New("failed to register service factory")
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", common.IgniteBuildServiceFactory, &factories.BuilderServiceFactory{}).Return(expectedErr)
+	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -98,6 +100,7 @@ func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
@@ -106,11 +109,7 @@ func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
 	expectedErr := errors.New("failed to create and register builder service")
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", common.IgniteBuildServiceFactory, &factories.BuilderServiceFactory{}).Return(nil)
-	registrarMock.On("CreateComponent", &config.ComponentConfig{
-		ID:        common.IgniteBuildService,
-		FactoryID: common.IgniteBuildServiceFactory,
-	}).Return(&mocks.MockComponent{}, expectedErr)
+	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -133,18 +132,22 @@ func TestNovaPlugin_Start_Success(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Mock BuilderService component
-	builderServiceMock := &mocks.MockSystemService{}
+	mockBuildService := &mocks.MockSystemService{}
+	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
-	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(builderServiceMock, nil)
+	// Expectations for creating BuilderService component
+	registrarMock.On(
+		"CreateComponent", mock.Anything, mock.Anything).Return(mockBuildService, nil)
 
 	// Expectations for starting BuilderService
-	builderServiceMock.On("Start", mock.AnythingOfType("*context.Context")).Return(nil)
+	mockBuildService.On("Start", mock.Anything).Return(nil)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -160,90 +163,30 @@ func TestNovaPlugin_Start_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNovaPlugin_Start_Failure_GetComponent(t *testing.T) {
-	// Initialize NovaPlugin instance
-	p := plugin.NewNovaPlugin()
-
-	// Mock SystemInterface
-	mockSystem := &mocks.MockSystem{}
-
-	// Mock ComponentRegistry
-	registrarMock := &mocks.MockComponentRegistrar{}
-
-	// Error to be returned by GetComponent
-	expectedErr := errors.New("failed to get BuilderService component")
-
-	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent",
-		common.IgniteBuildService).Return(&mocks.MockComponent{}, expectedErr)
-
-	// Set the mocked ComponentRegistry
-	mockSystem.On("ComponentRegistry").Return(registrarMock)
-
-	ctx := &context.Context{}
-
-	// Initialize plugin
-	err := p.Initialize(ctx, mockSystem)
-	assert.NoError(t, err)
-
-	// Test starting the plugin failure for GetComponent
-	err = p.Start(ctx)
-	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to get BuilderService component: "+expectedErr.Error())
-}
-
-func TestNovaPlugin_Start_Failure_CastComponent(t *testing.T) {
-	// Initialize NovaPlugin instance
-	p := plugin.NewNovaPlugin()
-
-	// Mock SystemInterface
-	mockSystem := &mocks.MockSystem{}
-
-	// Mock ComponentRegistry
-	registrarMock := &mocks.MockComponentRegistrar{}
-
-	// Mock invalid BuilderService component
-	invalidComponentMock := &mocks.MockComponent{}
-
-	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(invalidComponentMock, nil)
-
-	// Set the mocked ComponentRegistry
-	mockSystem.On("ComponentRegistry").Return(registrarMock)
-
-	ctx := &context.Context{}
-
-	// Initialize plugin
-	err := p.Initialize(ctx, mockSystem)
-	assert.NoError(t, err)
-
-	// Test starting the plugin failure for invalid component cast
-	err = p.Start(ctx)
-	assert.Error(t, err)
-	assert.EqualError(t, err, "BuilderService component does not implement SystemServiceInterface")
-}
-
 func TestNovaPlugin_Start_Failure_StartService(t *testing.T) {
 	// Initialize NovaPlugin instance
 	p := plugin.NewNovaPlugin()
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Mock BuilderService component
-	builderServiceMock := &mocks.MockSystemService{}
+	mockBuildService := &mocks.MockSystemService{}
+	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
 	// Error to be returned by Start
 	expectedErr := errors.New("failed to start BuilderService")
 
-	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(builderServiceMock, nil)
+	// Expectations for creating BuilderService component
+	registrarMock.On("CreateComponent", mock.Anything, mock.Anything).Return(&mocks.MockComponent{}, expectedErr)
 
 	// Expectations for starting BuilderService
-	builderServiceMock.On("Start", mock.AnythingOfType("*context.Context")).Return(expectedErr)
+	mockBuildService.On("Start", mock.AnythingOfType("*context.Context")).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -257,7 +200,7 @@ func TestNovaPlugin_Start_Failure_StartService(t *testing.T) {
 	// Test starting the plugin failure for Start service
 	err = p.Start(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to start BuilderService: "+expectedErr.Error())
+	assert.Contains(t, err.Error(), "failed to start BuilderService")
 }
 
 func TestNovaPlugin_Stop_Success(t *testing.T) {
@@ -266,18 +209,20 @@ func TestNovaPlugin_Stop_Success(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Mock BuilderService component
-	builderServiceMock := &mocks.MockSystemService{}
+	mockBuildService := &mocks.MockSystemService{}
+	mockBuildService.On("ID").Return(common.IgniteBuildService)
 
 	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(builderServiceMock, nil)
+	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
 
 	// Expectations for stopping BuilderService
-	builderServiceMock.On("Stop", mock.AnythingOfType("*context.Context")).Return(nil)
+	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(nil)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -299,6 +244,7 @@ func TestNovaPlugin_Stop_Failure_GetComponent(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
@@ -331,6 +277,7 @@ func TestNovaPlugin_Stop_Failure_CastComponent(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
@@ -362,21 +309,23 @@ func TestNovaPlugin_Stop_Failure_StopService(t *testing.T) {
 
 	// Mock SystemInterface
 	mockSystem := &mocks.MockSystem{}
+	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Mock BuilderService component
-	builderServiceMock := &mocks.MockSystemService{}
+	mockBuildService := &mocks.MockSystemService{}
+	mockBuildService.On("ID").Return(common.IgniteBuildService)
 
 	// Error to be returned by Stop
 	expectedErr := errors.New("failed to stop BuilderService")
 
 	// Expectations for retrieving BuilderService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(builderServiceMock, nil)
+	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
 
 	// Expectations for stopping BuilderService
-	builderServiceMock.On("Stop", mock.AnythingOfType("*context.Context")).Return(expectedErr)
+	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)

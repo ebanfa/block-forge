@@ -165,21 +165,10 @@ func (s *SystemImpl) Start(ctx *context.Context) error {
 		return ErrSystemNotInitialized
 	}
 
-	// Retrieve all components of type ServiceType
-	components := s.ComponentRegistry().GetComponentsByType(component.ServiceType)
-
-	// Iterate over each service component and start it
-	for _, service := range components {
-		// Check if the component implements SystemServiceInterface
-		systemService, ok := service.(SystemServiceInterface)
-		if !ok {
-			return fmt.Errorf("failed to start service: component %v is not a service", service)
-		}
-
-		// Start the service
-		if err := systemService.Start(ctx); err != nil {
-			return fmt.Errorf("failed to start service: %w", err)
-		}
+	if err := s.pluginManager.StartPlugins(ctx); err != nil {
+		// Log the error, but continue stopping other services
+		s.logger.Log(logger.LevelError, "Error starting plugin:", err)
+		return err
 	}
 
 	s.status = SystemStartedType

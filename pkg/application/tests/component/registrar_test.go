@@ -3,6 +3,7 @@ package component
 import (
 	"testing"
 
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
@@ -23,9 +24,15 @@ func TestComponentRegistrar_GetComponentsByType_Success(t *testing.T) {
 	mockComponent.On("Type").Return(component.SystemComponentType)
 	mockFactory.On("CreateComponent", mock.Anything).Return(mockComponent, nil)
 
-	registrar.RegisterFactory("mockFactoryID", mockFactory)
-	registrar.CreateComponent(&config.ComponentConfig{
-		FactoryID: "mockFactoryID",
+	registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
+	registrar.CreateComponent(&context.Context{}, &component.ComponentCreationInfo{
+		Config: &config.ComponentConfig{
+			ID:        "mockComponentID",
+			FactoryID: "mockFactoryID",
+		},
 	})
 
 	// Call GetComponentsByType
@@ -51,10 +58,13 @@ func TestComponentRegistrar_GetComponentFactory_Success(t *testing.T) {
 
 	// Register a mock factory
 	mockFactory := new(mocks.MockComponentFactory)
-	registrar.RegisterFactory("mockFactoryID", mockFactory)
+	registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
 
 	// Call GetComponentFactory
-	factory, err := registrar.GetComponentFactory("mockFactoryID")
+	factory, err := registrar.GetFactory("mockFactoryID")
 	assert.NoError(t, err)
 	assert.NotNil(t, factory)
 }
@@ -65,7 +75,7 @@ func TestComponentRegistrar_GetComponentFactory_Error(t *testing.T) {
 	registrar := component.NewComponentRegistrar()
 
 	// Call GetComponentFactory for non-existent factory ID
-	factory, err := registrar.GetComponentFactory("nonExistentFactory")
+	factory, err := registrar.GetFactory("nonExistentFactory")
 	assert.Error(t, err)
 	assert.Nil(t, factory)
 }
@@ -101,7 +111,10 @@ func TestComponentRegistrar_RegisterFactory_Success(t *testing.T) {
 	mockFactory := new(mocks.MockComponentFactory)
 
 	// Call RegisterFactory
-	err := registrar.RegisterFactory("mockFactoryID", mockFactory)
+	err := registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
 	assert.NoError(t, err)
 }
 
@@ -112,10 +125,16 @@ func TestComponentRegistrar_RegisterFactory_Error(t *testing.T) {
 
 	// Attempt to register the same factory ID twice
 	mockFactory := new(mocks.MockComponentFactory)
-	err := registrar.RegisterFactory("mockFactoryID", mockFactory)
+	err := registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
 	assert.NoError(t, err)
 
-	err = registrar.RegisterFactory("mockFactoryID", mockFactory)
+	err = registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
 	assert.Error(t, err)
 }
 
@@ -128,11 +147,14 @@ func TestComponentRegistrar_UnregisterFactory_Success(t *testing.T) {
 	mockFactory := new(mocks.MockComponentFactory)
 
 	// Register the factory
-	err := registrar.RegisterFactory("mockFactoryID", mockFactory)
+	err := registrar.RegisterFactory(&context.Context{}, &component.FactoryRegistrationInfo{
+		ID:      "mockFactoryID",
+		Factory: mockFactory,
+	})
 	assert.NoError(t, err)
 
 	// Call UnregisterFactory
-	err = registrar.UnregisterFactory("mockFactoryID")
+	err = registrar.UnregisterFactory(&context.Context{}, "mockFactoryID")
 	assert.NoError(t, err)
 }
 
@@ -142,6 +164,6 @@ func TestComponentRegistrar_UnregisterFactory_Error(t *testing.T) {
 	registrar := component.NewComponentRegistrar()
 
 	// Attempt to unregister non-existent factory
-	err := registrar.UnregisterFactory("nonExistentFactory")
+	err := registrar.UnregisterFactory(&context.Context{}, "nonExistentFactory")
 	assert.Error(t, err)
 }

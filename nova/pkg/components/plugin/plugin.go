@@ -5,14 +5,18 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
+	"github.com/edward1christian/block-forge/nova/pkg/components/factories"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
+	"github.com/edward1christian/block-forge/pkg/application/component"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
 // NovaPlugin represents a plugin in the system.
 type NovaPlugin struct {
 	systemApi.BaseSystemComponent
-	system systemApi.SystemInterface
+	system       systemApi.SystemInterface
+	buildService systemApi.SystemServiceInterface
 }
 
 // NewNovaPlugin creates a new instance of NovaPlugin.
@@ -26,41 +30,45 @@ func (p *NovaPlugin) Initialize(ctx *context.Context, system systemApi.SystemInt
 	// Initialization logic
 	p.system = system
 	// Initialize the
+	system.Logger().Log(logger.LevelInfo, "NovaPlugin: Initializing plugin")
 	return nil
 }
 
 // RegisterResources registers resources into the system.
 // Returns an error if resource registration fails.
 func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
-	registrar := p.system.ComponentRegistry()
-
+	p.system.Logger().Log(logger.LevelInfo, "NovaPlugin: Registering resources")
 	// Register and create the build service component
-	err := RegisterBuildService(registrar)
-	if err != nil {
-		return fmt.Errorf("failed to register and create build service: %w", err)
+	if err := p.registerBuildService(ctx); err != nil {
+		return fmt.Errorf("failed to register build service: %w", err)
 	}
 
+	return nil
+}
+
+// Helper function to register and create the build service component
+func (p *NovaPlugin) registerBuildService(ctx *context.Context) error {
+	p.system.Logger().Log(logger.LevelInfo, "NovaPlugin: registering factory "+common.IgniteBuildServiceFactory)
+
+	registrar := p.system.ComponentRegistry()
+	err := registrar.RegisterFactory(ctx, &component.FactoryRegistrationInfo{
+		ID:      common.IgniteBuildServiceFactory,
+		Factory: &factories.BuilderServiceFactory{},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to register factory %s: %w", common.IgniteBuildServiceFactory, err)
+	}
 	return nil
 }
 
 // Start starts the component.
 // Returns an error if the start operation fails.
 func (p *NovaPlugin) Start(ctx *context.Context) error {
-	// Retrieve the BuilderService component from the ComponentRegistry
-	component, err := p.system.ComponentRegistry().GetComponent(common.IgniteBuildService)
-	if err != nil {
-		return fmt.Errorf("failed to get BuilderService component: %v", err)
-	}
+	p.system.Logger().Log(logger.LevelInfo, "NovaPlugin: Starting plugin")
 
-	// Check if the retrieved component implements the SystemServiceInterface
-	builderService, ok := component.(systemApi.SystemServiceInterface)
-	if !ok {
-		return errors.New("BuilderService component does not implement SystemServiceInterface")
-	}
-
-	// Start the BuilderService
-	if err := builderService.Start(ctx); err != nil {
-		return fmt.Errorf("failed to start BuilderService: %v", err)
+	// Start the build service
+	if err := StartBuildService(ctx, p.system); err != nil {
+		return fmt.Errorf("failed to register BuilderService: %v", err)
 	}
 
 	return nil
@@ -76,13 +84,13 @@ func (p *NovaPlugin) Stop(ctx *context.Context) error {
 	}
 
 	// Check if the retrieved component implements the SystemServiceInterface
-	builderService, ok := component.(systemApi.SystemServiceInterface)
+	buildService, ok := component.(systemApi.SystemServiceInterface)
 	if !ok {
 		return errors.New("BuilderService component does not implement SystemServiceInterface")
 	}
 
 	// Stop the BuilderService
-	if err := builderService.Stop(ctx); err != nil {
+	if err := buildService.Stop(ctx); err != nil {
 		return fmt.Errorf("failed to stop BuilderService: %v", err)
 	}
 
