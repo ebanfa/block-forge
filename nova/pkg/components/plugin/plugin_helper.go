@@ -21,12 +21,14 @@ func StartBuildService(ctx *context.Context, system systemApi.SystemInterface) e
 	if err != nil {
 		return err
 	}
-	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Initializing service"+buildService.ID())
+	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Initializing service:"+buildService.ID())
 
 	// Initialize the build service
 	if err := buildService.Initialize(ctx, system); err != nil {
 		return fmt.Errorf("failed to initialize BuilderService: %v", err)
 	}
+
+	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Starting service:"+buildService.ID())
 	return buildService.Start(ctx)
 }
 

@@ -17,6 +17,6 @@ func (m *MockBuilderFactory) CreatePipelineBuilder(name, builderType string) (bu
 }
 
 // RegisterBuilderType mocks the RegisterBuilderType method of BuilderFactoryInterface.
-func (m *MockBuilderFactory) RegisterBuilderType(builderType string, creator func(name string) build.PipelineBuilderInterface) {
+func (m *MockBuilderFactory) RegisterPipelineBuilderFactory(builderType string, creator func(name string) build.PipelineBuilderInterface) {
 	m.Called(builderType, creator)
 }

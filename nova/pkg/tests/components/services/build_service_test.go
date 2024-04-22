@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestBuilderService_Start_Success(t *testing.T) {
+func TestBuildService_Start_Success(t *testing.T) {
 	// Initialize mock objects
 	ctx := &context.Context{}
 	factory := &mocks.MockBuilderFactory{}
@@ -22,8 +22,8 @@ func TestBuilderService_Start_Success(t *testing.T) {
 	mockBuilder.On("Build").Return(mockPipeline, nil)
 	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
 
-	// Create a new BuilderService instance
-	builderService := services.NewBuilderService("id", "name", "description", factory)
+	// Create a new BuildService instance
+	builderService := services.NewBuildService("id", "name", "description", factory)
 
 	// Call Start method
 	err := builderService.Start(ctx)
@@ -32,7 +32,7 @@ func TestBuilderService_Start_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestBuilderService_Start_FailedToCreateBuilder(t *testing.T) {
+func TestBuildService_Start_FailedToCreateBuilder(t *testing.T) {
 	// Initialize mock objects
 	ctx := &context.Context{}
 	factory := &mocks.MockBuilderFactory{}
@@ -44,8 +44,8 @@ func TestBuilderService_Start_FailedToCreateBuilder(t *testing.T) {
 	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(
 		mockBuilder, errors.New("failed to create pipeline builder"))
 
-	// Create a new BuilderService instance
-	builderService := services.NewBuilderService("id", "name", "description", factory)
+	// Create a new BuildService instance
+	builderService := services.NewBuildService("id", "name", "description", factory)
 
 	// Call Start method with a factory that returns nil
 	err := builderService.Start(ctx)
@@ -55,7 +55,7 @@ func TestBuilderService_Start_FailedToCreateBuilder(t *testing.T) {
 	assert.Equal(t, "failed to create pipeline builder", err.Error())
 }
 
-func TestBuilderService_Start_FailedToBuildPipeline(t *testing.T) {
+func TestBuildService_Start_FailedToBuildPipeline(t *testing.T) {
 	// Initialize mock objects
 	ctx := &context.Context{}
 	factory := &mocks.MockBuilderFactory{}
@@ -66,8 +66,8 @@ func TestBuilderService_Start_FailedToBuildPipeline(t *testing.T) {
 	mockPipeline.On("Execute", ctx).Return(nil)
 	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
 
-	// Create a new BuilderService instance
-	builderService := services.NewBuilderService("id", "name", "description", factory)
+	// Create a new BuildService instance
+	builderService := services.NewBuildService("id", "name", "description", factory)
 
 	// Override the factory method to return a builder that returns nil when Build is called
 	factory.On("ExecuteTasks", mock.Anything).Return(nil)

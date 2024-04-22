@@ -11,12 +11,6 @@ type MockBuildStage struct {
 	mock.Mock
 }
 
-// GetName implements the GetName method of the StageInterface.
-func (m *MockBuildStage) GetName() string {
-	args := m.Called()
-	return args.String(0)
-}
-
 // GetTasks implements the GetTasks method of the StageInterface.
 func (m *MockBuildStage) GetTasks() []build.TaskInterface {
 	args := m.Called()
@@ -29,9 +23,9 @@ func (m *MockBuildStage) ExecuteTasks(ctx *context.Context) error {
 	return args.Error(0)
 }
 
-// GetTaskByName implements the GetTaskByName method of the StageInterface.
-func (m *MockBuildStage) GetTaskByName(name string) (build.TaskInterface, error) {
-	args := m.Called(name)
+// GetTaskByID implements the GetTaskByID method of the StageInterface.
+func (m *MockBuildStage) GetTaskByID(id string) (build.TaskInterface, error) {
+	args := m.Called(id)
 	return args.Get(0).(build.TaskInterface), args.Error(1)
 }
 

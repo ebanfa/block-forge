@@ -12,19 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// TestBuildStage_GetName tests the GetName method of StageInterface.
-func TestBuildStage_GetName(t *testing.T) {
-	// Arrange
-	expectedName := "TestStage"
-	stage := build.NewBuildStage(expectedName)
-
-	// Act
-	name := stage.GetName()
-
-	// Assert
-	assert.Equal(t, expectedName, name, "Expected and actual names should match")
-}
-
 // TestBuildStage_GetTasks tests the GetTasks method of StageInterface.
 func TestBuildStage_GetTasks(t *testing.T) {
 	// Arrange
@@ -32,7 +19,7 @@ func TestBuildStage_GetTasks(t *testing.T) {
 	mockTask := &mocks.MockBuildTask{}
 
 	// Mock behavior
-	mockTask.On("GetName").Return("TestTask")
+	mockTask.On("ID").Return("TestTask")
 	stage.AddTask(mockTask)
 
 	// Act
@@ -51,7 +38,7 @@ func TestBuildStage_ExecuteTasks_Success(t *testing.T) {
 	mockTask := &mocks.MockBuildTask{}
 
 	// Mock behavior
-	mockTask.On("GetName").Return("TestTask")
+	mockTask.On("ID").Return("TestTask")
 	mockTask.On("Execute", ctx, mock.Anything).Return(&system.SystemOperationOutput{}, nil)
 
 	stage.AddTask(mockTask)
@@ -71,7 +58,7 @@ func TestBuildStage_ExecuteTasks_Error(t *testing.T) {
 	mockTask := &mocks.MockBuildTask{}
 
 	// Mock behavior
-	mockTask.On("GetName").Return("TestTask")
+	mockTask.On("ID").Return("TestTask")
 	mockTask.On("Execute", mock.Anything, mock.Anything).Return(&system.SystemOperationOutput{}, errors.New("execution error"))
 
 	stage.AddTask(mockTask)
@@ -91,12 +78,12 @@ func TestBuildStage_GetTaskByName_Success(t *testing.T) {
 	mockTask := &mocks.MockBuildTask{}
 
 	// Mock behavior
-	mockTask.On("GetName").Return("TestTask")
+	mockTask.On("ID").Return("TestTask")
 
 	stage.AddTask(mockTask)
 
 	// Act
-	task, err := stage.GetTaskByName("TestTask")
+	task, err := stage.GetTaskByID("TestTask")
 
 	// Assert
 	assert.NoError(t, err, "Getting task by name should not return an error")
@@ -110,11 +97,11 @@ func TestBuildStage_GetTaskByName_Error(t *testing.T) {
 	mockTask := &mocks.MockBuildTask{}
 
 	// Mock behavior
-	mockTask.On("GetName").Return("TestTask")
+	mockTask.On("ID").Return("TestTask")
 	stage.AddTask(mockTask)
 
 	// Act
-	_, err := stage.GetTaskByName("NonExistentTask")
+	_, err := stage.GetTaskByID("NonExistentTask")
 
 	// Assert
 	assert.Error(t, err, "Getting non-existent task should return an error")

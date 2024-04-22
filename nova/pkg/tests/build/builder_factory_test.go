@@ -14,8 +14,8 @@ func TestPipelineBuilderFactory_CreatePipelineBuilder(t *testing.T) {
 	factory := build.NewPipelineBuilderFactory()
 
 	// Register builder creation functions for different pipeline types
-	factory.RegisterBuilderType("type1", build.NewPipelineBuilder)
-	factory.RegisterBuilderType("type2", build.NewPipelineBuilder)
+	factory.RegisterPipelineBuilderFactory("type1", build.NewPipelineBuilder)
+	factory.RegisterPipelineBuilderFactory("type2", build.NewPipelineBuilder)
 
 	// Test creating pipeline builders for different types
 	builder1, err := factory.CreatePipelineBuilder("Pipeline1", "type1")

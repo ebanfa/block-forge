@@ -53,7 +53,7 @@ func (p *NovaPlugin) registerBuildService(ctx *context.Context) error {
 	registrar := p.system.ComponentRegistry()
 	err := registrar.RegisterFactory(ctx, &component.FactoryRegistrationInfo{
 		ID:      common.IgniteBuildServiceFactory,
-		Factory: &factories.BuilderServiceFactory{},
+		Factory: &factories.BuildServiceFactory{},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to register factory %s: %w", common.IgniteBuildServiceFactory, err)
@@ -68,7 +68,7 @@ func (p *NovaPlugin) Start(ctx *context.Context) error {
 
 	// Start the build service
 	if err := StartBuildService(ctx, p.system); err != nil {
-		return fmt.Errorf("failed to register BuilderService: %v", err)
+		return fmt.Errorf("failed to register BuildService: %v", err)
 	}
 
 	return nil
@@ -77,21 +77,21 @@ func (p *NovaPlugin) Start(ctx *context.Context) error {
 // Stop stops the component.
 // Returns an error if the stop operation fails.
 func (p *NovaPlugin) Stop(ctx *context.Context) error {
-	// Retrieve the BuilderService component from the ComponentRegistry
+	// Retrieve the BuildService component from the ComponentRegistry
 	component, err := p.system.ComponentRegistry().GetComponent(common.IgniteBuildService)
 	if err != nil {
-		return fmt.Errorf("failed to get BuilderService component: %v", err)
+		return fmt.Errorf("failed to get BuildService component: %v", err)
 	}
 
 	// Check if the retrieved component implements the SystemServiceInterface
 	buildService, ok := component.(systemApi.SystemServiceInterface)
 	if !ok {
-		return errors.New("BuilderService component does not implement SystemServiceInterface")
+		return errors.New("BuildService component does not implement SystemServiceInterface")
 	}
 
-	// Stop the BuilderService
+	// Stop the BuildService
 	if err := buildService.Stop(ctx); err != nil {
-		return fmt.Errorf("failed to stop BuilderService: %v", err)
+		return fmt.Errorf("failed to stop BuildService: %v", err)
 	}
 
 	fmt.Println("NovaPlugin stopped")

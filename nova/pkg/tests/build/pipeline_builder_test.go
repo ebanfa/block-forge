@@ -26,7 +26,6 @@ func TestPipelineBuilder_AddStage(t *testing.T) {
 
 	stages := pipeline.GetStages()
 	assert.Len(t, stages, 1, "Number of stages should be 1")
-	assert.Equal(t, stageName, stages[0].GetName(), "Stage name should match")
 }
 
 // TestPipelineBuilder_AddStage_AddTask tests the AddStage and AddTask methods of PipelineBuilder.

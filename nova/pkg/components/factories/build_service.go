@@ -7,13 +7,13 @@ import (
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 )
 
-// BuilderServiceFactory is responsible for creating instances of BuilderService.
-type BuilderServiceFactory struct {
+// BuildServiceFactory is responsible for creating instances of BuildService.
+type BuildServiceFactory struct {
 }
 
-// CreateComponent creates a new instance of the BuilderService.
-func (bf *BuilderServiceFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
+// CreateComponent creates a new instance of the BuildService.
+func (bf *BuildServiceFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
 	// Construct the service
-	return services.NewBuilderService(config.ID,
+	return services.NewBuildService(config.ID,
 		config.Name, config.Description, build.NewPipelineBuilderFactory()), nil
 }

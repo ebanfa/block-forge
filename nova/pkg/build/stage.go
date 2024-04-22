@@ -9,8 +9,6 @@ import (
 
 // StageInterface represents a stage within a build pipeline.
 type StageInterface interface {
-	// GetName returns the name of the build stage.
-	GetName() string
 
 	// GetTasks returns the tasks within the build stage.
 	GetTasks() []TaskInterface
@@ -18,8 +16,8 @@ type StageInterface interface {
 	// ExecuteTasks executes all tasks within the stage.
 	ExecuteTasks(ctx *context.Context) error
 
-	// GetTaskByName returns the task with the given name from the stage.
-	GetTaskByName(name string) (TaskInterface, error)
+	// GetTaskByID returns the task with the given name from the stage.
+	GetTaskByID(name string) (TaskInterface, error)
 
 	// AddTask adds a task to the stage.
 	AddTask(task TaskInterface) error
@@ -37,11 +35,6 @@ func NewBuildStage(name string) *BuildStage {
 		Name:  name,
 		Tasks: make(map[string]TaskInterface),
 	}
-}
-
-// GetName returns the name of the build stage.
-func (bs *BuildStage) GetName() string {
-	return bs.Name
 }
 
 // GetTasks returns the tasks within the build stage.
@@ -64,9 +57,9 @@ func (bs *BuildStage) ExecuteTasks(ctx *context.Context) error {
 	return nil
 }
 
-// GetTaskByName returns the task with the given name from the stage.
-func (bs *BuildStage) GetTaskByName(name string) (TaskInterface, error) {
-	task, exists := bs.Tasks[name]
+// GetTaskByID returns the task with the given id from the stage.
+func (bs *BuildStage) GetTaskByID(id string) (TaskInterface, error) {
+	task, exists := bs.Tasks[id]
 	if !exists {
 		return nil, errors.New("task not found")
 	}
@@ -75,9 +68,9 @@ func (bs *BuildStage) GetTaskByName(name string) (TaskInterface, error) {
 
 // AddTask adds a task to the stage.
 func (bs *BuildStage) AddTask(task TaskInterface) error {
-	if _, exists := bs.Tasks[task.GetName()]; exists {
-		return errors.New("task with the same name already exists")
+	if _, exists := bs.Tasks[task.ID()]; exists {
+		return errors.New("task with the same id already exists")
 	}
-	bs.Tasks[task.GetName()] = task
+	bs.Tasks[task.ID()] = task
 	return nil
 }

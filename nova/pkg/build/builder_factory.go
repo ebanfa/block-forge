@@ -5,15 +5,15 @@ import (
 	"fmt"
 )
 
-// BuilderFactoryInterface defines the interface for the builder factory.
-type BuilderFactoryInterface interface {
+// PipelineBuilderFactoryInterface defines the interface for the builder factory.
+type PipelineBuilderFactoryInterface interface {
 	CreatePipelineBuilder(name, builderType string) (PipelineBuilderInterface, error)
-	RegisterBuilderType(builderType string, creator func(name string) PipelineBuilderInterface)
+	RegisterPipelineBuilderFactory(builderType string, creator func(name string) PipelineBuilderInterface)
 }
 
 // PipelineBuilderFactory is a factory for creating different types of PipelineBuilders.
 type PipelineBuilderFactory struct {
-	BuilderFactoryInterface
+	PipelineBuilderFactoryInterface
 	builderCreators map[string]func(name string) PipelineBuilderInterface
 }
 
@@ -24,8 +24,8 @@ func NewPipelineBuilderFactory() *PipelineBuilderFactory {
 	}
 }
 
-// RegisterBuilderType registers a builder creation function for the given pipeline type.
-func (f *PipelineBuilderFactory) RegisterBuilderType(builderType string, creator func(name string) PipelineBuilderInterface) {
+// RegisterPipelineBuilderFactory registers a builder creation function for the given pipeline type.
+func (f *PipelineBuilderFactory) RegisterPipelineBuilderFactory(builderType string, creator func(name string) PipelineBuilderInterface) {
 	f.builderCreators[builderType] = creator
 }
 
