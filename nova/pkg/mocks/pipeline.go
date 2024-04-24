@@ -1,42 +1,71 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/nova/pkg/build"
-	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/stretchr/testify/mock"
+
+	typesApi "github.com/edward1christian/block-forge/nova/pkg/types"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/component"
+	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// MockBuildPipeline is a mock implementation of the PipelineInterface.
-type MockBuildPipeline struct {
+// MockPipeline is a testify mock for the PipelineInterface.
+type MockPipeline struct {
 	mock.Mock
 }
 
-// GetName implements the GetName method of the PipelineInterface.
-func (m *MockBuildPipeline) GetName() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-// AddStage implements the AddStage method of the PipelineInterface.
-func (m *MockBuildPipeline) AddStage(name string, stage build.StageInterface) error {
+// AddStage adds a stage to the build pipeline.
+func (m *MockPipeline) AddStage(name string, stage typesApi.StageInterface) error {
 	args := m.Called(name, stage)
 	return args.Error(0)
 }
 
-// GetStage implements the GetStage method of the PipelineInterface.
-func (m *MockBuildPipeline) GetStage(name string) (build.StageInterface, error) {
+// GetStage returns the stage with the given name from the build pipeline.
+func (m *MockPipeline) GetStage(name string) (typesApi.StageInterface, error) {
 	args := m.Called(name)
-	return args.Get(0).(build.StageInterface), args.Error(1)
+	stage, _ := args.Get(0).(typesApi.StageInterface)
+	return stage, args.Error(1)
 }
 
-// GetStages implements the GetStages method of the PipelineInterface.
-func (m *MockBuildPipeline) GetStages() []build.StageInterface {
+// GetStages returns all stages within the build pipeline.
+func (m *MockPipeline) GetStages() []typesApi.StageInterface {
 	args := m.Called()
-	return args.Get(0).([]build.StageInterface)
+	stages, _ := args.Get(0).([]typesApi.StageInterface)
+	return stages
 }
 
-// Execute implements the Execute method of the PipelineInterface.
-func (m *MockBuildPipeline) Execute(ctx *context.Context) error {
-	args := m.Called(ctx)
+// Execute executes all stages within the build pipeline.
+func (m *MockPipeline) Execute(ctx *context.Context, data *system.SystemOperationInput) error {
+	args := m.Called(ctx, data)
+	return args.Error(0)
+}
+
+// Type returns the type of the component.
+func (m *MockPipeline) Type() component.ComponentType {
+	args := m.Called()
+	return args.Get(0).(component.ComponentType)
+}
+
+// ID returns the unique identifier of the component.
+func (m *MockPipeline) ID() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+// Name returns the name of the component.
+func (m *MockPipeline) Name() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+// Description returns the description of the component.
+func (m *MockPipeline) Description() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+// Initialize initializes the module.
+func (m *MockPipeline) Initialize(ctx *context.Context, system system.SystemInterface) error {
+	args := m.Called(ctx, system)
 	return args.Error(0)
 }

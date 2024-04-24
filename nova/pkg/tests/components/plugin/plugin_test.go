@@ -137,16 +137,16 @@ func TestNovaPlugin_Start_Success(t *testing.T) {
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
-	// Mock BuilderService component
+	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
 	mockBuildService.On("ID").Return(common.IgniteBuildService)
 	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
-	// Expectations for creating BuilderService component
+	// Expectations for creating BuildService component
 	registrarMock.On(
 		"CreateComponent", mock.Anything, mock.Anything).Return(mockBuildService, nil)
 
-	// Expectations for starting BuilderService
+	// Expectations for starting BuildService
 	mockBuildService.On("Start", mock.Anything).Return(nil)
 
 	// Set the mocked ComponentRegistry
@@ -174,18 +174,18 @@ func TestNovaPlugin_Start_Failure_StartService(t *testing.T) {
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
-	// Mock BuilderService component
+	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
 	mockBuildService.On("ID").Return(common.IgniteBuildService)
 	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
 	// Error to be returned by Start
-	expectedErr := errors.New("failed to start BuilderService")
+	expectedErr := errors.New("failed to start BuildService")
 
-	// Expectations for creating BuilderService component
+	// Expectations for creating BuildService component
 	registrarMock.On("CreateComponent", mock.Anything, mock.Anything).Return(&mocks.MockComponent{}, expectedErr)
 
-	// Expectations for starting BuilderService
+	// Expectations for starting BuildService
 	mockBuildService.On("Start", mock.AnythingOfType("*context.Context")).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
@@ -200,7 +200,7 @@ func TestNovaPlugin_Start_Failure_StartService(t *testing.T) {
 	// Test starting the plugin failure for Start service
 	err = p.Start(ctx)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to start BuilderService")
+	assert.Contains(t, err.Error(), "failed to start BuildService")
 }
 
 func TestNovaPlugin_Stop_Success(t *testing.T) {
@@ -214,14 +214,14 @@ func TestNovaPlugin_Stop_Success(t *testing.T) {
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
-	// Mock BuilderService component
+	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
 	mockBuildService.On("ID").Return(common.IgniteBuildService)
 
-	// Expectations for retrieving BuilderService component
+	// Expectations for retrieving BuildService component
 	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
 
-	// Expectations for stopping BuilderService
+	// Expectations for stopping BuildService
 	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(nil)
 
 	// Set the mocked ComponentRegistry
@@ -250,9 +250,9 @@ func TestNovaPlugin_Stop_Failure_GetComponent(t *testing.T) {
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Error to be returned by GetComponent
-	expectedErr := errors.New("failed to get BuilderService component")
+	expectedErr := errors.New("failed to get BuildService component")
 
-	// Expectations for retrieving BuilderService component
+	// Expectations for retrieving BuildService component
 	registrarMock.On("GetComponent",
 		common.IgniteBuildService).Return(&mocks.MockComponent{}, expectedErr)
 
@@ -268,7 +268,7 @@ func TestNovaPlugin_Stop_Failure_GetComponent(t *testing.T) {
 	// Test stopping the plugin failure for GetComponent
 	err = p.Stop(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to get BuilderService component: "+expectedErr.Error())
+	assert.EqualError(t, err, "failed to get BuildService component: "+expectedErr.Error())
 }
 
 func TestNovaPlugin_Stop_Failure_CastComponent(t *testing.T) {
@@ -282,10 +282,10 @@ func TestNovaPlugin_Stop_Failure_CastComponent(t *testing.T) {
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
-	// Mock invalid BuilderService component
+	// Mock invalid BuildService component
 	invalidComponentMock := &mocks.MockComponent{}
 
-	// Expectations for retrieving BuilderService component
+	// Expectations for retrieving BuildService component
 	registrarMock.On("GetComponent", common.IgniteBuildService).Return(invalidComponentMock, nil)
 
 	// Set the mocked ComponentRegistry
@@ -300,7 +300,7 @@ func TestNovaPlugin_Stop_Failure_CastComponent(t *testing.T) {
 	// Test stopping the plugin failure for invalid component cast
 	err = p.Stop(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "BuilderService component does not implement SystemServiceInterface")
+	assert.EqualError(t, err, "BuildService component does not implement SystemServiceInterface")
 }
 
 func TestNovaPlugin_Stop_Failure_StopService(t *testing.T) {
@@ -314,17 +314,17 @@ func TestNovaPlugin_Stop_Failure_StopService(t *testing.T) {
 	// Mock ComponentRegistry
 	registrarMock := &mocks.MockComponentRegistrar{}
 
-	// Mock BuilderService component
+	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
 	mockBuildService.On("ID").Return(common.IgniteBuildService)
 
 	// Error to be returned by Stop
-	expectedErr := errors.New("failed to stop BuilderService")
+	expectedErr := errors.New("failed to stop BuildService")
 
-	// Expectations for retrieving BuilderService component
+	// Expectations for retrieving BuildService component
 	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
 
-	// Expectations for stopping BuilderService
+	// Expectations for stopping BuildService
 	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
@@ -339,5 +339,5 @@ func TestNovaPlugin_Stop_Failure_StopService(t *testing.T) {
 	// Test stopping the plugin failure for Stop service
 	err = p.Stop(ctx)
 	assert.Error(t, err)
-	assert.EqualError(t, err, "failed to stop BuilderService: "+expectedErr.Error())
+	assert.EqualError(t, err, "failed to stop BuildService: "+expectedErr.Error())
 }

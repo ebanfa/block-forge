@@ -12,12 +12,12 @@ import (
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// createAndStartBuilderService creates and starts the BuilderService component.
+// createAndStartBuildService creates and starts the BuildService component.
 func StartBuildService(ctx *context.Context, system systemApi.SystemInterface) error {
 	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Creating build service")
 
-	// Create and start the BuilderService component
-	buildService, err := CreateBuilderService(ctx, system.ComponentRegistry())
+	// Create and start the BuildService component
+	buildService, err := CreateBuildService(ctx, system.ComponentRegistry())
 	if err != nil {
 		return err
 	}
@@ -25,15 +25,15 @@ func StartBuildService(ctx *context.Context, system systemApi.SystemInterface) e
 
 	// Initialize the build service
 	if err := buildService.Initialize(ctx, system); err != nil {
-		return fmt.Errorf("failed to initialize BuilderService: %v", err)
+		return fmt.Errorf("failed to initialize BuildService: %v", err)
 	}
 
 	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Starting service:"+buildService.ID())
 	return buildService.Start(ctx)
 }
 
-// Helper function to create the BuilderService component
-func CreateBuilderService(ctx *context.Context, registrar component.ComponentRegistrarInterface) (systemApi.SystemServiceInterface, error) {
+// Helper function to create the BuildService component
+func CreateBuildService(ctx *context.Context, registrar component.ComponentRegistrarInterface) (systemApi.SystemServiceInterface, error) {
 	component, err := registrar.CreateComponent(ctx, &component.ComponentCreationInfo{
 		FactoryID: common.IgniteBuildServiceFactory,
 		Config: &config.ComponentConfig{

@@ -1,25 +1,34 @@
 package services
 
 import (
-	"errors"
+	"fmt"
 
-	"github.com/edward1christian/block-forge/nova/pkg/build"
-	"github.com/edward1christian/block-forge/nova/pkg/build/builders"
-	"github.com/edward1christian/block-forge/nova/pkg/common"
+	novaCommonApi "github.com/edward1christian/block-forge/nova/pkg/common"
+	"github.com/edward1christian/block-forge/nova/pkg/components/common"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/component"
+	"github.com/edward1christian/block-forge/pkg/application/config"
+	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
+
+// BuildServiceFactory is responsible for creating instances of BuildService.
+type BuildServiceFactory struct {
+}
+
+// CreateComponent creates a new instance of the BuildService.
+func (bf *BuildServiceFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
+	// Construct the service
+	return NewBuildService(config.ID, config.Name, config.Description), nil
+}
 
 // BuildService represents a service for managing build pipelines.
 type BuildService struct {
 	systemApi.BaseSystemService // Embedding BaseComponent
-	factory                     build.PipelineBuilderFactoryInterface
 }
 
 // NewBuildService creates a new instance of BuildService.
-func NewBuildService(id, name, description string, factory build.PipelineBuilderFactoryInterface) *BuildService {
+func NewBuildService(id, name, description string) systemApi.SystemServiceInterface {
 	return &BuildService{
 		BaseSystemService: systemApi.BaseSystemService{
 			BaseSystemComponent: systemApi.BaseSystemComponent{
@@ -30,46 +39,76 @@ func NewBuildService(id, name, description string, factory build.PipelineBuilder
 				},
 			},
 		},
-		factory: factory,
 	}
 }
 
 // Initialize initializes the BuildService.
+// It sets the system instance and registers a pipeline factory.
 func (bs *BuildService) Initialize(ctx *context.Context, system systemApi.SystemInterface) error {
 	bs.System = system
 
-	bs.factory.RegisterPipelineBuilderFactory(
-		common.IgnitePipelineBuilder, builders.CosmosSDKBlockchainPipelineBuilder)
+	// Register pipeline factory
+	factoryInfo := &component.FactoryRegistrationInfo{
+		ID:      novaCommonApi.BuildPipelineFactory,
+		Factory: &common.PipelineFactory{},
+	}
+	if err := system.ComponentRegistry().RegisterFactory(ctx, factoryInfo); err != nil {
+		return fmt.Errorf("failed to register pipeline factory: %w", err)
+	}
 
 	return nil
 }
 
 // Start starts the BuildService.
+// It creates a new instance of the pipeline builder and starts it.
 func (bs *BuildService) Start(ctx *context.Context) error {
 	// Create a new instance of the pipeline builder
-	bs.System.Logger().Log(logger.LevelInfo, "BuildService: Creating pipeline builder:"+common.IgnitePipelineBuilder)
-	builder, err := bs.factory.CreatePipelineBuilder("Pipeline1", common.IgnitePipelineBuilder)
+	pipeline, err := bs.createPipeline(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start pipeline: %w", err)
 	}
 
-	// Build and execute the pipeline
-	bs.System.Logger().Log(logger.LevelInfo, "BuildService: Building pipeline")
-	buildPipeline, err := builder.Build()
+	// Start the pipeline
+	return pipeline.Execute(ctx, &systemApi.SystemOperationInput{})
+}
+
+// createPipeline creates a new instance of the pipeline builder.
+// It retrieves the pipeline component from the system's component registry.
+func (bs *BuildService) createPipeline(ctx *context.Context) (common.PipelineInterface, error) {
+	// Create a new pipeline component using the component registry
+	pipelineComp, err := bs.System.ComponentRegistry().CreateComponent(ctx, &component.ComponentCreationInfo{
+		FactoryID: novaCommonApi.BuildPipelineFactory,
+		Config: &config.ComponentConfig{
+			ID: novaCommonApi.BuildPipeline,
+		},
+	})
 	if err != nil {
-		return errors.New("failed to build pipeline")
+		return nil, fmt.Errorf("failed to create pipeline: %w", err)
+	}
+	fmt.Printf("This is the ID OF THE PIPELINE >>>>>%v", pipelineComp)
+	// Check if the created component is a system service interface
+	pipeline, ok := pipelineComp.(common.PipelineInterface)
+	if !ok {
+		// Return an error if the created component is not a system service
+		return nil, fmt.Errorf("instantiated pipeline (%s) is not a system service", pipelineComp.ID())
 	}
 
-	bs.System.Logger().Log(logger.LevelInfo, "BuildService: Executing pipeline:"+buildPipeline.GetName())
-	if err := buildPipeline.Execute(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	// Return the created pipeline
+	return pipeline, nil
 }
 
 // Stop stops the BuildService.
+// It removes the pipeline component registration and unregisters the associated factory.
 func (bs *BuildService) Stop(ctx *context.Context) error {
-	// Additional cleanup logic can be added here
+	// Remove the pipeline component registration
+	if err := bs.System.ComponentRegistry().RemoveComponent(ctx, "pipeline"); err != nil {
+		return fmt.Errorf("failed to remove pipeline component: %w", err)
+	}
+
+	// Unregister the factory used to create the pipeline
+	if err := bs.System.ComponentRegistry().UnregisterFactory(ctx, "factory"); err != nil {
+		return fmt.Errorf("failed to unregister pipeline factory: %w", err)
+	}
+
 	return nil
 }

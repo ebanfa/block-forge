@@ -1,81 +1,141 @@
-package components
+package services
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
-	"github.com/edward1christian/block-forge/nova/pkg/components/services"
-	"github.com/edward1christian/block-forge/nova/pkg/mocks"
-	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/edward1christian/block-forge/nova/pkg/components/services"
+	novaMocksApi "github.com/edward1christian/block-forge/nova/pkg/mocks"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/mocks"
 )
 
 func TestBuildService_Start_Success(t *testing.T) {
-	// Initialize mock objects
+	// Arrange
 	ctx := &context.Context{}
-	factory := &mocks.MockBuilderFactory{}
-	mockPipeline := &mocks.MockBuildPipeline{}
-	mockBuilder := &mocks.MockPipelineBuilder{}
+	mockSystem := &mocks.MockSystem{}
+	mockPipeline := &novaMocksApi.MockPipeline{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
 
-	mockPipeline.On("Execute", ctx).Return(nil)
-	mockBuilder.On("Build").Return(mockPipeline, nil)
-	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
+	bs := services.NewBuildService("id", "name", "description")
 
-	// Create a new BuildService instance
-	builderService := services.NewBuildService("id", "name", "description", factory)
+	mockPipeline.On("Execute", ctx, mock.Anything).Return(nil)
 
-	// Call Start method
-	err := builderService.Start(ctx)
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockPipeline, nil)
 
-	// Assert that no error is returned
+	// Act
+	err := bs.Initialize(ctx, mockSystem)
 	assert.NoError(t, err)
+
+	err = bs.Start(ctx)
+
+	// Assert
+	assert.NoError(t, err, "Starting BuildService should not return an error")
+	mockSystem.AssertExpectations(t)
+	mockRegistrar.AssertExpectations(t)
+	mockPipeline.AssertExpectations(t)
 }
 
-func TestBuildService_Start_FailedToCreateBuilder(t *testing.T) {
-	// Initialize mock objects
+func TestBuildService_Start_Error_CreatePipelineFailed(t *testing.T) {
+	// Arrange
 	ctx := &context.Context{}
-	factory := &mocks.MockBuilderFactory{}
-	mockPipeline := &mocks.MockBuildPipeline{}
-	mockBuilder := &mocks.MockPipelineBuilder{}
+	mockSystem := &mocks.MockSystem{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+	mockPipeline := &novaMocksApi.MockPipeline{}
 
-	mockPipeline.On("Execute", ctx).Return(nil)
-	mockBuilder.On("Build").Return(mockPipeline, nil)
-	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(
-		mockBuilder, errors.New("failed to create pipeline builder"))
+	bs := services.NewBuildService("id", "name", "description")
 
-	// Create a new BuildService instance
-	builderService := services.NewBuildService("id", "name", "description", factory)
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockPipeline, fmt.Errorf("failed to create pipeline"))
 
-	// Call Start method with a factory that returns nil
-	err := builderService.Start(ctx)
+	// Act
+	err := bs.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
 
-	// Assert that an error is returned
-	assert.Error(t, err)
-	assert.Equal(t, "failed to create pipeline builder", err.Error())
+	err = bs.Start(ctx)
+
+	// Assert
+	assert.Error(t, err, "Starting BuildService should return an error when creating pipeline fails")
+	mockSystem.AssertExpectations(t)
+	mockRegistrar.AssertExpectations(t)
 }
 
-func TestBuildService_Start_FailedToBuildPipeline(t *testing.T) {
-	// Initialize mock objects
+func TestBuildService_Stop_Success(t *testing.T) {
+	// Arrange
 	ctx := &context.Context{}
-	factory := &mocks.MockBuilderFactory{}
-	mockPipeline := &mocks.MockBuildPipeline{}
-	mockBuilder := &mocks.MockPipelineBuilder{}
+	mockSystem := &mocks.MockSystem{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
 
-	mockBuilder.On("Build").Return(mockPipeline, errors.New("failed to build pipeline"))
-	mockPipeline.On("Execute", ctx).Return(nil)
-	factory.On("CreatePipelineBuilder", mock.Anything, mock.Anything).Return(mockBuilder, nil)
+	bs := services.NewBuildService("id", "name", "description")
 
-	// Create a new BuildService instance
-	builderService := services.NewBuildService("id", "name", "description", factory)
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(nil)
+	mockRegistrar.On("UnregisterFactory", ctx, "factory").Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
 
-	// Override the factory method to return a builder that returns nil when Build is called
-	factory.On("ExecuteTasks", mock.Anything).Return(nil)
+	// Act
+	err := bs.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
 
-	// Call Start method
-	err := builderService.Start(ctx)
+	err = bs.Stop(ctx)
 
-	// Assert that an error is returned
-	assert.Error(t, err)
-	assert.Equal(t, "failed to build pipeline", err.Error())
+	// Assert
+	assert.NoError(t, err, "Stopping BuildService should not return an error")
+	mockSystem.AssertExpectations(t)
+	mockRegistrar.AssertExpectations(t)
+}
+
+func TestBuildService_Stop_Error_RemoveComponentFailed(t *testing.T) {
+	// Arrange
+	mockSystem := &mocks.MockSystem{}
+	ctx := &context.Context{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+
+	bs := services.NewBuildService("id", "name", "description")
+
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(fmt.Errorf("failed to remove pipeline"))
+
+	// Act
+	err := bs.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
+
+	err = bs.Stop(ctx)
+
+	// Assert
+	assert.Error(t, err, "Stopping BuildService should return an error when removing pipeline component fails")
+	mockSystem.AssertExpectations(t)
+	mockRegistrar.AssertExpectations(t)
+}
+
+func TestBuildService_Stop_Error_UnregisterFactoryFailed(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+
+	bs := services.NewBuildService("id", "name", "description")
+
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("UnregisterFactory", ctx, "factory").Return(fmt.Errorf("failed to unregister factory"))
+
+	// Act
+	err := bs.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
+
+	err = bs.Stop(ctx)
+
+	// Assert
+	assert.Error(t, err, "Stopping BuildService should return an error when unregistering pipeline factory fails")
+	mockSystem.AssertExpectations(t)
+	mockRegistrar.AssertExpectations(t)
 }

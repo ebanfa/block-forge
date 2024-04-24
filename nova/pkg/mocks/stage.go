@@ -1,36 +1,37 @@
 package mocks
 
 import (
-	"github.com/edward1christian/block-forge/nova/pkg/build"
-	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/stretchr/testify/mock"
+
+	typesApi "github.com/edward1christian/block-forge/nova/pkg/types"
+	"github.com/edward1christian/block-forge/pkg/application/common/context"
 )
 
-// MockBuildStage is a mock implementation of the StageInterface.
-type MockBuildStage struct {
+// MockStage is a mock implementation of StageInterface.
+type MockStage struct {
 	mock.Mock
 }
 
-// GetTasks implements the GetTasks method of the StageInterface.
-func (m *MockBuildStage) GetTasks() []build.TaskInterface {
+// GetTasks mocks the GetTasks method of StageInterface.
+func (m *MockStage) GetTasks() []typesApi.TaskInterface {
 	args := m.Called()
-	return args.Get(0).([]build.TaskInterface)
+	return args.Get(0).([]typesApi.TaskInterface)
 }
 
-// ExecuteTasks implements the ExecuteTasks method of the StageInterface.
-func (m *MockBuildStage) ExecuteTasks(ctx *context.Context) error {
+// ExecuteTasks mocks the ExecuteTasks method of StageInterface.
+func (m *MockStage) ExecuteTasks(ctx *context.Context) error {
 	args := m.Called(ctx)
 	return args.Error(0)
 }
 
-// GetTaskByID implements the GetTaskByID method of the StageInterface.
-func (m *MockBuildStage) GetTaskByID(id string) (build.TaskInterface, error) {
-	args := m.Called(id)
-	return args.Get(0).(build.TaskInterface), args.Error(1)
+// GetTaskByID mocks the GetTaskByID method of StageInterface.
+func (m *MockStage) GetTaskByID(name string) (typesApi.TaskInterface, error) {
+	args := m.Called(name)
+	return args.Get(0).(typesApi.TaskInterface), args.Error(1)
 }
 
-// AddTask implements the AddTask method of the StageInterface.
-func (m *MockBuildStage) AddTask(task build.TaskInterface) error {
+// AddTask mocks the AddTask method of StageInterface.
+func (m *MockStage) AddTask(task typesApi.TaskInterface) error {
 	args := m.Called(task)
 	return args.Error(0)
 }

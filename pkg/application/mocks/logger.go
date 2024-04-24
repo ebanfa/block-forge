@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockLogger struct {
+	mock.Mock
 	loggedMessages []string
 	LastMessage    string // LastMessage stores the last logged message
 }
