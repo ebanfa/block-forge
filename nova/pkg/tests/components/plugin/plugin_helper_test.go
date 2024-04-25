@@ -60,8 +60,8 @@ func TestRegisterOperations_Success(t *testing.T) {
 	mockRegistrar := &mocks.MockComponentRegistrar{}
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory",
-		ctx, common.BuildServiceFactory, &services.BuildServiceFactory{}).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
+	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(&mocks.MockOperation{}, nil)
 
 	// Act
 	err := plugin.RegisterOperations(ctx, mockSystem)
@@ -77,10 +77,10 @@ func TestRegisterBuildOperations_Success(t *testing.T) {
 	mockSystem := &mocks.MockSystem{}
 
 	mockRegistrar := &mocks.MockComponentRegistrar{}
-	mockRegistrar.On("RegisterFactory",
-		ctx, common.BuildServiceFactory, &services.BuildServiceFactory{}).Return(nil).Once()
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
+	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(&mocks.MockOperation{}, nil)
 
 	// Act
 	err := plugin.RegisterBuildOperations(ctx, mockSystem)

@@ -22,6 +22,7 @@ func TestBuildService_Start_Success(t *testing.T) {
 
 	bs := services.NewBuildService("id", "name", "description")
 
+	mockPipeline.On("Initialize", ctx, mockSystem).Return(nil)
 	mockPipeline.On("Execute", ctx, mock.Anything).Return(nil)
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)

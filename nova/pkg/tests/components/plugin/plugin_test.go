@@ -10,7 +10,6 @@ import (
 	"github.com/edward1christian/block-forge/nova/pkg/common"
 	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
 )
 
@@ -45,10 +44,7 @@ func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
 
 	// Expectations for registering resources
 	registrarMock.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
-	registrarMock.On("CreateComponent", &config.ComponentConfig{
-		ID:        common.BuildService,
-		FactoryID: common.BuildServiceFactory,
-	}).Return(&mocks.MockComponent{}, nil)
+	registrarMock.On("CreateComponent", ctx, mock.Anything).Return(&mocks.MockOperation{}, nil)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
