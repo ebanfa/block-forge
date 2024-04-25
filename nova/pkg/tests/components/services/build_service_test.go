@@ -25,7 +25,7 @@ func TestBuildService_Start_Success(t *testing.T) {
 	mockPipeline.On("Execute", ctx, mock.Anything).Return(nil)
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockPipeline, nil)
 
 	// Act
@@ -51,7 +51,7 @@ func TestBuildService_Start_Error_CreatePipelineFailed(t *testing.T) {
 	bs := services.NewBuildService("id", "name", "description")
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockPipeline, fmt.Errorf("failed to create pipeline"))
 
 	// Act
@@ -77,7 +77,7 @@ func TestBuildService_Stop_Success(t *testing.T) {
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
 	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(nil)
 	mockRegistrar.On("UnregisterFactory", ctx, "factory").Return(nil)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 
 	// Act
 	err := bs.Initialize(ctx, mockSystem)
@@ -100,7 +100,7 @@ func TestBuildService_Stop_Error_RemoveComponentFailed(t *testing.T) {
 	bs := services.NewBuildService("id", "name", "description")
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(fmt.Errorf("failed to remove pipeline"))
 
 	// Act
@@ -125,7 +125,7 @@ func TestBuildService_Stop_Error_UnregisterFactoryFailed(t *testing.T) {
 
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
 	mockRegistrar.On("RemoveComponent", ctx, "pipeline").Return(nil)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything).Return(nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("UnregisterFactory", ctx, "factory").Return(fmt.Errorf("failed to unregister factory"))
 
 	// Act

@@ -5,10 +5,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/edward1christian/block-forge/nova/pkg/components/common"
 	"github.com/edward1christian/block-forge/nova/pkg/mocks"
+	typesApi "github.com/edward1christian/block-forge/nova/pkg/types"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	mocksApi "github.com/edward1christian/block-forge/pkg/application/mocks"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
@@ -82,16 +85,23 @@ func TestPipeline_Execute_Success(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
 	mockStage := &mocks.MockStage{}
+	mockComponent := &mocks.MockTask{}
+	mockSystem := &mocksApi.MockSystem{}
 	mockOperationInput := &systemApi.SystemOperationInput{}
 
 	pipeline := common.NewPipeline("id", "name", "description")
 	pipeline.AddStage("Stage1", mockStage)
 
 	// Mock behavior
-	mockStage.On("ExecuteTasks", ctx).Return(nil)
+	mockComponent.On("ID").Return("mockComponentId")
+	mockStage.On("GetTasks").Return([]typesApi.TaskInterface{mockComponent})
+	mockSystem.On("ExecuteOperation", ctx, mock.Anything, mock.Anything).Return(nil, nil)
 
 	// Act
-	err := pipeline.Execute(ctx, mockOperationInput)
+	err := pipeline.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
+
+	err = pipeline.Execute(ctx, mockOperationInput)
 
 	// Assert
 	assert.NoError(t, err, "Executing pipeline should succeed")
@@ -102,16 +112,23 @@ func TestPipeline_Execute_Error(t *testing.T) {
 	// Arrange
 	ctx := &context.Context{}
 	mockStage := &mocks.MockStage{}
+	mockComponent := &mocks.MockTask{}
+	mockSystem := &mocksApi.MockSystem{}
 	mockOperationInput := &systemApi.SystemOperationInput{}
 
 	pipeline := common.NewPipeline("id", "name", "description")
 	pipeline.AddStage("Stage1", mockStage)
 
 	// Mock behavior
-	mockStage.On("ExecuteTasks", ctx).Return(errors.New("task execution failed"))
+	mockComponent.On("ID").Return("mockComponentId")
+	mockStage.On("GetTasks").Return([]typesApi.TaskInterface{mockComponent})
+	mockSystem.On("ExecuteOperation", ctx, mock.Anything, mock.Anything).Return(nil, errors.New("task execution failed"))
 
 	// Act
-	err := pipeline.Execute(ctx, mockOperationInput)
+	err := pipeline.Initialize(ctx, mockSystem)
+	assert.NoError(t, err)
+
+	err = pipeline.Execute(ctx, mockOperationInput)
 
 	// Assert
 	assert.Error(t, err, "Executing pipeline with failing task should return an error")

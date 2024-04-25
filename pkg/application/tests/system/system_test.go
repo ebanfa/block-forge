@@ -71,6 +71,9 @@ func TestMain(m *testing.M) {
 	serviceFactory.On("CreateComponent", mock.Anything).Return(mockServiceComponent, nil)
 	operationFactory.On("CreateComponent", mock.Anything).Return(mockOperationComponent, nil)
 
+	mockPluginManager.On("Initialize", ctx, mock.Anything).Return(nil)
+	mockPluginManager.On("StartPlugins", ctx).Return(nil)
+
 	// Run tests
 	exitCode := m.Run()
 
@@ -92,7 +95,6 @@ func TestSystemImpl_Initialize_Success(t *testing.T) {
 
 func TestSystemImpl_Initialize_Error(t *testing.T) {
 	// Mock context
-	ctx := &context.Context{}
 
 	// Define different behaviors based on the arguments
 	registrar.On("GetComponentFactory", "NonexistentFactory").Return(

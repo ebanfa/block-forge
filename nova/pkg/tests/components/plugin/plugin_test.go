@@ -31,6 +31,8 @@ func TestNovaPlugin_Initialize(t *testing.T) {
 }
 
 func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
+
+	ctx := &context.Context{}
 	// Initialize NovaPlugin instance
 	p := plugin.NewNovaPlugin()
 
@@ -42,16 +44,14 @@ func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
 	registrarMock := &mocks.MockComponentRegistrar{}
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(nil)
+	registrarMock.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	registrarMock.On("CreateComponent", &config.ComponentConfig{
-		ID:        common.IgniteBuildService,
-		FactoryID: common.IgniteBuildServiceFactory,
+		ID:        common.BuildService,
+		FactoryID: common.BuildServiceFactory,
 	}).Return(&mocks.MockComponent{}, nil)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
-
-	ctx := &context.Context{}
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
@@ -63,6 +63,7 @@ func TestNovaPlugin_RegisterResources_Success(t *testing.T) {
 }
 
 func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
+	ctx := &context.Context{}
 	// Initialize NovaPlugin instance
 	p := plugin.NewNovaPlugin()
 
@@ -77,12 +78,10 @@ func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
 	expectedErr := errors.New("failed to register service factory")
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(expectedErr)
+	registrarMock.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
-
-	ctx := &context.Context{}
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
@@ -95,6 +94,7 @@ func TestNovaPlugin_RegisterResources_Failure_RegisterFactory(t *testing.T) {
 }
 
 func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
+	ctx := &context.Context{}
 	// Initialize NovaPlugin instance
 	p := plugin.NewNovaPlugin()
 
@@ -109,12 +109,10 @@ func TestNovaPlugin_RegisterResources_Failure_CreateComponent(t *testing.T) {
 	expectedErr := errors.New("failed to create and register builder service")
 
 	// Expectations for registering resources
-	registrarMock.On("RegisterFactory", mock.Anything, mock.Anything).Return(expectedErr)
+	registrarMock.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
-
-	ctx := &context.Context{}
 
 	// Initialize plugin
 	err := p.Initialize(ctx, mockSystem)
@@ -139,7 +137,7 @@ func TestNovaPlugin_Start_Success(t *testing.T) {
 
 	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("ID").Return(common.BuildService)
 	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
 	// Expectations for creating BuildService component
@@ -176,7 +174,7 @@ func TestNovaPlugin_Start_Failure_StartService(t *testing.T) {
 
 	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("ID").Return(common.BuildService)
 	mockBuildService.On("Initialize", mock.Anything, mockSystem).Return(nil)
 
 	// Error to be returned by Start
@@ -216,10 +214,10 @@ func TestNovaPlugin_Stop_Success(t *testing.T) {
 
 	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("ID").Return(common.BuildService)
 
 	// Expectations for retrieving BuildService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
+	registrarMock.On("GetComponent", common.BuildService).Return(mockBuildService, nil)
 
 	// Expectations for stopping BuildService
 	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(nil)
@@ -254,7 +252,7 @@ func TestNovaPlugin_Stop_Failure_GetComponent(t *testing.T) {
 
 	// Expectations for retrieving BuildService component
 	registrarMock.On("GetComponent",
-		common.IgniteBuildService).Return(&mocks.MockComponent{}, expectedErr)
+		common.BuildService).Return(&mocks.MockComponent{}, expectedErr)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -286,7 +284,7 @@ func TestNovaPlugin_Stop_Failure_CastComponent(t *testing.T) {
 	invalidComponentMock := &mocks.MockComponent{}
 
 	// Expectations for retrieving BuildService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(invalidComponentMock, nil)
+	registrarMock.On("GetComponent", common.BuildService).Return(invalidComponentMock, nil)
 
 	// Set the mocked ComponentRegistry
 	mockSystem.On("ComponentRegistry").Return(registrarMock)
@@ -316,13 +314,13 @@ func TestNovaPlugin_Stop_Failure_StopService(t *testing.T) {
 
 	// Mock BuildService component
 	mockBuildService := &mocks.MockSystemService{}
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
+	mockBuildService.On("ID").Return(common.BuildService)
 
 	// Error to be returned by Stop
 	expectedErr := errors.New("failed to stop BuildService")
 
 	// Expectations for retrieving BuildService component
-	registrarMock.On("GetComponent", common.IgniteBuildService).Return(mockBuildService, nil)
+	registrarMock.On("GetComponent", common.BuildService).Return(mockBuildService, nil)
 
 	// Expectations for stopping BuildService
 	mockBuildService.On("Stop", mock.AnythingOfType("*context.Context")).Return(expectedErr)

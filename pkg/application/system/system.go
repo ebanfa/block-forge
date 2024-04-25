@@ -170,7 +170,6 @@ func (s *SystemImpl) Start(ctx *context.Context) error {
 		s.logger.Log(logger.LevelError, "Error starting plugin:", err)
 		return err
 	}
-
 	s.status = SystemStartedType
 	return nil
 }
@@ -216,6 +215,7 @@ func (s *SystemImpl) ExecuteOperation(ctx *context.Context, operationID string, 
 	if err != nil {
 		return nil, err
 	}
+
 	// Check if the component implements Operation interface
 	operation, ok := component.(SystemOperationInterface)
 	if !ok {

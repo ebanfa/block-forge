@@ -3,11 +3,10 @@ package services
 import (
 	"fmt"
 
-	novaCommonApi "github.com/edward1christian/block-forge/nova/pkg/common"
+	ncApi "github.com/edward1christian/block-forge/nova/pkg/common"
 	"github.com/edward1christian/block-forge/nova/pkg/components/common"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
-	"github.com/edward1christian/block-forge/pkg/application/config"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
@@ -48,11 +47,8 @@ func (bs *BuildService) Initialize(ctx *context.Context, system systemApi.System
 	bs.System = system
 
 	// Register pipeline factory
-	factoryInfo := &component.FactoryRegistrationInfo{
-		ID:      novaCommonApi.BuildPipelineFactory,
-		Factory: &common.PipelineFactory{},
-	}
-	if err := system.ComponentRegistry().RegisterFactory(ctx, factoryInfo); err != nil {
+	registrar := system.ComponentRegistry()
+	if err := registrar.RegisterFactory(ctx, ncApi.BuildPipelineFactory, &common.PipelineFactory{}); err != nil {
 		return fmt.Errorf("failed to register pipeline factory: %w", err)
 	}
 
@@ -63,7 +59,10 @@ func (bs *BuildService) Initialize(ctx *context.Context, system systemApi.System
 // It creates a new instance of the pipeline builder and starts it.
 func (bs *BuildService) Start(ctx *context.Context) error {
 	// Create a new instance of the pipeline builder
-	pipeline, err := bs.createPipeline(ctx)
+	pipeline, err := bs.createPipeline(ctx, &configApi.ComponentConfig{
+		ID:        ncApi.BuildPipeline,
+		FactoryID: ncApi.BuildPipelineFactory,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to start pipeline: %w", err)
 	}
@@ -74,23 +73,22 @@ func (bs *BuildService) Start(ctx *context.Context) error {
 
 // createPipeline creates a new instance of the pipeline builder.
 // It retrieves the pipeline component from the system's component registry.
-func (bs *BuildService) createPipeline(ctx *context.Context) (common.PipelineInterface, error) {
+func (bs *BuildService) createPipeline(ctx *context.Context, config *configApi.ComponentConfig) (common.PipelineInterface, error) {
 	// Create a new pipeline component using the component registry
-	pipelineComp, err := bs.System.ComponentRegistry().CreateComponent(ctx, &component.ComponentCreationInfo{
-		FactoryID: novaCommonApi.BuildPipelineFactory,
-		Config: &config.ComponentConfig{
-			ID: novaCommonApi.BuildPipeline,
-		},
-	})
+	pipelineComp, err := bs.System.ComponentRegistry().CreateComponent(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pipeline: %w", err)
 	}
-	fmt.Printf("This is the ID OF THE PIPELINE >>>>>%v", pipelineComp)
 	// Check if the created component is a system service interface
 	pipeline, ok := pipelineComp.(common.PipelineInterface)
 	if !ok {
 		// Return an error if the created component is not a system service
 		return nil, fmt.Errorf("instantiated pipeline (%s) is not a system service", pipelineComp.ID())
+	}
+	// Initialize the pipeline
+	err = pipeline.Initialize(ctx, bs.System)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize pipeline: %w", err)
 	}
 
 	// Return the created pipeline

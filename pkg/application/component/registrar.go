@@ -5,19 +5,13 @@ import (
 	"sync"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/config"
+	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 )
-
-// FactoryRegistrationInfo encapsulates the necessary information to register a factory.
-type FactoryRegistrationInfo struct {
-	ID      string
-	Factory ComponentFactoryInterface
-}
 
 // ComponentCreationInfo encapsulates the necessary information to create a component.
 type ComponentCreationInfo struct {
-	FactoryID string // ID of the factory used for component instantiation
-	Config    *config.ComponentConfig
+	Config  *configApi.ComponentConfig
+	Factory ComponentFactoryInterface
 }
 
 // ComponentRegistrarInterface defines the registry functionality for components and factories.
@@ -39,7 +33,7 @@ type ComponentRegistrarInterface interface {
 
 	// RegisterFactory registers a factory with the given ID.
 	// It returns an error if the registration fails.
-	RegisterFactory(ctx *context.Context, info *FactoryRegistrationInfo) error
+	RegisterFactory(ctx *context.Context, id string, factory ComponentFactoryInterface) error
 
 	// UnregisterFactory unregisters a factory with the specified ID.
 	// It returns an error if the ID is not found or other error.
@@ -47,7 +41,7 @@ type ComponentRegistrarInterface interface {
 
 	// CreateComponent creates a component with the given ID and factory ID.
 	// It returns the created component and an error if the creation fails.
-	CreateComponent(ctx *context.Context, info *ComponentCreationInfo) (ComponentInterface, error)
+	CreateComponent(ctx *context.Context, config *configApi.ComponentConfig) (ComponentInterface, error)
 
 	// RemoveComponent removes a component with the specified ID from the registry.
 	// It returns an error if the ID is not found or other error.
@@ -159,18 +153,18 @@ func (cr *ComponentRegistrar) GetAllFactories() []ComponentFactoryInterface {
 }
 
 // CreateComponent creates and registers a new instance of the component.
-func (cr *ComponentRegistrar) CreateComponent(ctx *context.Context, info *ComponentCreationInfo) (ComponentInterface, error) {
+func (cr *ComponentRegistrar) CreateComponent(ctx *context.Context, config *configApi.ComponentConfig) (ComponentInterface, error) {
 	cr.factoriesMutex.RLock()
 	defer cr.factoriesMutex.RUnlock()
 
 	// Check if the factory exists
-	factory, exists := cr.factories[info.FactoryID]
+	factory, exists := cr.factories[config.FactoryID]
 	if !exists {
-		return nil, fmt.Errorf("factory with ID %s not found", info.FactoryID)
+		return nil, fmt.Errorf("factory with ID %s not found", config.FactoryID)
 	}
 
 	// Use the factory to create the component
-	component, err := factory.CreateComponent(info.Config)
+	component, err := factory.CreateComponent(config)
 	if err != nil {
 		return nil, err
 	}
@@ -184,17 +178,17 @@ func (cr *ComponentRegistrar) CreateComponent(ctx *context.Context, info *Compon
 }
 
 // RegisterFactory registers a factory with the given ID.
-func (cr *ComponentRegistrar) RegisterFactory(ctx *context.Context, info *FactoryRegistrationInfo) error {
+func (cr *ComponentRegistrar) RegisterFactory(ctx *context.Context, id string, factory ComponentFactoryInterface) error {
 	cr.factoriesMutex.Lock()
 	defer cr.factoriesMutex.Unlock()
 
 	// Check if the factory already exists
-	if _, exists := cr.factories[info.ID]; exists {
-		return fmt.Errorf("factory with ID %s already exists", info.ID)
+	if _, exists := cr.factories[id]; exists {
+		return fmt.Errorf("factory with ID %s already exists", id)
 	}
 
 	// Register the factory
-	cr.factories[info.ID] = info.Factory
+	cr.factories[id] = factory
 	return nil
 }
 

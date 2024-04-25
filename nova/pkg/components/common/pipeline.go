@@ -6,19 +6,8 @@ import (
 	typesApi "github.com/edward1christian/block-forge/nova/pkg/types"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
-	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
-
-// PipelineFactory is responsible for creating instances of Pipeline.
-type PipelineFactory struct {
-}
-
-// CreateComponent creates a new instance of the Pipeline.
-func (bpf *PipelineFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
-	// Construct the service
-	return NewPipeline(config.ID, config.Name, config.Description), nil
-}
 
 // PipelineInterface represents a build pipeline.
 type PipelineInterface interface {
@@ -115,9 +104,11 @@ func (bp *Pipeline) GetStages() []typesApi.StageInterface {
 // Execute executes all stages within the build pipeline.
 func (bp *Pipeline) Execute(ctx *context.Context, data *systemApi.SystemOperationInput) error {
 	for _, stage := range bp.Stages {
-		err := stage.ExecuteTasks(ctx)
-		if err != nil {
-			return err
+		for _, task := range stage.GetTasks() {
+			_, err := bp.System.ExecuteOperation(ctx, task.ID(), data)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

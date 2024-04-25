@@ -9,80 +9,126 @@ import (
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
 	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
+	"github.com/edward1christian/block-forge/nova/pkg/components/services"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
 )
 
-func TestCreateAndStartBuilderService_Success(t *testing.T) {
-	// Setup
-	ctx := context.Background()
-	mockSystem := new(mocks.MockSystem)
-	mockRegistrar := new(mocks.MockComponentRegistrar)
-	mockBuildService := new(mocks.MockSystemService)
+// TestRegisterServices_Success tests the RegisterServices function for successful service registration.
+func TestRegisterServices_Success(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
 
-	mockBuildService.On("Start", ctx).Return(nil)
-	mockSystem.On("Logger").Return(&mocks.MockLogger{})
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
+
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
-	mockBuildService.On("Initialize", ctx, mockSystem).Return(nil)
-	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockBuildService, nil)
 
-	// Execute
-	err := plugin.StartBuildService(ctx, mockSystem)
+	// Act
+	err := plugin.RegisterServices(ctx, mockSystem)
 
-	// Verify
-	assert.NoError(t, err)
-	mockRegistrar.AssertExpectations(t)
-	mockBuildService.AssertExpectations(t)
+	// Assert
+	assert.NoError(t, err, "Registering services should not return an error")
 }
 
-func TestCreateAndStartBuilderService_Failure_CreateComponent(t *testing.T) {
-	// Setup
-	ctx := context.Background()
-	expectedErr := errors.New("failed to create component")
+// TestRegisterServices_BuildServiceFactoryError tests the RegisterServices function for error when registering build service factory.
+func TestRegisterServices_BuildServiceFactoryError(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+	expectedErr := errors.New("register build service factory error")
 
-	mockSystem := new(mocks.MockSystem)
-	mockRegistrar := new(mocks.MockComponentRegistrar)
-	mockBuildService := new(mocks.MockSystemService)
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+	mockRegistrar.On("RegisterFactory",
+		ctx, common.BuildServiceFactory, &services.BuildServiceFactory{}).Return(expectedErr)
 
-	mockBuildService.On("Start", ctx).Return(nil)
-	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
-	mockBuildService.On("Initialize", ctx, mockSystem).Return(nil)
-	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockBuildService, expectedErr)
 
-	// Execute
-	err := plugin.StartBuildService(ctx, mockSystem)
+	// Act
+	err := plugin.RegisterServices(ctx, mockSystem)
 
-	// Verify
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), expectedErr.Error())
-	mockRegistrar.AssertExpectations(t)
+	// Assert
+	assert.ErrorContains(t, err, "failed to register build service")
 }
 
-func TestCreateAndStartBuilderService_Failure_Start(t *testing.T) {
-	// Setup
-	ctx := context.Background()
-	expectedErr := errors.New("failed to start service")
+// TestRegisterOperations_Success tests the RegisterOperations function for successful registration.
+func TestRegisterOperations_Success(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
 
-	mockSystem := new(mocks.MockSystem)
-	mockRegistrar := new(mocks.MockComponentRegistrar)
-	mockBuildService := new(mocks.MockSystemService)
-
-	mockBuildService.On("Start", ctx).Return(expectedErr)
-	mockSystem.On("Logger").Return(&mocks.MockLogger{})
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockBuildService.On("ID").Return(common.IgniteBuildService)
-	mockBuildService.On("Initialize", ctx, mockSystem).Return(nil)
-	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockBuildService, nil)
+	mockRegistrar.On("RegisterFactory",
+		ctx, common.BuildServiceFactory, &services.BuildServiceFactory{}).Return(nil)
 
-	// Execute
-	err := plugin.StartBuildService(ctx, mockSystem)
+	// Act
+	err := plugin.RegisterOperations(ctx, mockSystem)
 
-	// Verify
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), expectedErr.Error())
-	mockRegistrar.AssertExpectations(t)
-	mockBuildService.AssertExpectations(t)
+	// Assert
+	assert.NoError(t, err, "Registering operations should not return an error")
+}
+
+// TestRegisterBuildOperations_Success tests the RegisterBuildOperations function for successful registration.
+func TestRegisterBuildOperations_Success(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+	mockRegistrar.On("RegisterFactory",
+		ctx, common.BuildServiceFactory, &services.BuildServiceFactory{}).Return(nil).Once()
+
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+
+	// Act
+	err := plugin.RegisterBuildOperations(ctx, mockSystem)
+
+	// Assert
+	assert.NoError(t, err, "Registering build operations should not return an error")
+}
+
+// TestStartServices_Success tests the StartServices function for successful service start.
+func TestStartServices_Success(t *testing.T) {
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+	mockComponent := &mocks.MockSystemService{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+
+	mockComponent.On("Start", ctx).Return(nil)
+	mockComponent.On("Initialize", ctx, mock.Anything).Return(nil)
+
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockSystem.On("StartService", ctx, mock.Anything, mock.Anything).Return(nil).Twice()
+	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockComponent, nil)
+	// Act
+	err := plugin.StartServices(ctx, mockSystem)
+
+	// Assert
+	assert.NoError(t, err, "Starting services should not return an error")
+}
+
+// TestStopServices_Success tests the StopServices function for successful service stop.
+func TestStopServices_Success(t *testing.T) {
+	// Arrange
+	// Arrange
+	ctx := &context.Context{}
+	mockSystem := &mocks.MockSystem{}
+	mockComponent := &mocks.MockSystemService{}
+	mockRegistrar := &mocks.MockComponentRegistrar{}
+
+	mockComponent.On("Stop", ctx).Return(nil)
+
+	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockSystem.On("StopService", ctx, mock.Anything, mock.Anything).Return(nil).Twice()
+
+	mockRegistrar.On("GetComponent", mock.Anything).Return(mockComponent, nil)
+
+	// Act
+	err := plugin.StopServices(ctx, mockSystem)
+
+	// Assert
+	assert.NoError(t, err, "Stopping services should not return an error")
 }

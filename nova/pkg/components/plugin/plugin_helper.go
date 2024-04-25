@@ -1,53 +1,96 @@
 package plugin
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
+	"github.com/edward1christian/block-forge/nova/pkg/components/operations"
+	"github.com/edward1christian/block-forge/nova/pkg/components/services"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
-	"github.com/edward1christian/block-forge/pkg/application/common/logger"
-	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
-// createAndStartBuildService creates and starts the BuildService component.
-func StartBuildService(ctx *context.Context, system systemApi.SystemInterface) error {
-	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Creating build service")
+func RegisterServices(ctx *context.Context, system systemApi.SystemInterface) error {
+	registrar := system.ComponentRegistry()
 
-	// Create and start the BuildService component
-	buildService, err := CreateBuildService(ctx, system.ComponentRegistry())
+	// Register build service
+	err := registrar.RegisterFactory(ctx, common.BuildServiceFactory, &services.BuildServiceFactory{})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to register build service: %w", err)
 	}
-	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Initializing service:"+buildService.ID())
-
-	// Initialize the build service
-	if err := buildService.Initialize(ctx, system); err != nil {
-		return fmt.Errorf("failed to initialize BuildService: %v", err)
-	}
-
-	system.Logger().Log(logger.LevelInfo, "NovaPluginHelper: Starting service:"+buildService.ID())
-	return buildService.Start(ctx)
+	// Register API service// Register build service
+	/* err = registrar.RegisterFactory(ctx, common.BuildServiceFactory, &services.BuildServiceFactory{})
+	if err != nil {
+		return fmt.Errorf("failed to register REST API service: %w", err)
+	} */
+	return nil
 }
 
-// Helper function to create the BuildService component
-func CreateBuildService(ctx *context.Context, registrar component.ComponentRegistrarInterface) (systemApi.SystemServiceInterface, error) {
-	component, err := registrar.CreateComponent(ctx, &component.ComponentCreationInfo{
-		FactoryID: common.IgniteBuildServiceFactory,
-		Config: &config.ComponentConfig{
-			ID:        common.IgniteBuildService,
-			FactoryID: common.IgniteBuildServiceFactory,
-		},
-	})
+func RegisterOperations(ctx *context.Context, system systemApi.SystemInterface) error {
+	// Register Build Operations
+	if err := RegisterBuildOperations(ctx, system); err != nil {
+		return fmt.Errorf("failed to register build operations: %w", err)
+	}
+	// Register Other Operations
+	return nil
+}
+
+func RegisterBuildOperations(ctx *context.Context, system systemApi.SystemInterface) error {
+	registrar := system.ComponentRegistry()
+
+	// Register the operation
+	err := registrar.RegisterFactory(ctx,
+		common.CreateWorkspaceTaskFactory, &operations.CreateDirectoryTaskFactory{})
+
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to register operationcomponent factory: %w", err)
 	}
-	// Ensure the component implements SystemServiceInterface
-	builderService, ok := component.(systemApi.SystemServiceInterface)
-	if !ok {
-		return nil, errors.New("BuildService component does not implement SystemServiceInterface")
+	_, err = registrar.CreateComponent(ctx, &config.ComponentConfig{
+		ID:        common.CreateWorkspaceTask,
+		FactoryID: common.CreateWorkspaceTaskFactory,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to create operation: %s", common.CreateWorkspaceTask)
 	}
-	return builderService, nil
+	return nil
+}
+
+func StartServices(ctx *context.Context, system systemApi.SystemInterface) error {
+	// Start the build service
+	if err := systemApi.StartService(ctx, system, getBuildServiceConfig()); err != nil {
+		return fmt.Errorf("failed to start BuildService: %v", err)
+	}
+	// Start the RestFul API service
+	/* if err := systemApi.StartService(ctx, system, getAPIServiceConfig()); err != nil {
+		return fmt.Errorf("failed to start BuildService: %v", err)
+	} */
+	return nil
+}
+
+func StopServices(ctx *context.Context, system systemApi.SystemInterface) error {
+	// Stop the build service
+	if err := systemApi.StopService(ctx, system, common.BuildService); err != nil {
+		return fmt.Errorf("failed to stop service: %s %v", common.BuildService, err)
+	}
+	// Stop the RestFul API service
+	if err := systemApi.StopService(ctx, system, common.BuildService); err != nil {
+		return fmt.Errorf("failed to stop service: %s %v", common.BuildService, err)
+	}
+	return nil
+}
+
+func getBuildServiceConfig() *config.ComponentConfig {
+	return &config.ComponentConfig{
+		ID:        common.BuildService,
+		FactoryID: common.BuildServiceFactory,
+	}
+}
+
+func getAPIServiceConfig() *config.ComponentConfig {
+	return &config.ComponentConfig{
+		ID:        common.APIService,
+		FactoryID: common.APIServiceFactory,
+	}
 }
