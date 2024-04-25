@@ -3,35 +3,34 @@
 # Navigate to your project directory where your main.go file is located
 cd /path/to/your/project
 
+# Define the path to the cobra-cli command
+COBRA_CLI="$HOME/go/bin/cobra-cli"
+
 # Add top-level commands
-cobra-cli add init
-cobra-cli add generate
-cobra-cli add build
-cobra-cli add run
-cobra-cli add config
+$COBRA_CLI add init
+$COBRA_CLI add generate
+$COBRA_CLI add build
+$COBRA_CLI add run
+$COBRA_CLI add config
 
 # Add subcommands for config
-cobra-cli add new -p configCmd
-cobra-cli add load -p configCmd
-cobra-cli add save -p configCmd
-cobra-cli add add -p configCmd
-cobra-cli add update -p configCmd
-cobra-cli add remove -p configCmd
-cobra-cli add validate -p configCmd
-cobra-cli add visualize -p configCmd
-cobra-cli add dependency -p configCmd
+$COBRA_CLI add new -p configCmd
+$COBRA_CLI add load -p configCmd
+$COBRA_CLI add save -p configCmd
+$COBRA_CLI add add -p configCmd
+$COBRA_CLI add update -p configCmd
+$COBRA_CLI add remove -p configCmd
+$COBRA_CLI add validate -p configCmd
+$COBRA_CLI add visualize -p configCmd
+$COBRA_CLI add dependency -p configCmd
 
 # Add subcommands for config add
-cd add
-cobra-cli add module
-cobra-cli add transaction
-cobra-cli add query
-cobra-cli add field
+$COBRA_CLI add module -p addCmd
+$COBRA_CLI add message -p addCmd
+$COBRA_CLI add type -p addCmd
+$COBRA_CLI add query -p addCmd
+$COBRA_CLI add field -p addCmd
 
 # Add subcommands for config dependency
-cd ../dependency
-cobra-cli add add
-cobra-cli add remove
-
-# Navigate back to the project root directory
-cd ../../..
+$COBRA_CLI add link -p dependencyCmd
+$COBRA_CLI add unlink -p dependencyCmd
