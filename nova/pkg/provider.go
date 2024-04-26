@@ -1,3 +1,5 @@
+// Package provider provides functionality to initialize and configure the system components
+// using dependency injection with the Fx framework.
 package provider
 
 import (
@@ -10,18 +12,27 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
-	"github.com/edward1christian/block-forge/pkg/application/system"
+	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 	"go.uber.org/fx"
 )
 
+// InitOptions contains options for initializing the system.
 type InitOptions struct {
 	Debug          bool
 	Verbose        bool
 	ConfigFilePath string
 }
 
-// Init initializes the Fx application.
-func Init(options *InitOptions) {
+// CommandOptions contains options for executing a command.
+type CommandOptions struct {
+	Debug   bool
+	Verbose bool
+	Command string
+	Data    *systemApi.SystemOperationInput
+}
+
+// Init initializes the Fx application with the provided options.
+func Init(options *CommandOptions) {
 	// Create an Fx application.
 	app := fx.New(
 		// Provide dependencies.
@@ -30,22 +41,23 @@ func Init(options *InitOptions) {
 		fx.Provide(ProvideEventBus),
 		fx.Provide(ProvidComponentRegistrar),
 		fx.Provide(ProvidPluginManager),
-		fx.Provide(ProvideSystem),
-		fx.Invoke(func(system.SystemInterface) {}),
+		fx.Provide(ProvideSystem(options)),
+		fx.Invoke(func(systemApi.SystemInterface) {}),
 	)
 	// Run the application.
 	app.Run()
 }
 
-// ProvideConfiguration loads and provides the application configuration.
-func ProvideConfiguration(options *InitOptions) func() (*config.Configuration, error) {
+// ProvideConfiguration provides a function to load and provide the application configuration.
+func ProvideConfiguration(options *CommandOptions) func() (*config.Configuration, error) {
 	return func() (*config.Configuration, error) {
 		var appConfig interface{}
-		if options.ConfigFilePath != "" {
+		// Load custom configuration if provided.
+		/* if options.ConfigFilePath != "" {
 			if err := config.LoadConfigurationFromFile(options.ConfigFilePath, &appConfig); err != nil {
 				return nil, fmt.Errorf("failed to load custom configuration: %v", err)
 			}
-		}
+		} */
 
 		configuration := &config.Configuration{
 			Debug:        options.Debug,
@@ -68,49 +80,98 @@ func ProvideLogger() logger.LoggerInterface {
 }
 
 // ProvidComponentRegistrar provides a component registrar interface.
-func ProvidPluginManager() system.PluginManagerInterface {
-	return system.NewPluginManager()
-}
-
-// ProvidComponentRegistrar provides a component registrar interface.
 func ProvidComponentRegistrar() component.ComponentRegistrarInterface {
 	return component.NewComponentRegistrar()
 }
 
-// ProvideSystem provides a system interface.
-func ProvideSystem(
+// ProvidPluginManager provides a plugin manager interface.
+func ProvidPluginManager() systemApi.PluginManagerInterface {
+	return systemApi.NewPluginManager()
+}
+
+// ProvideSystem provides a function to configure and provide a system instance.
+func ProvideSystem(options *CommandOptions) func(
 	lc fx.Lifecycle,
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
-	pluginManager system.PluginManagerInterface,
-	registrar component.ComponentRegistrarInterface) system.SystemInterface {
+	pluginManager systemApi.PluginManagerInterface,
+	registrar component.ComponentRegistrarInterface) systemApi.SystemInterface {
+	return func(
+		lc fx.Lifecycle,
+		logger logger.LoggerInterface,
+		eventBus event.EventBusInterface,
+		configuration *config.Configuration,
+		pluginManager systemApi.PluginManagerInterface,
+		registrar component.ComponentRegistrarInterface) systemApi.SystemInterface {
 
-	sys := system.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
+		// Create a new system instance with the provided dependencies.
+		system := systemApi.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
 
-	lc.Append(fx.Hook{
-		OnStart: OnStart(sys),
-		OnStop:  OnStop(sys),
-	})
-	return sys
+		// Add lifecycle hooks to start and stop the system.
+		lc.Append(fx.Hook{
+			OnStart: OnStart(options, system),
+			OnStop:  OnStop(options, system),
+		})
+
+		return system
+	}
 }
 
-func OnStart(sys system.SystemInterface) func(ctx context.Context) error {
+// OnStart returns a function to initialize the system and execute a command on system start.
+func OnStart(options *CommandOptions, system systemApi.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
-		err := sys.Initialize(contx)
-		sys.PluginManager().AddPlugin(contx, plugin.NewNovaPlugin())
-		if err != nil {
+
+		// Initialize the system and execute the command.
+		if err := InitializeSystem(contx, system); err != nil {
 			return err
 		}
 
-		return sys.Start(contx)
+		// Execute the command.
+		return ExecuteCommand(contx, options, system)
 	}
 }
 
-func OnStop(sys system.SystemInterface) func(ctx context.Context) error {
+// OnStop returns a function to stop the system on system shutdown.
+func OnStop(options *CommandOptions, system systemApi.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
-		return sys.Stop(contx)
+		return system.Stop(contx)
 	}
+}
+
+// InitializeSystem initializes the system with the provided context and system interface.
+func InitializeSystem(ctx *contextApi.Context, system systemApi.SystemInterface) error {
+	contx := contextApi.WithContext(ctx)
+
+	// Initialize the system.
+	if err := system.Initialize(contx); err != nil {
+		return fmt.Errorf("failed to initialize system: %w", err)
+	}
+
+	// Add the Nova plugin to the system.
+	if err := AddPlugin(contx, system, plugin.NewNovaPlugin()); err != nil {
+		return fmt.Errorf("failed to add plugin: %w", err)
+	}
+
+	return nil
+}
+
+// AddPlugin adds a plugin to the system using the provided context and system interface.
+func AddPlugin(ctx *contextApi.Context, system systemApi.SystemInterface, p systemApi.PluginInterface) error {
+	// Add the provided plugin to the plugin manager.
+	if err := system.PluginManager().AddPlugin(ctx, p); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ExecuteCommand executes a command on the provided system using the provided context.
+func ExecuteCommand(ctx *contextApi.Context, options *CommandOptions, system systemApi.SystemInterface) error {
+	// Execute the operation using the provided system interface.
+	if _, err := system.ExecuteOperation(ctx, options.Command, options.Data); err != nil {
+		return fmt.Errorf("failed to execute operation: %w", err)
+	}
+	return nil
 }
