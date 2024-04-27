@@ -1,11 +1,12 @@
-package tree
+package config
 
 // NodeType represents the type of a ConfigNode.
 type NodeType int
 
 const (
 	ModuleNode NodeType = iota
-	TransactionNode
+	EntityNode
+	MessageNode
 	QueryNode
 	FieldNode
 )
@@ -16,6 +17,28 @@ type ConfigNode struct {
 	Type     NodeType
 	Value    interface{}
 	Children []*ConfigNode
+}
+
+// ModuleConfig represents the configuration for a module node.
+type ModuleConfig struct {
+	Dependencies []string
+	// Other module-specific configurations
+}
+
+// QueryConfig represents the configuration for a query or entity node.
+type QueryConfig struct {
+	// Other query-specific configurations
+}
+
+// TransactionConfig represents the configuration for a transaction node.
+type TransactionConfig struct {
+	Handler string
+}
+
+// FieldConfig represents the configuration for a field node.
+type FieldConfig struct {
+	Name string
+	Type string
 }
 
 // TreeTraversalMode represents the mode of tree traversal.

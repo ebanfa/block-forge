@@ -3,14 +3,14 @@ package config
 import (
 	"testing"
 
-	treeApi "github.com/edward1christian/block-forge/nova/pkg/tree"
+	"github.com/edward1christian/block-forge/nova/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestNewConfigTree tests the NewConfigTree function for creating a new configuration tree.
 func TestNewConfigTree(t *testing.T) {
 	// Act
-	tree := treeApi.NewConfigTree()
+	tree := config.NewConfigTree()
 
 	// Assert
 	assert.NotNil(t, tree)
@@ -20,8 +20,8 @@ func TestNewConfigTree(t *testing.T) {
 // TestAddNode_AddSingleNode tests adding a single node to the configuration tree.
 func TestAddNode_AddSingleNode(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
+	tree := config.NewConfigTree()
+	node := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
 
 	// Act
 	tree.AddNode(node)
@@ -35,9 +35,9 @@ func TestAddNode_AddSingleNode(t *testing.T) {
 // TestAddNode_AddMultipleNodes tests adding multiple nodes to the configuration tree.
 func TestAddNode_AddMultipleNodes(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node1 := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
-	node2 := &treeApi.ConfigNode{Name: "node2", Type: treeApi.TransactionNode}
+	tree := config.NewConfigTree()
+	node1 := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
+	node2 := &config.ConfigNode{Name: "node2", Type: config.MessageNode}
 
 	// Act
 	tree.AddNode(node1)
@@ -53,8 +53,8 @@ func TestAddNode_AddMultipleNodes(t *testing.T) {
 // TestFindNode_Found tests finding an existing node in the configuration tree.
 func TestFindNode_Found(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
+	tree := config.NewConfigTree()
+	node := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
 	tree.AddNode(node)
 
 	// Act
@@ -68,8 +68,8 @@ func TestFindNode_Found(t *testing.T) {
 // TestFindNode_NotFound tests finding a non-existent node in the configuration tree.
 func TestFindNode_NotFound(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
+	tree := config.NewConfigTree()
+	node := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
 	tree.AddNode(node)
 
 	// Act
@@ -82,8 +82,8 @@ func TestFindNode_NotFound(t *testing.T) {
 // TestRemoveNode_RemoveSingleNode tests removing a single node from the configuration tree.
 func TestRemoveNode_RemoveSingleNode(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
+	tree := config.NewConfigTree()
+	node := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
 	tree.AddNode(node)
 
 	// Act
@@ -97,9 +97,9 @@ func TestRemoveNode_RemoveSingleNode(t *testing.T) {
 // TestRemoveNode_RemoveMultipleNodes tests removing multiple nodes from the configuration tree.
 func TestRemoveNode_RemoveMultipleNodes(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node1 := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
-	node2 := &treeApi.ConfigNode{Name: "node2", Type: treeApi.TransactionNode}
+	tree := config.NewConfigTree()
+	node1 := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
+	node2 := &config.ConfigNode{Name: "node2", Type: config.MessageNode}
 
 	tree.AddNode(node1)
 	tree.AddNode(node2)
@@ -116,11 +116,11 @@ func TestRemoveNode_RemoveMultipleNodes(t *testing.T) {
 
 // MockVisitor is a mock implementation of the ConfigNodeVisitor interface for testing purposes.
 type MockVisitor struct {
-	VisitedNodes []*treeApi.ConfigNode
+	VisitedNodes []*config.ConfigNode
 }
 
 // VisitNode mocks visiting a node and stores the visited node.
-func (v *MockVisitor) VisitNode(node *treeApi.ConfigNode) error {
+func (v *MockVisitor) VisitNode(node *config.ConfigNode) error {
 	v.VisitedNodes = append(v.VisitedNodes, node)
 	return nil
 }
@@ -128,16 +128,16 @@ func (v *MockVisitor) VisitNode(node *treeApi.ConfigNode) error {
 // TestTraverse_PreOrder tests traversing the configuration tree in pre-order.
 func TestTraverse_PreOrder(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node1 := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
-	node2 := &treeApi.ConfigNode{Name: "node2", Type: treeApi.TransactionNode}
+	tree := config.NewConfigTree()
+	node1 := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
+	node2 := &config.ConfigNode{Name: "node2", Type: config.MessageNode}
 
 	tree.AddNode(node1)
 	tree.AddNode(node2)
 	visitor := &MockVisitor{}
 
 	// Act
-	tree.Traverse(treeApi.PreOrder, visitor)
+	tree.Traverse(config.PreOrder, visitor)
 
 	// Assert
 	assert.NotNil(t, visitor.VisitedNodes)
@@ -149,16 +149,16 @@ func TestTraverse_PreOrder(t *testing.T) {
 // TestTraverse_InOrder tests traversing the configuration tree in in-order.
 func TestTraverse_InOrder(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node1 := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
-	node2 := &treeApi.ConfigNode{Name: "node2", Type: treeApi.TransactionNode}
+	tree := config.NewConfigTree()
+	node1 := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
+	node2 := &config.ConfigNode{Name: "node2", Type: config.MessageNode}
 
 	tree.AddNode(node1)
 	tree.AddNode(node2)
 	visitor := &MockVisitor{}
 
 	// Act
-	tree.Traverse(treeApi.InOrder, visitor)
+	tree.Traverse(config.InOrder, visitor)
 
 	// Assert
 	assert.NotNil(t, visitor.VisitedNodes)
@@ -170,16 +170,16 @@ func TestTraverse_InOrder(t *testing.T) {
 // TestTraverse_PostOrder tests traversing the configuration tree in post-order.
 func TestTraverse_PostOrder(t *testing.T) {
 	// Arrange
-	tree := treeApi.NewConfigTree()
-	node1 := &treeApi.ConfigNode{Name: "node1", Type: treeApi.ModuleNode}
-	node2 := &treeApi.ConfigNode{Name: "node2", Type: treeApi.TransactionNode}
+	tree := config.NewConfigTree()
+	node1 := &config.ConfigNode{Name: "node1", Type: config.ModuleNode}
+	node2 := &config.ConfigNode{Name: "node2", Type: config.MessageNode}
 
 	tree.AddNode(node1)
 	tree.AddNode(node2)
 	visitor := &MockVisitor{}
 
 	// Act
-	tree.Traverse(treeApi.PostOrder, visitor)
+	tree.Traverse(config.PostOrder, visitor)
 
 	// Assert
 	assert.NotNil(t, visitor.VisitedNodes)

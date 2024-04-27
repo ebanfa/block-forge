@@ -30,11 +30,7 @@ var rootCmd = &cobra.Command{
 			to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		provider.Init(&provider.InitOptions{
-			Debug:          debug,
-			Verbose:        verbose,
-			ConfigFilePath: configFilePath,
-		})
+		provider.Init(&provider.CommandOptions{})
 	},
 }
 
