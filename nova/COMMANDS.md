@@ -5,28 +5,28 @@ Nova implements the following commands, subcommands, and flags:
    - `generate`: Generate code and artifacts for the blockchain application based on the defined configuration.
    - `build`: Build the blockchain application binary.
    - `run`: Run the blockchain application.
-   - `config`: Manage the configuration of the blockchain application.
+   - `config`: Manage the configuration of the blockchain application. x
 
 2. **Subcommands for `config`**:
-   - `config new`: Create a new configuration tree.
+   - `config new`: Create a new configuration tree. x
    - `config load`: Load an existing configuration tree.
-   - `config save`: Save the current configuration tree.
-   - `config add`: Add a new node to the configuration tree.
-   - `config update`: Update an existing node in the configuration tree.
+   - `config save`: Save the current configuration tree. x
+   - `config add`: Add a new node to the configuration tree. x
+   - `config update`: Update an existing node in the configuration tree. x
    - `config remove`: Remove a node from the configuration tree.
    - `config validate`: Validate the current configuration tree.
    - `config visualize`: Visualize the configuration tree and dependency graph.
-   - `config dependency`: Manage dependencies between configuration nodes.
+   - `config dependency`: Manage dependencies between configuration nodes. x
 
 3. **Subcommands for `config add`**:
    - `config add module`: Add a new module node to the configuration tree.
-   - `config add transaction`: Add a new transaction node to the configuration tree.
+   - `config add message`: Add a new transaction node to the configuration tree.
    - `config add query`: Add a new query node to the configuration tree.
-   - `config add field`: Add a new field node to the configuration tree.
+   - `config add field`: Add a new field node to the configuration tree. x
 
 4. **Subcommands for `config dependency`**:
-   - `config dependency add`: Add a dependency between two configuration nodes.
-   - `config dependency remove`: Remove a dependency between two configuration nodes.
+   - `config dependency add`: Add a dependency between two configuration nodes. x
+   - `config dependency remove`: Remove a dependency between two configuration nodes. x
 
 5. **Flags**:
    - `--name`: Specify the name of the node being added or updated.
