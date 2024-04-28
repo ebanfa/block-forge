@@ -37,7 +37,7 @@ func Init(options *CommandOptions) {
 	app := fx.New(
 		// Provide dependencies.
 		fx.Provide(ProvideConfiguration(options)),
-		fx.Provide(ProvideLogger),
+		fx.Provide(ProvideLogger(options)),
 		fx.Provide(ProvideEventBus),
 		fx.Provide(ProvidComponentRegistrar),
 		fx.Provide(ProvidPluginManager),
@@ -75,8 +75,16 @@ func ProvideEventBus() event.EventBusInterface {
 }
 
 // ProvideLogger provides a logger interface.
-func ProvideLogger() logger.LoggerInterface {
-	return logger.NewLogrusLogger()
+func ProvideLogger(options *CommandOptions) func() logger.LoggerInterface {
+	return func() logger.LoggerInterface {
+		var level logger.Level
+		if options.Debug {
+			level = logger.LevelDebug
+		} else {
+			level = logger.LevelInfo
+		}
+		return logger.NewLogrusLogger(level)
+	}
 }
 
 // ProvidComponentRegistrar provides a component registrar interface.
@@ -129,7 +137,8 @@ func OnStart(options *CommandOptions, system systemApi.SystemInterface) func(ctx
 		}
 
 		// Execute the command.
-		return ExecuteCommand(contx, options, system)
+		//return ExecuteCommand(contx, options, system)
+		return nil
 	}
 }
 

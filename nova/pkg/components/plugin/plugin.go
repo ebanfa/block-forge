@@ -47,10 +47,10 @@ func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
 		return fmt.Errorf("failed to register plugin components %w", err)
 	}
 	// Register system services
-	err := RegisterServices(ctx, p.System)
+	/* err := RegisterServices(ctx, p.System)
 	if err != nil {
 		return fmt.Errorf("failed to register services %w", err)
-	}
+	} */
 	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Registered resources")
 	return nil
 }

@@ -26,7 +26,7 @@ func Init(options *InitOptions) {
 		// Provide dependencies.
 		fx.Provide(ProvideConfiguration(options)),
 		fx.Provide(ProvideEventBus),
-		fx.Provide(ProvideLogger),
+		fx.Provide(ProvideLogger(options)),
 		fx.Provide(ProvideSystem),
 	)
 	// Run the application.
@@ -59,8 +59,16 @@ func ProvideEventBus() event.EventBusInterface {
 }
 
 // ProvideLogger provides a logger interface.
-func ProvideLogger() logger.LoggerInterface {
-	return logger.NewLogrusLogger()
+func ProvideLogger(options *InitOptions) func() logger.LoggerInterface {
+	return func() logger.LoggerInterface {
+		var level logger.Level
+		if options.Debug {
+			level = logger.LevelDebug
+		} else {
+			level = logger.LevelInfo
+		}
+		return logger.NewLogrusLogger(level)
+	}
 }
 
 // ProvideSystem provides a system interface.

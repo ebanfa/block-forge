@@ -1,6 +1,8 @@
 package logger
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 // Logger is an interface for logging messages. It provides a standardized way to
 // log messages, allowing different logging implementations to be used interchangeably.
@@ -50,15 +52,31 @@ func (l Level) String() string {
 	}
 }
 
+// Define a mapping between custom log levels and Logrus levels
+var logrusLevelMapping = map[Level]logrus.Level{
+	LevelDebug: logrus.DebugLevel,
+	LevelInfo:  logrus.InfoLevel,
+	LevelWarn:  logrus.WarnLevel,
+	LevelError: logrus.ErrorLevel,
+	LevelFatal: logrus.FatalLevel,
+}
+
 // LogrusLogger is a concrete implementation of LoggerInterface using Logrus.
 type LogrusLogger struct {
 	logger *logrus.Logger
 }
 
-// NewLogrusLogger creates a new instance of LogrusLogger.
-func NewLogrusLogger() *LogrusLogger {
+// NewLogrusLogger creates a new instance of LogrusLogger with the given log level.
+func NewLogrusLogger(level Level) *LogrusLogger {
+	logger := logrus.New()
+	logrusLevel, ok := logrusLevelMapping[level]
+	if !ok {
+		logrusLevel = logrus.InfoLevel // Default to InfoLevel if custom level is not found
+	}
+	logger.SetLevel(logrusLevel)
+
 	return &LogrusLogger{
-		logger: logrus.New(),
+		logger: logger,
 	}
 }
 

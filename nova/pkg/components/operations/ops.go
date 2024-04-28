@@ -1,6 +1,7 @@
 package operations
 
-var (
+/* var (
 	InitProjectOperation        = "InitProjectOperation"
 	InitProjectOperationFactory = "InitProjectOperationFactory"
 )
+*/

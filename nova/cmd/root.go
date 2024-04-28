@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	force          bool
-	debug          bool
-	verbose        bool
-	configFilePath string
-	outputDir      string
+	//force   bool
+	debug   bool
+	verbose bool
+	//configFilePath string
+	//outputDir      string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -29,8 +29,9 @@ var rootCmd = &cobra.Command{
 			This application is a tool to generate the needed files
 			to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		provider.Init(&provider.CommandOptions{})
+		provider.Init(&provider.CommandOptions{
+			Debug: debug,
+		})
 	},
 }
 
@@ -51,9 +52,9 @@ func init() {
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nova.yaml)")
 
 	// Define flags for command-line options
-	rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
-	rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Specify the output directory for generated files")
-	rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force overwrite of existing files in the output directory")
+	//rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
+	//rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Specify the output directory for generated files")
+	//rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force overwrite of existing files in the output directory")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
 	rootCmd.Flags().BoolVar(&debug, "debug", false, "Enable debug mode for troubleshooting")
 
@@ -62,6 +63,6 @@ func init() {
 	rootCmd.Flags().BoolP("version", "v", false, "Display the version of Codenet")
 
 	// Mark config and output flags as required
-	_ = rootCmd.MarkFlagRequired("config")
-	_ = rootCmd.MarkFlagRequired("output")
+	//_ = rootCmd.MarkFlagRequired("config")
+	//_ = rootCmd.MarkFlagRequired("output")
 }

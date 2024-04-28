@@ -1,6 +1,6 @@
 package operations
 
-import (
+/* i mport (
 	"github.com/edward1christian/block-forge/nova/pkg/components/operations/commands"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 )
@@ -47,3 +47,4 @@ func GetOperationsToRegister() []OperationRegistration {
 
 	return operationsToRegister
 }
+*/
