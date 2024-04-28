@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	compApi "github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 )
 
@@ -47,4 +48,22 @@ func StopService(ctx *context.Context, system SystemInterface, id string) error 
 	}
 
 	return service.Stop(ctx)
+}
+
+func RegisterComponent(ctx *context.Context, system SystemInterface, config *config.ComponentConfig, factory compApi.ComponentFactoryInterface) error {
+	registrar := system.ComponentRegistry()
+
+	// Register the factory
+	err := registrar.RegisterFactory(ctx, config.FactoryID, factory)
+	if err != nil {
+		return fmt.Errorf("failed to register component factory: %w", err)
+	}
+
+	// Create the component
+	_, err = registrar.CreateComponent(ctx, config)
+	if err != nil {
+		return fmt.Errorf("failed to create component: %s", config.ID)
+	}
+
+	return nil
 }

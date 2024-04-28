@@ -174,3 +174,78 @@ func TestStopService_ServiceInterfaceError(t *testing.T) {
 	// Assert
 	assert.EqualError(t, err, expectedErr.Error(), "Stopping service with non-system service component should return an error")
 }
+
+// TestRegisterComponent_Success tests the RegisterComponent function for success.
+func TestRegisterComponent_Success(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	mockSystem := &mocks.MockSystem{}
+	mockComponent := &mocks.MockComponent{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
+	mockFactory := &mocks.MockComponentFactory{}
+	mockConfig := &config.ComponentConfig{
+		ID:        "TestComponent",
+		FactoryID: "TestFactory",
+	}
+
+	// Mock behavior
+	mockSystem.On("ComponentRegistry").Return(mockRegistry)
+	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(nil)
+	mockRegistry.On("CreateComponent", ctx, mockConfig).Return(mockComponent, nil)
+
+	// Act
+	err := system.RegisterComponent(ctx, mockSystem, mockConfig, mockFactory)
+
+	// Assert
+	assert.NoError(t, err, "RegisterComponent should not return an error")
+}
+
+// TestRegisterComponent_Error_RegisterFactory tests the RegisterComponent function for error during factory registration.
+func TestRegisterComponent_Error_RegisterFactory(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	mockSystem := &mocks.MockSystem{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
+	mockFactory := &mocks.MockComponentFactory{}
+	mockConfig := &config.ComponentConfig{
+		ID:        "TestComponent",
+		FactoryID: "TestFactory",
+	}
+
+	// Mock behavior - RegisterFactory returns an error
+	mockSystem.On("ComponentRegistry").Return(mockRegistry)
+	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(errors.New("error registering factory"))
+
+	// Act
+	err := system.RegisterComponent(ctx, mockSystem, mockConfig, mockFactory)
+
+	// Assert
+	assert.Error(t, err, "RegisterComponent should return an error")
+	assert.Contains(t, err.Error(), "failed to register component factory", "Error message should indicate failure in registering factory")
+}
+
+// TestRegisterComponent_Error_CreateComponent tests the RegisterComponent function for error during component creation.
+func TestRegisterComponent_Error_CreateComponent(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	mockSystem := &mocks.MockSystem{}
+	mockComponent := &mocks.MockComponent{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
+	mockFactory := &mocks.MockComponentFactory{}
+	mockConfig := &config.ComponentConfig{
+		ID:        "TestComponent",
+		FactoryID: "TestFactory",
+	}
+
+	// Mock behavior - CreateComponent returns an error
+	mockSystem.On("ComponentRegistry").Return(mockRegistry)
+	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(nil)
+	mockRegistry.On("CreateComponent", ctx, mockConfig).Return(mockComponent, errors.New("error creating component"))
+
+	// Act
+	err := system.RegisterComponent(ctx, mockSystem, mockConfig, mockFactory)
+
+	// Assert
+	assert.Error(t, err, "RegisterComponent should return an error")
+	assert.Contains(t, err.Error(), "failed to create component", "Error message should indicate failure in creating component")
+}

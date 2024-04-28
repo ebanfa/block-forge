@@ -37,24 +37,11 @@ func RegisterOperations(ctx *context.Context, system systemApi.SystemInterface) 
 }
 
 func RegisterBuildOperations(ctx *context.Context, system systemApi.SystemInterface) error {
-	registrar := system.ComponentRegistry()
-
-	// Register the operation
-	err := registrar.RegisterFactory(ctx,
-		common.CreateWorkspaceTaskFactory, &operations.CreateDirectoryTaskFactory{})
-
-	if err != nil {
-		return fmt.Errorf("failed to register operationcomponent factory: %w", err)
-	}
-	_, err = registrar.CreateComponent(ctx, &config.ComponentConfig{
+	config := &config.ComponentConfig{
 		ID:        common.CreateWorkspaceTask,
 		FactoryID: common.CreateWorkspaceTaskFactory,
-	})
-
-	if err != nil {
-		return fmt.Errorf("failed to create operation: %s", common.CreateWorkspaceTask)
 	}
-	return nil
+	return systemApi.RegisterComponent(ctx, system, config, operations.NewCreateDirectoryTaskFactory())
 }
 
 func StartServices(ctx *context.Context, system systemApi.SystemInterface) error {

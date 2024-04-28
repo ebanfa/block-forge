@@ -1,4 +1,4 @@
-package system
+package commands
 
 import (
 	"github.com/edward1christian/block-forge/pkg/application/common/context"

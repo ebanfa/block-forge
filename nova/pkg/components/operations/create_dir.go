@@ -13,6 +13,11 @@ import (
 type CreateDirectoryTaskFactory struct {
 }
 
+// NewCreateDirectoryTaskFactory is a constructor function that creates and returns a new instance of CreateDirectoryTaskFactory.
+func NewCreateDirectoryTaskFactory() *CreateDirectoryTaskFactory {
+	return &CreateDirectoryTaskFactory{}
+}
+
 // CreateComponent creates a new instance of the BuildService.
 func (bf *CreateDirectoryTaskFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
 	// Construct the service
