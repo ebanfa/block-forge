@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/nova/pkg/common"
-	"github.com/edward1christian/block-forge/nova/pkg/components/operations"
 	"github.com/edward1christian/block-forge/nova/pkg/components/services"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/config"
@@ -25,23 +24,6 @@ func RegisterServices(ctx *context.Context, system systemApi.SystemInterface) er
 		return fmt.Errorf("failed to register REST API service: %w", err)
 	} */
 	return nil
-}
-
-func RegisterOperations(ctx *context.Context, system systemApi.SystemInterface) error {
-	// Register Build Operations
-	if err := RegisterBuildOperations(ctx, system); err != nil {
-		return fmt.Errorf("failed to register build operations: %w", err)
-	}
-	// Register Other Operations
-	return nil
-}
-
-func RegisterBuildOperations(ctx *context.Context, system systemApi.SystemInterface) error {
-	config := &config.ComponentConfig{
-		ID:        common.CreateWorkspaceTask,
-		FactoryID: common.CreateWorkspaceTaskFactory,
-	}
-	return systemApi.RegisterComponent(ctx, system, config, operations.NewCreateDirectoryTaskFactory())
 }
 
 func StartServices(ctx *context.Context, system systemApi.SystemInterface) error {

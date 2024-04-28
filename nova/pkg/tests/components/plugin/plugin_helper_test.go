@@ -52,43 +52,6 @@ func TestRegisterServices_BuildServiceFactoryError(t *testing.T) {
 	assert.ErrorContains(t, err, "failed to register build service")
 }
 
-// TestRegisterOperations_Success tests the RegisterOperations function for successful registration.
-func TestRegisterOperations_Success(t *testing.T) {
-	// Arrange
-	ctx := &context.Context{}
-	mockSystem := &mocks.MockSystem{}
-	mockRegistrar := &mocks.MockComponentRegistrar{}
-
-	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
-	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(&mocks.MockOperation{}, nil)
-
-	// Act
-	err := plugin.RegisterOperations(ctx, mockSystem)
-
-	// Assert
-	assert.NoError(t, err, "Registering operations should not return an error")
-}
-
-// TestRegisterBuildOperations_Success tests the RegisterBuildOperations function for successful registration.
-func TestRegisterBuildOperations_Success(t *testing.T) {
-	// Arrange
-	ctx := &context.Context{}
-	mockSystem := &mocks.MockSystem{}
-
-	mockRegistrar := &mocks.MockComponentRegistrar{}
-
-	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
-	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(&mocks.MockOperation{}, nil)
-
-	// Act
-	err := plugin.RegisterBuildOperations(ctx, mockSystem)
-
-	// Assert
-	assert.NoError(t, err, "Registering build operations should not return an error")
-}
-
 // TestStartServices_Success tests the StartServices function for successful service start.
 func TestStartServices_Success(t *testing.T) {
 	// Arrange

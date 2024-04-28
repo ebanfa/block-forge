@@ -42,13 +42,13 @@ func (p *NovaPlugin) Initialize(ctx *context.Context, system systemApi.SystemInt
 func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
 	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Registering resources")
 
+	// Register components
+	if err := RegisterComponents(ctx, p.System); err != nil {
+		return fmt.Errorf("failed to register plugin components %w", err)
+	}
 	// Register system services
 	err := RegisterServices(ctx, p.System)
 	if err != nil {
-		return fmt.Errorf("failed to register services %w", err)
-	}
-	// Register system operations
-	if err := RegisterOperations(ctx, p.System); err != nil {
 		return fmt.Errorf("failed to register services %w", err)
 	}
 	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Registered resources")
