@@ -47,9 +47,7 @@ func getListOfComponentsToRegister(ctx *context.Context, system systemApi.System
 // GetServicesToRegister returns the list of services to register
 func GetServicesToRegister() []ComponentRegistration {
 	serviceFactories := map[string]component.ComponentFactoryInterface{
-		"BuildProjectOp":      &commands.BuildProjectOpFactory{},
-		"GenerateArtifactsOp": &commands.GenerateArtifactsOpFactory{},
-		"RunProjectOp":        &commands.RunProjectOpFactory{},
+		//"BuildProjectOp":      &commands.BuildProjectOpFactory{},
 	}
 
 	return populateComponentRegistrations(serviceFactories)
@@ -58,14 +56,22 @@ func GetServicesToRegister() []ComponentRegistration {
 // GetOperationsToRegister returns the list of operations to register
 func GetOperationsToRegister() []ComponentRegistration {
 	operationFactories := map[string]component.ComponentFactoryInterface{
-		"CreateProjectOp":       &commands.CreateConfigurationOpFactory{},
-		"LoadConfigurationOp":   &commands.LoadConfigurationOpFactory{},
+		"BuildProjectOp":        &commands.BuildProjectOpFactory{},
+		"CreateConfigurationOp": &commands.CreateConfigurationOpFactory{},
+		"GenerateArtifactsOp":   &commands.GenerateArtifactsOpFactory{},
+		"ListConfigurationsOp":  &commands.ListConfigurationsOpFactory{},
+		"AddEntityOp":           &commands.AddEntityOpFactory{},
 		"AddMessageOp":          &commands.AddMessageOpFactory{},
 		"AddModuleOp":           &commands.AddModuleOpFactory{},
 		"AddQueryOp":            &commands.AddQueryOpFactory{},
 		"RemoveProjectConfigOp": &commands.RemoveProjectConfigOpFactory{},
-		"AddEntityOp":           &commands.AddEntityOpFactory{},
+		"RemoveEntityOp":        &commands.RemoveEntityOpFactory{},
+		"RemoveMessageOp":       &commands.RemoveMessageOpFactory{},
+		"RemoveModuleOp":        &commands.RemoveModuleOpFactory{},
+		"RemoveQueryOp":         &commands.RemoveQueryOpFactory{},
+		"RunProjectOp":          &commands.RunProjectOpFactory{},
 		"ValidateConfigOp":      &commands.ValidateConfigOpFactory{},
+		"VisualizeConfigOp":     &commands.VisualizeConfigOpFactory{},
 	}
 
 	return populateComponentRegistrations(operationFactories)

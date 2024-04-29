@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
+	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	compApi "github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
 )
@@ -52,7 +53,7 @@ func StopService(ctx *context.Context, system SystemInterface, id string) error 
 
 func RegisterComponent(ctx *context.Context, system SystemInterface, config *config.ComponentConfig, factory compApi.ComponentFactoryInterface) error {
 	registrar := system.ComponentRegistry()
-
+	system.Logger().Logf(logger.LevelDebug, "Registering component %s with factory ID %s", config.ID, config.FactoryID)
 	// Register the factory
 	err := registrar.RegisterFactory(ctx, config.FactoryID, factory)
 	if err != nil {
