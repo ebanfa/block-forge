@@ -1,12 +1,11 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 Edward Banfa <ebanfa@gmail.com>
 */
 package cmd
 
 import (
 	"os"
 
-	provider "github.com/edward1christian/block-forge/nova/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -21,17 +20,18 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "nova",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-			examples and usage of using your application. For example:
+	Short: "A Modular Blockchain Framework Scaffolding and Configuration Management Application",
+	Long: `Nova is an application designed to streamline the development of modular blockchain applications. It provides a comprehensive set of tools and features for scaffolding, configuring, and generating code for blockchain frameworks that follow a modular architecture.
 
-			Cobra is a CLI library for Go that empowers applications.
-			This application is a tool to generate the needed files
-			to quickly create a Cobra application.`,
+Nova empowers developers to define and manage the configuration of various components and modules that make up their blockchain application, such as transactions, queries, state structures, and dependencies. With Nova, you can:
+
+- Define and configure the core components of your blockchain application through a user-friendly command-line interface or graphical user interface.
+- Leverage a modular and composable approach to building blockchain applications, promoting code reusability and maintainability.
+- Validate and visualize your application's configuration, ensuring consistency and correctness before code generation.
+- Generate boilerplate code, data structures, and artifacts specific to your target blockchain platform or framework, automating the scaffolding process.
+- Support for multiple blockchain platforms and frameworks, including Cosmos SDK, Ethereum (as smart contracts), Substrate, and more.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
-			Debug: debug,
-		})
+		cmd.Usage()
 	},
 }
 
@@ -45,18 +45,10 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nova.yaml)")
-
 	// Define flags for command-line options
 	//rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
-	//rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Specify the output directory for generated files")
-	//rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force overwrite of existing files in the output directory")
-	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
-	rootCmd.Flags().BoolVar(&debug, "debug", false, "Enable debug mode for troubleshooting")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Enable debug mode for troubleshooting")
 
 	// Add flags for help and version
 	rootCmd.Flags().BoolP("help", "h", false, "Show this help message and exit")
@@ -64,5 +56,5 @@ func init() {
 
 	// Mark config and output flags as required
 	//_ = rootCmd.MarkFlagRequired("config")
-	//_ = rootCmd.MarkFlagRequired("output")
+
 }

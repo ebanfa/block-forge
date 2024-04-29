@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 Edward Banfa <ebanfa@gmail.com>
 */
 package cmd
 
@@ -20,7 +20,7 @@ var addCmd = &cobra.Command{
 }
 
 func init() {
-	configCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(addCmd)
 
 	// Here you will define your flags and configuration settings.
 
