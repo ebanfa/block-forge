@@ -4,8 +4,6 @@ Copyright © 2024 Edward Banfa <ebanfa@gmail.com>
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +13,6 @@ var addCmd = &cobra.Command{
 	Short: "Add a new component to the configuration",
 	Long:  `Add a new component to the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
 	},
 }
 

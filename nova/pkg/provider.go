@@ -137,8 +137,8 @@ func OnStart(options *CommandOptions, system systemApi.SystemInterface) func(ctx
 		}
 
 		// Execute the command.
-		//return ExecuteCommand(contx, options, system)
-		return nil
+		return ExecuteCommand(contx, options, system)
+		//return nil
 	}
 }
 

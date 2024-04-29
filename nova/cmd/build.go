@@ -4,8 +4,8 @@ Copyright © 2024 Edward Banfa <ebanfa@gmail.com>
 package cmd
 
 import (
-	"fmt"
-
+	provider "github.com/edward1christian/block-forge/nova/pkg"
+	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,10 @@ var buildCmd = &cobra.Command{
 	Short: "Build the blockchain application binary",
 	Long:  `Build the blockchain application binary`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("build called")
+		provider.Init(&provider.CommandOptions{
+			Debug:   debug,
+			Command: plugin.BuildProjectOp,
+		})
 	},
 }
 

@@ -9,20 +9,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// entityCmd represents the type command
-var entityCmd = &cobra.Command{
-	Use:   "entity",
-	Short: "Add a new entity to the configuration",
-	Long:  `Add a new entity to the configuration`,
+// listCmd represents the list command
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all configurations",
+	Long:  `List all configurations`,
 	Run: func(cmd *cobra.Command, args []string) {
 		provider.Init(&provider.CommandOptions{
 			Debug:   debug,
-			Command: plugin.RemoveEntityOp,
+			Command: plugin.ListConfigurationsOp,
 		})
 	},
 }
 
 func init() {
-	addCmd.AddCommand(entityCmd)
+	rootCmd.AddCommand(listCmd)
 
 }

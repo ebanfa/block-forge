@@ -1,7 +1,7 @@
 Nova implements the following commands, subcommands, and flags:
 
 1. **Top-Level Commands**:
-   - `init`: Initialize a new blockchain project.
+   - `create`: Initialize a new blockchain project.
    - `generate`: Generate code and artifacts for the blockchain application based on the defined configuration.
    - `build`: Build the blockchain application binary.
    - `run`: Run the blockchain application.
@@ -9,7 +9,7 @@ Nova implements the following commands, subcommands, and flags:
 
 2. **Subcommands for `config`**:
    - `config new`: Create a new configuration tree. x
-   - `config load`: Load an existing configuration tree.
+   - `config load`: Load an existing configuration tree.x
    - `config save`: Save the current configuration tree. x
    - `config add`: Add a new node to the configuration tree. x
    - `config update`: Update an existing node in the configuration tree. x

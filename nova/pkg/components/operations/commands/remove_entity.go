@@ -8,27 +8,27 @@ import (
 )
 
 // BuildServiceFactory is responsible for creating instances of BuildService.
-type AddTypeOpFactory struct {
+type RemoveEntityOpFactory struct {
 }
 
 // CreateComponent creates a new instance of the BuildService.
-func (bf *AddTypeOpFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
+func (bf *RemoveEntityOpFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
 	// Construct the service
-	return NewAddTypeOp(config.ID, config.Name, config.Description), nil
+	return NewRemoveEntityOp(config.ID, config.Name, config.Description), nil
 }
 
 // BaseComponent represents a concrete implementation of the SystemOperationInterface.
-type AddTypeOp struct {
+type RemoveEntityOp struct {
 	system.BaseSystemOperation // Embedding BaseComponent
 }
 
 // Type returns the type of the component.
-func (bo *AddTypeOp) Type() component.ComponentType {
+func (bo *RemoveEntityOp) Type() component.ComponentType {
 	return component.BasicComponentType
 }
 
-func NewAddTypeOp(id, name, description string) *AddTypeOp {
-	return &AddTypeOp{
+func NewRemoveEntityOp(id, name, description string) *RemoveEntityOp {
+	return &RemoveEntityOp{
 		BaseSystemOperation: system.BaseSystemOperation{
 			BaseSystemComponent: system.BaseSystemComponent{
 				BaseComponent: component.BaseComponent{
@@ -43,7 +43,7 @@ func NewAddTypeOp(id, name, description string) *AddTypeOp {
 
 // Execute performs the operation with the given context and input parameters,
 // and returns any output or error encountered.
-func (bo *AddTypeOp) Execute(ctx *context.Context,
+func (bo *RemoveEntityOp) Execute(ctx *context.Context,
 	input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Perform operation logic here
 	// For demonstration purposes, just return an error

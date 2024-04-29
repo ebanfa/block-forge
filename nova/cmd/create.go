@@ -5,6 +5,7 @@ package cmd
 
 import (
 	provider "github.com/edward1christian/block-forge/nova/pkg"
+	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,8 @@ var createCmd = &cobra.Command{
 	various components and modules of your application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		provider.Init(&provider.CommandOptions{
-			Debug: debug,
+			Debug:   debug,
+			Command: plugin.CreateConfigurationOp,
 		})
 	},
 }

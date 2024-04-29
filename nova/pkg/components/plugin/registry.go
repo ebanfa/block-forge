@@ -58,13 +58,13 @@ func GetServicesToRegister() []ComponentRegistration {
 // GetOperationsToRegister returns the list of operations to register
 func GetOperationsToRegister() []ComponentRegistration {
 	operationFactories := map[string]component.ComponentFactoryInterface{
-		"InitProjectOp":         &commands.InitProjectOpFactory{},
+		"CreateProjectOp":       &commands.CreateConfigurationOpFactory{},
 		"LoadConfigurationOp":   &commands.LoadConfigurationOpFactory{},
 		"AddMessageOp":          &commands.AddMessageOpFactory{},
 		"AddModuleOp":           &commands.AddModuleOpFactory{},
 		"AddQueryOp":            &commands.AddQueryOpFactory{},
 		"RemoveProjectConfigOp": &commands.RemoveProjectConfigOpFactory{},
-		"AddTypeOp":             &commands.AddTypeOpFactory{},
+		"AddEntityOp":           &commands.AddEntityOpFactory{},
 		"ValidateConfigOp":      &commands.ValidateConfigOpFactory{},
 	}
 
