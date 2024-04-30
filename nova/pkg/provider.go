@@ -5,6 +5,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
 	contextApi "github.com/edward1christian/block-forge/pkg/application/common/context"
@@ -162,6 +163,28 @@ func InitializeSystem(ctx *contextApi.Context, system systemApi.SystemInterface)
 	// Add the Nova plugin to the system.
 	if err := AddPlugin(contx, system, plugin.NewNovaPlugin()); err != nil {
 		return fmt.Errorf("failed to add plugin: %w", err)
+	}
+
+	// Get the home directory of the current user
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user's home directory: %w", err)
+	}
+
+	// Create input data containing the home directory
+	input := &systemApi.SystemOperationInput{
+		Data: homeDir,
+	}
+
+	// Define the command options
+	options := &CommandOptions{
+		Command: "InitDirectoriesOperation",
+		Data:    input,
+	}
+
+	// Execute the command
+	if err := ExecuteCommand(ctx, options, system); err != nil {
+		return fmt.Errorf("failed to initialize directories: %w", err)
 	}
 
 	return nil

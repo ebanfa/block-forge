@@ -45,7 +45,7 @@ Here's an example of how these commands and subcommands could be used:
 
 ```
 # Initialize a new blockchain project
-nova-cli init my-project
+nova-cli create my-project
 
 # Add a new module
 nova-cli config add module --name=token --parent=root

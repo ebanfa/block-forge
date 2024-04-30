@@ -4,9 +4,6 @@ import (
 	"sync"
 
 	"github.com/cosmos/iavl"
-	dbm "github.com/cosmos/iavl/db"
-
-	"cosmossdk.io/log"
 )
 
 // IAVLDatabase wraps an IAVL+ tree to implement the Database interface.
@@ -17,9 +14,7 @@ type IAVLDatabase struct {
 
 // NewIAVLDatabase creates a new IAVLDatabase instance.
 func NewIAVLDatabase(tree *iavl.MutableTree) *IAVLDatabase {
-
-	iavlTree := iavl.NewMutableTree(dbm.NewMemDB(), 100, false, log.NewNopLogger())
-	return &IAVLDatabase{tree: iavlTree}
+	return &IAVLDatabase{tree: tree}
 }
 
 // Get retrieves the value associated with the given key from the tree.

@@ -1,6 +1,7 @@
 package plugin
 
 const (
+	// Command operations
 	BuildProjectOp        = "BuildProjectOp"
 	CreateConfigurationOp = "CreateConfigurationOp"
 	GenerateArtifactsOp   = "GenerateArtifactsOp"
@@ -17,4 +18,6 @@ const (
 	RunProjectOp          = "RunProjectOp"
 	ValidateConfigOp      = "ValidateConfigOp"
 	VisualizeConfigOp     = "VisualizeConfigOp"
+	// Startup operations
+	InitDirectoriesOperation = "InitDirectoriesOperation"
 )

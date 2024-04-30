@@ -3,7 +3,9 @@ package database
 import (
 	"testing"
 
+	"cosmossdk.io/log"
 	"github.com/cosmos/iavl"
+	"github.com/cosmos/iavl/db"
 	"github.com/edward1christian/block-forge/nova/pkg/database"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,8 +13,9 @@ import (
 // TestIAVLDatabase_Get_Error tests the behavior of Get method when retrieving a nonexistent key.
 func TestIAVLDatabase_Get_Error(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	value, err := mockDB.Get([]byte("nonexistent"))
@@ -25,8 +28,8 @@ func TestIAVLDatabase_Get_Error(t *testing.T) {
 // TestIAVLDatabase_Set tests the behavior of Set method when setting a new key-value pair.
 func TestIAVLDatabase_Set(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 	key := []byte("testKey")
 	value := []byte("testValue")
 
@@ -40,8 +43,8 @@ func TestIAVLDatabase_Set(t *testing.T) {
 // TestIAVLDatabase_Delete_Error tests the behavior of Delete method when attempting to delete a nonexistent key.
 func TestIAVLDatabase_Delete_Error(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	err := mockDB.Delete([]byte("nonexistent"))
@@ -53,8 +56,8 @@ func TestIAVLDatabase_Delete_Error(t *testing.T) {
 // TestIAVLDatabase_Has tests the behavior of Has method when checking for the existence of a key.
 func TestIAVLDatabase_Has(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 	key := []byte("testKey")
 	value := []byte("testValue")
 	_ = mockDB.Set(key, value)
@@ -70,8 +73,8 @@ func TestIAVLDatabase_Has(t *testing.T) {
 // TestIAVLDatabase_Iterate_Error tests the behavior of Iterate method when an error occurs during iteration.
 func TestIAVLDatabase_Iterate_Error(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 	mockDB.Set([]byte("key1"), []byte("value1"))
 	mockDB.Set([]byte("key2"), []byte("value2"))
 
@@ -88,8 +91,8 @@ func TestIAVLDatabase_Iterate_Error(t *testing.T) {
 // TestIAVLDatabase_IterateRange tests the behavior of IterateRange method when iterating over a range of key-value pairs.
 func TestIAVLDatabase_IterateRange(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 	mockDB.Set([]byte("key1"), []byte("value1"))
 	mockDB.Set([]byte("key2"), []byte("value2"))
 
@@ -111,8 +114,8 @@ func TestIAVLDatabase_IterateRange(t *testing.T) {
 // TestIAVLDatabase_Hash tests the behavior of Hash method when retrieving the root hash of the tree.
 func TestIAVLDatabase_Hash(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	hash := mockDB.Hash()
@@ -124,8 +127,8 @@ func TestIAVLDatabase_Hash(t *testing.T) {
 // TestIAVLDatabase_Version tests the behavior of Version method when retrieving the version of the tree.
 func TestIAVLDatabase_Version(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	version := mockDB.Version()
@@ -137,8 +140,8 @@ func TestIAVLDatabase_Version(t *testing.T) {
 // TestIAVLDatabase_Load tests the behavior of Load method when loading the latest versioned tree from disk.
 func TestIAVLDatabase_Load(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	version, err := mockDB.Load()
@@ -151,8 +154,8 @@ func TestIAVLDatabase_Load(t *testing.T) {
 // TestIAVLDatabase_SaveVersion tests the behavior of SaveVersion method when saving a new tree version to disk.
 func TestIAVLDatabase_SaveVersion(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	hash, version, err := mockDB.SaveVersion()
@@ -166,8 +169,8 @@ func TestIAVLDatabase_SaveVersion(t *testing.T) {
 // TestIAVLDatabase_Rollback tests the behavior of Rollback method when resetting the working tree to the latest saved version.
 func TestIAVLDatabase_Rollback(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 	mockDB.Set([]byte("key"), []byte("value"))
 
 	// Act
@@ -182,8 +185,8 @@ func TestIAVLDatabase_Rollback(t *testing.T) {
 // TestIAVLDatabase_Close tests the behavior of Close method when closing the tree.
 func TestIAVLDatabase_Close(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	err := mockDB.Close()
@@ -195,8 +198,8 @@ func TestIAVLDatabase_Close(t *testing.T) {
 // TestIAVLDatabase_String tests the behavior of String method when getting a string representation of the tree.
 func TestIAVLDatabase_String(t *testing.T) {
 	// Arrange
-	mockTree := &iavl.MutableTree{}
-	mockDB := database.NewIAVLDatabase(mockTree)
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
 
 	// Act
 	str, err := mockDB.String()

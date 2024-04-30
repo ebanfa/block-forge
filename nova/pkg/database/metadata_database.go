@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
 	"time"
 )
@@ -22,10 +23,17 @@ var (
 )
 
 // GetMetadataDBInstance returns the singleton instance of MetadataDatabase
-func GetMetadataDBInstance() *MetadataDatabase {
+func GetMetadataDBInstance(name, path string) *MetadataDatabase {
 	metaDBOnce.Do(func() {
 		// Initialize the metadata database with the appropriate database instance
-		// metaDB = NewMetadataDatabase(db)
+		db, err := InitializeLevelDB(name, path)
+		if err != nil {
+			// Handle error if needed
+			log.Fatal(err)
+		}
+
+		iavlDB := GetIAVLDatabase(db)
+		metaDB = NewMetadataDatabase(iavlDB)
 	})
 	return metaDB
 }

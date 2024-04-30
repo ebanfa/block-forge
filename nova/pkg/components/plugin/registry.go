@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/edward1christian/block-forge/nova/pkg/components/operations"
 	"github.com/edward1christian/block-forge/nova/pkg/components/operations/commands"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
@@ -56,22 +57,23 @@ func GetServicesToRegister() []ComponentRegistration {
 // GetOperationsToRegister returns the list of operations to register
 func GetOperationsToRegister() []ComponentRegistration {
 	operationFactories := map[string]component.ComponentFactoryInterface{
-		"BuildProjectOp":        &commands.BuildProjectOpFactory{},
-		"CreateConfigurationOp": &commands.CreateConfigurationOpFactory{},
-		"GenerateArtifactsOp":   &commands.GenerateArtifactsOpFactory{},
-		"ListConfigurationsOp":  &commands.ListConfigurationsOpFactory{},
-		"AddEntityOp":           &commands.AddEntityOpFactory{},
-		"AddMessageOp":          &commands.AddMessageOpFactory{},
-		"AddModuleOp":           &commands.AddModuleOpFactory{},
-		"AddQueryOp":            &commands.AddQueryOpFactory{},
-		"RemoveProjectConfigOp": &commands.RemoveProjectConfigOpFactory{},
-		"RemoveEntityOp":        &commands.RemoveEntityOpFactory{},
-		"RemoveMessageOp":       &commands.RemoveMessageOpFactory{},
-		"RemoveModuleOp":        &commands.RemoveModuleOpFactory{},
-		"RemoveQueryOp":         &commands.RemoveQueryOpFactory{},
-		"RunProjectOp":          &commands.RunProjectOpFactory{},
-		"ValidateConfigOp":      &commands.ValidateConfigOpFactory{},
-		"VisualizeConfigOp":     &commands.VisualizeConfigOpFactory{},
+		"BuildProjectOp":           &commands.BuildProjectOpFactory{},
+		"CreateConfigurationOp":    &commands.CreateConfigurationOpFactory{},
+		"GenerateArtifactsOp":      &commands.GenerateArtifactsOpFactory{},
+		"ListConfigurationsOp":     &commands.ListConfigurationsOpFactory{},
+		"AddEntityOp":              &commands.AddEntityOpFactory{},
+		"AddMessageOp":             &commands.AddMessageOpFactory{},
+		"AddModuleOp":              &commands.AddModuleOpFactory{},
+		"AddQueryOp":               &commands.AddQueryOpFactory{},
+		"RemoveProjectConfigOp":    &commands.RemoveProjectConfigOpFactory{},
+		"RemoveEntityOp":           &commands.RemoveEntityOpFactory{},
+		"RemoveMessageOp":          &commands.RemoveMessageOpFactory{},
+		"RemoveModuleOp":           &commands.RemoveModuleOpFactory{},
+		"RemoveQueryOp":            &commands.RemoveQueryOpFactory{},
+		"RunProjectOp":             &commands.RunProjectOpFactory{},
+		"ValidateConfigOp":         &commands.ValidateConfigOpFactory{},
+		"VisualizeConfigOp":        &commands.VisualizeConfigOpFactory{},
+		"InitDirectoriesOperation": &operations.InitDirectoriesOperationFactory{},
 	}
 
 	return populateComponentRegistrations(operationFactories)

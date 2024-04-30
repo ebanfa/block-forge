@@ -5,34 +5,45 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	provider "github.com/edward1christian/block-forge/nova/pkg"
 	"github.com/edward1christian/block-forge/nova/pkg/components/plugin"
+	"github.com/edward1christian/block-forge/nova/pkg/utils"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/spf13/cobra"
 )
 
 // createCmd represents the new command
 var createCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create [projectName]",
 	Short: "Create a new blockchain project configuration",
 	Long: `Create a new blockchain project configuration. This command initializes a 
-	new configuration for a blockchain project, allowing you to define and manage the 
-	various components and modules of your application.`,
-	Args: cobra.ExactArgs(1), // Example expects exactly 2 arguments
+    new configuration for a blockchain project, allowing you to define and manage the 
+    various components and modules of your application.`,
+	Args: cobra.ExactArgs(1), // Example expects exactly 1 argument
 	Run: func(cmd *cobra.Command, args []string) {
-
 		projectName := args[0]
 
-		// Validate inputs
+		// Validate input
 		if projectName == "" {
-			fmt.Println("Both arguments are required.")
+			fmt.Println("Project name is required.")
 			return
 		}
 
-		// Convert args to SystemOperationInput format
+		// Get the home directory of the current user
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("Failed to get user's home directory: %v\n", err)
+			return
+		}
+
+		// Create SystemOperationInput with project ID and home directory
 		inputData := &system.SystemOperationInput{
-			Data: projectName,
+			Data: map[string]interface{}{
+				"projectID": utils.HashSHA256(projectName),
+				"homeDir":   homeDir, // Pass the home directory here
+			},
 		}
 
 		// Populate CommandOptions with arguments and input data
