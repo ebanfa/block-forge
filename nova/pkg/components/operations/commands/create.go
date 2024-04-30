@@ -71,7 +71,10 @@ func (bo *CreateConfigurationOp) Execute(ctx *context.Context,
 	dbPath := filepath.Join(homeDir, ".nova", "databases", projectID+".db")
 
 	// Ensure a single instance of MetadataDatabase is used throughout the application
-	metaDB := database.GetMetadataDBInstance(projectID, dbPath)
+	metaDB, err := database.GetMetadataDBInstance(projectID, dbPath)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create a new metadata entry
 	entry := &database.MetadataEntry{
@@ -83,7 +86,7 @@ func (bo *CreateConfigurationOp) Execute(ctx *context.Context,
 	}
 
 	// Insert the metadata entry into the database
-	err := metaDB.Insert(entry)
+	err = metaDB.Insert(entry)
 	if err != nil {
 		return nil, fmt.Errorf("error inserting metadata entry: %v", err)
 	}

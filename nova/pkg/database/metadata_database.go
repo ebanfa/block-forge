@@ -2,8 +2,6 @@ package database
 
 import (
 	"encoding/json"
-	"log"
-	"sync"
 	"time"
 )
 
@@ -15,27 +13,6 @@ type MetadataEntry struct {
 	CreationDate time.Time `json:"creation_date"`
 	LastUpdated  time.Time `json:"last_updated"`
 	// Add other metadata fields as needed
-}
-
-var (
-	metaDB     *MetadataDatabase
-	metaDBOnce sync.Once
-)
-
-// GetMetadataDBInstance returns the singleton instance of MetadataDatabase
-func GetMetadataDBInstance(name, path string) *MetadataDatabase {
-	metaDBOnce.Do(func() {
-		// Initialize the metadata database with the appropriate database instance
-		db, err := InitializeLevelDB(name, path)
-		if err != nil {
-			// Handle error if needed
-			log.Fatal(err)
-		}
-
-		iavlDB := GetIAVLDatabase(db)
-		metaDB = NewMetadataDatabase(iavlDB)
-	})
-	return metaDB
 }
 
 // MetadataDatabase represents the metadata database stored using the Database interface
