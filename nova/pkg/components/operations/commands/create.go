@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
@@ -47,5 +49,6 @@ func (bo *CreateConfigurationOp) Execute(ctx *context.Context,
 	input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Perform operation logic here
 	// For demonstration purposes, just return an error
+	fmt.Printf(">>>>>>>>>>>>>>>%s", input.Data)
 	return nil, nil
 }

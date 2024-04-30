@@ -17,10 +17,12 @@ func TestRegisterComponents_Success(t *testing.T) {
 	ctx := &context.Context{}
 	mockContext := &context.Context{} // Mock context
 	mockSystem := &mocks.MockSystem{} // Mock system
+	mockLogger := &mocks.MockLogger{}
 	mockComponent := &mocks.MockSystemService{}
 
 	mockRegistrar := &mocks.MockComponentRegistrar{}
 
+	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
 	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockComponent, nil)
@@ -37,10 +39,12 @@ func TestRegisterComponents_Error(t *testing.T) {
 	ctx := &context.Context{}
 	mockContext := &context.Context{} // Mock context
 	mockSystem := &mocks.MockSystem{} // Mock system
+	mockLogger := &mocks.MockLogger{}
 	mockComponent := &mocks.MockSystemService{}
 
 	mockRegistrar := &mocks.MockComponentRegistrar{}
 
+	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
 	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(errors.New("Error"))
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockComponent, nil)

@@ -1,4 +1,12 @@
-# BlockForge
+# Block Forge
+
+[![GoLang](https://img.shields.io/badge/GoLang-1.22-blue.svg)](https://golang.org/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-lightgrey.svg)](https://github.com/ebanfa/block-forge)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.1-orange.svg)](https://github.com/ebanfa/block-forge/releases/tag/v1.0)
+[![Dependencies](https://img.shields.io/badge/Dependencies-Go%20modules-blue.svg)](go.mod)
+[![Issues](https://img.shields.io/github/issues/ebanfa/block-forge.svg)](https://github.com/ebanfa/block-forge/issues)
+
 
 BlockForge is a monolithic repository (monorepo) for developing and maintaining a suite of blockchain-related applications and libraries. This monorepo serves as a centralized hub for various blockchain projects, enabling efficient collaboration, code reuse, and streamlined development workflows.
 
