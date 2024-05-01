@@ -52,7 +52,6 @@ func NewInitDirectoriesOperation(id, name, description string) *InitDirectoriesO
 // Execute performs the operation to initialize directories.
 func (op *InitDirectoriesOperation) Execute(ctx *context.Context, input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Extract the home directory from the input
-	fmt.Printf("heh>>>>>>> %v", input)
 	homeDir, ok := input.Data.(string)
 	if !ok {
 		return nil, errors.New("invalid home directory provided in input data")

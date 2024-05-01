@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -9,6 +10,35 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+// MockOS is a mock implementation of the OS interface
+type MockOS struct {
+	mock.Mock
+}
+
+// UserHomeDir is a mocked method for getting the user's home directory
+func (m *MockOS) UserHomeDir() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
+// TestGetDefaultDatabasePath_Success tests the successful construction of the default database path.
+func TestGetDefaultDatabasePath_Success(t *testing.T) {
+	// Create a temporary directory for testing
+	homeDir, err := os.UserHomeDir()
+	assert.NoError(t, err)
+
+	// Expected database path
+	expectedPath := filepath.Join(homeDir,
+		database.NovaHomeDirNm, "databases", "testArtifact.db")
+
+	// Call the function
+	path, err := database.GetDefaultDatabasePath("testArtifact")
+
+	// Assertions
+	assert.NoError(t, err, "No error should occur during path construction")
+	assert.Equal(t, expectedPath, path, "Constructed path should match expected path")
+}
 
 // TestCreateBackendLevelDB_Success tests the successful initialization of a LevelDB instance.
 func TestCreateBackendLevelDB_Success(t *testing.T) {

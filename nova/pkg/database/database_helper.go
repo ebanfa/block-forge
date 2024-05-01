@@ -1,6 +1,9 @@
 package database
 
 import (
+	"errors"
+	"os"
+	"path/filepath"
 	"sync"
 
 	cosLogApi "cosmossdk.io/log"
@@ -13,7 +16,26 @@ var (
 	metaDBOnce sync.Once
 )
 
+var NovaHomeDirNm = ".nova"
+var MetadataDatabaseID = "MetadataDatabase"
 var BackendTypeGoLevelDB = "goleveldb"
+
+// GetDatabasePath returns the database path based on the user's home directory and project ID.
+func GetDefaultDatabasePath(artifactID string) (string, error) {
+	if artifactID == "" {
+		return "", errors.New("artifactID cannot be empty")
+	}
+	// Get the home directory of the current user
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Define the database path within the .nova directory
+	dbPath := filepath.Join(homeDir, NovaHomeDirNm, "databases", artifactID+".db")
+
+	return dbPath, nil
+}
 
 // InitializeLevelDB initializes and returns a LevelDB instance
 func CreateBackendLevelDB(name, path string) (dbm.DB, error) {
