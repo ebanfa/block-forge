@@ -84,3 +84,16 @@ func GetMetadataDBInstance(name, path string) (*MetadataDatabase, error) {
 
 	return metaDB, nil
 }
+
+// GetProjectDatabaseInstance creates an new instance of ProjectDatabase.
+// The database will only be created if it does not already exist
+func GetProjectDatabaseInstance(name, path string) (*ProjectDatabase, error) {
+	// Initialize the database
+	db, err := CreateIAVLDatabase(name, path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create the project database instance
+	return NewProjectDatabase(db), nil
+}
