@@ -41,8 +41,9 @@ var createCmd = &cobra.Command{
 		// Create SystemOperationInput with project ID and home directory
 		inputData := &system.SystemOperationInput{
 			Data: map[string]interface{}{
-				"projectID": utils.HashSHA256(projectName),
-				"homeDir":   homeDir, // Pass the home directory here
+				"projectID":   utils.HashSHA256(projectName),
+				"homeDir":     homeDir, // Pass the home directory here
+				"projectName": projectName,
 			},
 		}
 
