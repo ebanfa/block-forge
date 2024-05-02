@@ -34,6 +34,9 @@ type Database interface {
 	// Load loads the latest versioned tree from disk.
 	Load() (int64, error)
 
+	// LoadVersion loads a specific version of the tree from disk.
+	LoadVersion(targetVersion int64) (int64, error)
+
 	// SaveVersion saves a new tree version to disk.
 	SaveVersion() ([]byte, int64, error)
 
@@ -46,4 +49,16 @@ type Database interface {
 
 	// String returns a string representation of the tree.
 	String() (string, error)
+
+	// WorkingVersion returns the current working version of the tree.
+	WorkingVersion() int64
+
+	// WorkingHash returns the root hash of the current working tree.
+	WorkingHash() []byte
+
+	// AvailableVersions returns a list of available versions.
+	AvailableVersions() []int64
+
+	// IsEmpty checks if the database is empty.
+	IsEmpty() bool
 }
