@@ -22,6 +22,30 @@ type ProjectDatabaseInterface interface {
 
 	// Delete deletes the project entry for the given ID from the project database
 	Delete(projectID string) error
+
+	// SaveVersion saves a new tree version to disk.
+	SaveVersion() ([]byte, int64, error)
+
+	// Load loads the latest versioned tree from disk.
+	Load() (int64, error)
+
+	// LoadVersion loads a specific version of the tree from disk.
+	LoadVersion(targetVersion int64) (int64, error)
+
+	// String returns a string representation of the tree.
+	String() (string, error)
+
+	// WorkingVersion returns the current working version of the tree.
+	WorkingVersion() int64
+
+	// WorkingHash returns the root hash of the current working tree.
+	WorkingHash() []byte
+
+	// AvailableVersions returns a list of available versions.
+	AvailableVersions() []int
+
+	// IsEmpty checks if the database is empty.
+	IsEmpty() bool
 }
 
 // ProjectDatabase represents the project database stored using the Database interface
@@ -101,4 +125,44 @@ func (pd *ProjectDatabase) Update(project *config.Project) error {
 func (pd *ProjectDatabase) Delete(projectID string) error {
 	// Delete from the database
 	return pd.db.Delete([]byte(projectID))
+}
+
+// SaveVersion saves a new tree version to disk.
+func (pd *ProjectDatabase) SaveVersion() ([]byte, int64, error) {
+	return pd.db.SaveVersion()
+}
+
+// Load loads the latest versioned tree from disk.
+func (pd *ProjectDatabase) Load() (int64, error) {
+	return pd.db.Load()
+}
+
+// LoadVersion loads a specific version of the tree from disk.
+func (pd *ProjectDatabase) LoadVersion(targetVersion int64) (int64, error) {
+	return pd.db.LoadVersion(targetVersion)
+}
+
+// String returns a string representation of the tree.
+func (pd *ProjectDatabase) String() (string, error) {
+	return pd.db.String()
+}
+
+// WorkingVersion returns the current working version of the tree.
+func (pd *ProjectDatabase) WorkingVersion() int64 {
+	return pd.db.WorkingVersion()
+}
+
+// WorkingHash returns the root hash of the current working tree.
+func (pd *ProjectDatabase) WorkingHash() []byte {
+	return pd.db.WorkingHash()
+}
+
+// AvailableVersions returns a list of available versions.
+func (pd *ProjectDatabase) AvailableVersions() []int {
+	return pd.db.AvailableVersions()
+}
+
+// IsEmpty checks if the database is empty.
+func (pd *ProjectDatabase) IsEmpty() bool {
+	return pd.db.IsEmpty()
 }
