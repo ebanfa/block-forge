@@ -118,7 +118,7 @@ func insertMetadataEntry(projectID, projectDbPath string) error {
 	}
 
 	// Get an instance of the MetadataDatabase
-	metaDB, err := database.GetMetadataDBInstance(projectID, dbPath)
+	metaDB, err := database.GetMetadataDBInstance(database.MetadataDatabaseID, dbPath)
 	if err != nil {
 		return err
 	}
