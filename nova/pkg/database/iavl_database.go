@@ -106,6 +106,14 @@ func (db *IAVLDatabase) Load() (int64, error) {
 	return db.tree.Load()
 }
 
+// LoadVersion loads a specific version of the tree from disk.
+func (db *IAVLDatabase) LoadVersion(targetVersion int64) (int64, error) {
+	db.mtx.Lock()
+	defer db.mtx.Unlock()
+	// Load the specified version of the tree from disk
+	return db.tree.LoadVersion(targetVersion)
+}
+
 // SaveVersion saves a new tree version to disk.
 func (db *IAVLDatabase) SaveVersion() ([]byte, int64, error) {
 	db.mtx.Lock()
@@ -138,4 +146,36 @@ func (db *IAVLDatabase) String() (string, error) {
 	defer db.mtx.RUnlock()
 	// Get a string representation of the tree
 	return db.tree.String()
+}
+
+// WorkingVersion returns the current working version of the tree.
+func (db *IAVLDatabase) WorkingVersion() int64 {
+	db.mtx.RLock()
+	defer db.mtx.RUnlock()
+	// Get the current working version of the tree
+	return db.tree.WorkingVersion()
+}
+
+// WorkingHash returns the root hash of the current working tree.
+func (db *IAVLDatabase) WorkingHash() []byte {
+	db.mtx.RLock()
+	defer db.mtx.RUnlock()
+	// Get the root hash of the current working tree
+	return db.tree.WorkingHash()
+}
+
+// AvailableVersions returns a list of available versions.
+func (db *IAVLDatabase) AvailableVersions() []int {
+	db.mtx.RLock()
+	defer db.mtx.RUnlock()
+	// Get a list of available versions
+	return db.tree.AvailableVersions()
+}
+
+// IsEmpty checks if the database is empty.
+func (db *IAVLDatabase) IsEmpty() bool {
+	db.mtx.RLock()
+	defer db.mtx.RUnlock()
+	// Check if the database is empty
+	return db.tree.IsEmpty()
 }

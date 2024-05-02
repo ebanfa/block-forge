@@ -57,7 +57,7 @@ type Database interface {
 	WorkingHash() []byte
 
 	// AvailableVersions returns a list of available versions.
-	AvailableVersions() []int64
+	AvailableVersions() []int
 
 	// IsEmpty checks if the database is empty.
 	IsEmpty() bool

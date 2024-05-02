@@ -85,3 +85,21 @@ func (m *MockMutableTree) String() (string, error) {
 	args := m.Called()
 	return args.String(0), args.Error(1)
 }
+
+// WorkingHash provides a mock function to get the working hash of the tree.
+func (m *MockMutableTree) WorkingHash() []byte {
+	args := m.Called()
+	return args.Get(0).([]byte)
+}
+
+// AvailableVersions provides a mock function to get the available versions of the tree.
+func (m *MockMutableTree) AvailableVersions() []int64 {
+	args := m.Called()
+	return args.Get(0).([]int64)
+}
+
+// IsEmpty provides a mock function to check if the tree is empty.
+func (m *MockMutableTree) IsEmpty() bool {
+	args := m.Called()
+	return args.Bool(0)
+}

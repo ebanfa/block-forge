@@ -208,3 +208,56 @@ func TestIAVLDatabase_String(t *testing.T) {
 	assert.NoError(t, err, "Getting string representation should not return an error")
 	assert.NotEmpty(t, str, "String representation should not be empty")
 }
+
+// TestIAVLDatabase_WorkingVersion tests the behavior of WorkingVersion method when retrieving the current working version of the tree.
+func TestIAVLDatabase_WorkingVersion(t *testing.T) {
+	// Arrange
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
+
+	// Act
+	workingVersion := mockDB.WorkingVersion()
+
+	// Assert
+	assert.Equal(t, int64(1), workingVersion, "Initial working version should be 1")
+}
+
+// TestIAVLDatabase_WorkingHash tests the behavior of WorkingHash method when retrieving the root hash of the current working tree.
+func TestIAVLDatabase_WorkingHash(t *testing.T) {
+	// Arrange
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
+
+	// Act
+	workingHash := mockDB.WorkingHash()
+
+	// Assert
+	assert.NotNil(t, workingHash, "Working hash should not be nil")
+}
+
+// TestIAVLDatabase_AvailableVersions tests the behavior of AvailableVersions method when retrieving a list of available versions.
+func TestIAVLDatabase_AvailableVersions(t *testing.T) {
+	// Arrange
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
+	_, _, _ = mockDB.SaveVersion() // Save a version to make it available
+
+	// Act
+	versions := mockDB.AvailableVersions()
+
+	// Assert
+	assert.NotEmpty(t, versions, "Available versions should not be empty")
+}
+
+// TestIAVLDatabase_IsEmpty tests the behavior of IsEmpty method when checking if the database is empty.
+func TestIAVLDatabase_IsEmpty(t *testing.T) {
+	// Arrange
+	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
+	mockDB := database.NewIAVLDatabase(iavlTree)
+
+	// Act
+	empty := mockDB.IsEmpty()
+
+	// Assert
+	assert.True(t, empty, "The database should be empty initially")
+}

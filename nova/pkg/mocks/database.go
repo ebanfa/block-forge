@@ -85,3 +85,33 @@ func (m *MockDatabase) String() (string, error) {
 	args := m.Called()
 	return args.String(0), args.Error(1)
 }
+
+// WorkingVersion mocks the WorkingVersion method of Database.
+func (m *MockDatabase) WorkingVersion() int64 {
+	args := m.Called()
+	return args.Get(0).(int64)
+}
+
+// LoadVersion mocks the LoadVersion method of Database.
+func (m *MockDatabase) LoadVersion(targetVersion int64) (int64, error) {
+	args := m.Called(targetVersion)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+// WorkingHash mocks the WorkingHash method of Database.
+func (m *MockDatabase) WorkingHash() []byte {
+	args := m.Called()
+	return args.Get(0).([]byte)
+}
+
+// AvailableVersions mocks the AvailableVersions method of Database.
+func (m *MockDatabase) AvailableVersions() []int {
+	args := m.Called()
+	return args.Get(0).([]int)
+}
+
+// IsEmpty mocks the IsEmpty method of Database.
+func (m *MockDatabase) IsEmpty() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
