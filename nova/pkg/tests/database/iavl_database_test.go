@@ -157,13 +157,33 @@ func TestIAVLDatabase_SaveVersion(t *testing.T) {
 	iavlTree := iavl.NewMutableTree(db.NewMemDB(), 100, false, log.NewNopLogger())
 	mockDB := database.NewIAVLDatabase(iavlTree)
 
-	// Act
-	hash, version, err := mockDB.SaveVersion()
+	// Act: Set initial data
+	_ = mockDB.Set([]byte("key1"), []byte("value1"))
+	_ = mockDB.Set([]byte("key2"), []byte("value2"))
 
-	// Assert
-	assert.NoError(t, err, "Saving version should not return an error")
-	assert.NotNil(t, hash, "Hash should not be nil")
-	assert.Equal(t, int64(1), version, "Version should match expected value")
+	// Act: Save initial version
+	hash1, version1, err1 := mockDB.SaveVersion()
+	assert.NoError(t, err1, "Saving version should not return an error")
+
+	// Assert: Check initial version
+	assert.NotNil(t, hash1, "Hash of initial version should not be nil")
+	assert.Equal(t, int64(1), version1, "Initial version should be 1")
+
+	// Act: Make additional changes but don't save
+	_ = mockDB.Set([]byte("key3"), []byte("value3"))
+
+	// Act: Rollback to previous version
+	mockDB.Rollback()
+
+	// Act: Retrieve data after rollback
+	value1, _ := mockDB.Get([]byte("key1"))
+	value2, _ := mockDB.Get([]byte("key2"))
+	value3, _ := mockDB.Get([]byte("key3"))
+
+	// Assert: Check if changes are reverted after rollback
+	assert.NotNil(t, value1, "Value for key1 should exist after rollback")
+	assert.NotNil(t, value2, "Value for key2 should exist after rollback")
+	assert.Nil(t, value3, "Value for key3 should not exist after rollback")
 }
 
 // TestIAVLDatabase_Rollback tests the behavior of Rollback method when resetting the working tree to the latest saved version.
