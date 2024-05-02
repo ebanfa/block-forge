@@ -274,3 +274,158 @@ func mockJSON(obj interface{}) []byte {
 	data, _ := json.Marshal(obj)
 	return data
 }
+
+// TestMetadataDatabase_WorkingVersion_Success tests the WorkingVersion method of MetadataDatabase for success.
+func TestMetadataDatabase_WorkingVersion_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedVersion := int64(123)
+
+	// Mock behavior
+	db.On("WorkingVersion").Return(expectedVersion)
+
+	// Act
+	version := metaDB.WorkingVersion()
+
+	// Assert
+	assert.Equal(t, expectedVersion, version, "WorkingVersion should return the expected version")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_SaveVersion_Success tests the SaveVersion method of MetadataDatabase for success.
+func TestMetadataDatabase_SaveVersion_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedHash := []byte{0x12, 0x34, 0x56}
+	expectedVersion := int64(123)
+	expectedError := error(nil)
+
+	// Mock behavior
+	db.On("SaveVersion").Return(expectedHash, expectedVersion, expectedError)
+
+	// Act
+	hash, version, err := metaDB.SaveVersion()
+
+	// Assert
+	assert.NoError(t, err, "SaveVersion should not return an error")
+	assert.Equal(t, expectedHash, hash, "Returned hash should match expected hash")
+	assert.Equal(t, expectedVersion, version, "Returned version should match expected version")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_Load_Success tests the Load method of MetadataDatabase for success.
+func TestMetadataDatabase_Load_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedVersion := int64(123)
+	expectedError := error(nil)
+
+	// Mock behavior
+	db.On("Load").Return(expectedVersion, expectedError)
+
+	// Act
+	version, err := metaDB.Load()
+
+	// Assert
+	assert.NoError(t, err, "Load should not return an error")
+	assert.Equal(t, expectedVersion, version, "Returned version should match expected version")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_LoadVersion_Success tests the LoadVersion method of MetadataDatabase for success.
+func TestMetadataDatabase_LoadVersion_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	targetVersion := int64(123)
+	expectedVersion := int64(456)
+	expectedError := error(nil)
+
+	// Mock behavior
+	db.On("LoadVersion", targetVersion).Return(expectedVersion, expectedError)
+
+	// Act
+	version, err := metaDB.LoadVersion(targetVersion)
+
+	// Assert
+	assert.NoError(t, err, "LoadVersion should not return an error")
+	assert.Equal(t, expectedVersion, version, "Returned version should match expected version")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_String_Success tests the String method of MetadataDatabase for success.
+func TestMetadataDatabase_String_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedString := "metadata_database_string"
+	expectedError := error(nil)
+
+	// Mock behavior
+	db.On("String").Return(expectedString, expectedError)
+
+	// Act
+	str, err := metaDB.String()
+
+	// Assert
+	assert.NoError(t, err, "String should not return an error")
+	assert.Equal(t, expectedString, str, "Returned string should match expected string")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_WorkingHash_Success tests the WorkingHash method of MetadataDatabase for success.
+func TestMetadataDatabase_WorkingHash_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedHash := []byte{0x12, 0x34, 0x56}
+
+	// Mock behavior
+	db.On("WorkingHash").Return(expectedHash)
+
+	// Act
+	hash := metaDB.WorkingHash()
+
+	// Assert
+	assert.Equal(t, expectedHash, hash, "WorkingHash should return the expected hash")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_AvailableVersions_Success tests the AvailableVersions method of MetadataDatabase for success.
+func TestMetadataDatabase_AvailableVersions_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedVersions := []int{1, 2, 3}
+
+	// Mock behavior
+	db.On("AvailableVersions").Return(expectedVersions)
+
+	// Act
+	versions := metaDB.AvailableVersions()
+
+	// Assert
+	assert.Equal(t, expectedVersions, versions, "AvailableVersions should return the expected versions")
+	db.AssertExpectations(t)
+}
+
+// TestMetadataDatabase_IsEmpty_Success tests the IsEmpty method of MetadataDatabase for success.
+func TestMetadataDatabase_IsEmpty_Success(t *testing.T) {
+	// Arrange
+	db := &mocks.MockDatabase{} // Replace mockDatabase with your actual database mock
+	metaDB := database.NewMetadataDatabase(db)
+	expectedResult := true
+
+	// Mock behavior
+	db.On("IsEmpty").Return(expectedResult)
+
+	// Act
+	isEmpty := metaDB.IsEmpty()
+
+	// Assert
+	assert.Equal(t, expectedResult, isEmpty, "IsEmpty should return the expected result")
+	db.AssertExpectations(t)
+}
