@@ -12,8 +12,8 @@ type ReadOnlyDatabase interface {
 	// Iteration stops if the function returns true.
 	Iterate(fn func(key, value []byte) bool) error
 
-	// IterateRange iterates over key-value pairs with keys in the range [start, end) and calls the given function for each pair.
-	// Iteration stops if the function returns true.
+	// IterateRange iterates over key-value pairs with keys in the specified range
+	// and calls the given function for each pair. Iteration stops if the function returns true.
 	IterateRange(start, end []byte, ascending bool, fn func(key, value []byte) bool) error
 
 	// Hash returns the hash of the database.
@@ -49,13 +49,13 @@ type MutableDatabase interface {
 
 // VersionedDatabase provides methods for managing versions of the database.
 type VersionedDatabase interface {
-	// Load loads the latest version of the database.
+	// Load loads the latest versioned database from disk.
 	Load() (int64, error)
 
-	// LoadVersion loads a specific version of the database.
+	// LoadVersion loads a specific version of the database from disk.
 	LoadVersion(targetVersion int64) (int64, error)
 
-	// SaveVersion saves a new version of the database.
+	// SaveVersion saves a new version of the database to disk.
 	SaveVersion() ([]byte, int64, error)
 
 	// Rollback resets the working database to the latest saved version, discarding any unsaved modifications.

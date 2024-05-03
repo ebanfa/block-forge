@@ -179,16 +179,18 @@ func TestStopService_ServiceInterfaceError(t *testing.T) {
 func TestRegisterComponent_Success(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
+	mockLogger := &mocks.MockLogger{}
 	mockSystem := &mocks.MockSystem{}
 	mockComponent := &mocks.MockComponent{}
-	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockFactory := &mocks.MockComponentFactory{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockConfig := &config.ComponentConfig{
 		ID:        "TestComponent",
 		FactoryID: "TestFactory",
 	}
 
 	// Mock behavior
+	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistry)
 	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(nil)
 	mockRegistry.On("CreateComponent", ctx, mockConfig).Return(mockComponent, nil)
@@ -204,15 +206,17 @@ func TestRegisterComponent_Success(t *testing.T) {
 func TestRegisterComponent_Error_RegisterFactory(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
+	mockLogger := &mocks.MockLogger{}
 	mockSystem := &mocks.MockSystem{}
-	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockFactory := &mocks.MockComponentFactory{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockConfig := &config.ComponentConfig{
 		ID:        "TestComponent",
 		FactoryID: "TestFactory",
 	}
 
 	// Mock behavior - RegisterFactory returns an error
+	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistry)
 	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(errors.New("error registering factory"))
 
@@ -228,16 +232,18 @@ func TestRegisterComponent_Error_RegisterFactory(t *testing.T) {
 func TestRegisterComponent_Error_CreateComponent(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
+	mockLogger := &mocks.MockLogger{}
 	mockSystem := &mocks.MockSystem{}
 	mockComponent := &mocks.MockComponent{}
-	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockFactory := &mocks.MockComponentFactory{}
+	mockRegistry := &mocks.MockComponentRegistrar{}
 	mockConfig := &config.ComponentConfig{
 		ID:        "TestComponent",
 		FactoryID: "TestFactory",
 	}
 
 	// Mock behavior - CreateComponent returns an error
+	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistry)
 	mockRegistry.On("RegisterFactory", ctx, mockConfig.FactoryID, mockFactory).Return(nil)
 	mockRegistry.On("CreateComponent", ctx, mockConfig).Return(mockComponent, errors.New("error creating component"))

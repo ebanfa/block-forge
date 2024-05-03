@@ -9,6 +9,7 @@ import (
 	cosLogApi "cosmossdk.io/log"
 	"github.com/cosmos/iavl"
 	dbm "github.com/cosmos/iavl/db"
+	"github.com/edward1christian/block-forge/pkg/application/db"
 )
 
 var (
@@ -47,7 +48,7 @@ func CreateBackendLevelDB(name, path string) (dbm.DB, error) {
 }
 
 // CreateIAVLDatabase initializes the IAVLDB instance and returns it
-func CreateIAVLDatabase(name, path string) (*IAVLDatabase, error) {
+func CreateIAVLDatabase(name, path string) (*db.IAVLDatabase, error) {
 	// Initialize the LevelDB instance
 	ldb, err := CreateBackendLevelDB(name, path)
 	if err != nil {
@@ -56,7 +57,7 @@ func CreateIAVLDatabase(name, path string) (*IAVLDatabase, error) {
 
 	// Initialize the IAVLDB instance
 	iavlTree := iavl.NewMutableTree(ldb, 100, false, cosLogApi.NewNopLogger())
-	iavlDB := NewIAVLDatabase(iavlTree)
+	iavlDB := db.NewIAVLDatabase(iavlTree)
 
 	return iavlDB, nil
 }

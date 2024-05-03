@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/iavl"
 	"github.com/cosmos/iavl/db"
-	"github.com/edward1christian/block-forge/nova/pkg/database"
+	database "github.com/edward1christian/block-forge/pkg/application/db"
 	"github.com/stretchr/testify/assert"
 )
 
