@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/edward1christian/block-forge/nova/pkg/database"
+	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
@@ -15,13 +15,13 @@ type ListConfigurationsOpFactory struct {
 // CreateComponent creates a new instance of ListConfigurationsOp.
 func (bf *ListConfigurationsOpFactory) CreateComponent(config *configApi.ComponentConfig) (component.ComponentInterface, error) {
 	// Get the MetadataDatabase DB path
-	metaDBPath, err := database.GetDefaultDatabasePath(database.MetadataDatabaseID)
+	metaDBPath, err := store.GetDefaultDatabasePath(store.MetadataDatabaseID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the MetadataDatabase instance
-	metaDB, err := database.GetMetadataDBInstance(config.Name, metaDBPath)
+	metaDB, err := store.GetMetadataStoreInstance(config.Name, metaDBPath)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (bf *ListConfigurationsOpFactory) CreateComponent(config *configApi.Compone
 // ListConfigurationsOp represents a concrete implementation of the SystemOperationInterface.
 type ListConfigurationsOp struct {
 	system.BaseSystemOperation
-	metadataDB database.MetadataDatabaseInterface
+	metadataDB store.MetadataStore
 }
 
 // Type returns the type of the component.
@@ -41,7 +41,7 @@ func (bo *ListConfigurationsOp) Type() component.ComponentType {
 	return component.OperationType
 }
 
-func NewListConfigurationsOp(id, name, description string, metadataDB database.MetadataDatabaseInterface) *ListConfigurationsOp {
+func NewListConfigurationsOp(id, name, description string, metadataDB store.MetadataStore) *ListConfigurationsOp {
 	return &ListConfigurationsOp{
 		BaseSystemOperation: system.BaseSystemOperation{
 			BaseSystemComponent: system.BaseSystemComponent{
@@ -62,7 +62,7 @@ func NewListConfigurationsOp(id, name, description string, metadataDB database.M
 func (bo *ListConfigurationsOp) Execute(ctx *context.Context,
 	input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Retrieve all metadata entries from the database
-	entries, err := bo.metadataDB.GetAll()
+	entries, err := bo.metadataDB.GetAllMetadata()
 	if err != nil {
 		return nil, err
 	}

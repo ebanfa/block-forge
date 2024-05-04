@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/edward1christian/block-forge/nova/pkg/components/operations/commands"
-	"github.com/edward1christian/block-forge/nova/pkg/database"
 	"github.com/edward1christian/block-forge/nova/pkg/mocks"
+	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 
@@ -16,15 +16,15 @@ import (
 // TestListConfigurationsOp_Execute_Success tests the Execute method of ListConfigurationsOp for success.
 func TestListConfigurationsOp_Execute_Success(t *testing.T) {
 	// Arrange
-	mockMetadataDB := &mocks.MockMetadataDatabase{}
+	mockMetadataDB := &mocks.MockMetadataStore{}
 
-	mockEntries := []*database.MetadataEntry{
+	mockEntries := []*store.MetadataEntry{
 		{ProjectID: "project1"},
 		{ProjectID: "project2"},
 	}
 
 	// Mock behavior
-	mockMetadataDB.On("GetAll").Return(mockEntries, nil)
+	mockMetadataDB.On("GetAllMetadata").Return(mockEntries, nil)
 
 	op := commands.NewListConfigurationsOp("id", "name", "description", mockMetadataDB)
 
@@ -40,11 +40,11 @@ func TestListConfigurationsOp_Execute_Success(t *testing.T) {
 // TestListConfigurationsOp_Execute_Error tests the Execute method of ListConfigurationsOp for error.
 func TestListConfigurationsOp_Execute_Error(t *testing.T) {
 	// Arrange
-	mockMetadataDB := &mocks.MockMetadataDatabase{}
+	mockMetadataDB := &mocks.MockMetadataStore{}
 	expectedErr := errors.New("database error")
 
 	// Mock behavior
-	mockMetadataDB.On("GetAll").Return([]*database.MetadataEntry{}, expectedErr)
+	mockMetadataDB.On("GetAllMetadata").Return([]*store.MetadataEntry{}, expectedErr)
 
 	op := commands.NewListConfigurationsOp("id", "name", "description", mockMetadataDB)
 

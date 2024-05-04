@@ -2,10 +2,8 @@ package commands
 
 import (
 	"errors"
-	"time"
 
-	"github.com/edward1christian/block-forge/nova/pkg/config"
-	"github.com/edward1christian/block-forge/nova/pkg/database"
+	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
@@ -50,28 +48,13 @@ func NewCreateConfigurationOp(id, name, description string) *CreateConfiguration
 // and returns any output or error encountered.
 func (bo *CreateConfigurationOp) Execute(ctx *context.Context, input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Extract project information from input data
-	projectID, projectName, err := extractProjectInfo(input)
+	projectID, _, err := extractProjectInfo(input)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the project-specific database path
-	projectDbPath, err := database.GetDefaultDatabasePath(projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create project-specific database
-	projectDb, err := database.GetProjectDatabaseInstance(projectID, projectDbPath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Insert project into the database
-	err = projectDb.Insert(&config.Project{
-		ID:   projectID,
-		Name: projectName,
-	})
+	projectDbPath, err := store.GetDefaultDatabasePath(projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,26 +95,24 @@ func extractProjectInfo(input *system.SystemOperationInput) (string, string, err
 // insertMetadataEntry inserts a metadata entry into the MetadataDatabase for the specified project.
 func insertMetadataEntry(projectID, projectDbPath string) error {
 	// Get the default database path for the metadata database
-	dbPath, err := database.GetDefaultDatabasePath(database.MetadataDatabaseID)
+	dbPath, err := store.GetDefaultDatabasePath(store.MetadataDatabaseID)
 	if err != nil {
 		return err
 	}
 
 	// Get an instance of the MetadataDatabase
-	metaDB, err := database.GetMetadataDBInstance(database.MetadataDatabaseID, dbPath)
+	metaDB, err := store.GetMetadataStoreInstance(store.MetadataDatabaseID, dbPath)
 	if err != nil {
 		return err
 	}
 
 	// Create a new metadata entry
-	entry := &database.MetadataEntry{
+	entry := &store.MetadataEntry{
 		ProjectID:    projectID,
 		DatabaseName: "default",
 		DatabasePath: projectDbPath,
-		CreationDate: time.Now(),
-		LastUpdated:  time.Now(),
 	}
 
 	// Insert the metadata entry into the database
-	return metaDB.Insert(entry)
+	return metaDB.InsertMetadata(entry)
 }
