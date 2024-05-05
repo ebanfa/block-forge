@@ -17,23 +17,22 @@ import (
 	"go.uber.org/fx"
 )
 
-// InitOptions contains options for initializing the system.
-type InitOptions struct {
-	Debug          bool
-	Verbose        bool
-	ConfigFilePath string
-}
+const (
+	DaemonMode  = "daemon"  // Indicates the system should run continuously as a daemon.
+	CommandMode = "command" // Indicates the system should execute a single command and exit.
+)
 
-// CommandOptions contains options for executing a command.
-type CommandOptions struct {
-	Debug   bool
-	Verbose bool
-	Command string
-	Data    *systemApi.SystemOperationInput
+// InitOptions represents system initialization options.
+type InitOptions struct {
+	Debug    bool                            // Debug mode flag
+	Verbose  bool                            // Verbose mode flag
+	Command  string                          // Command to execute during initialization
+	InitMode string                          // InitMode specifies the operational mode of the system, determining whether it runs continuously as a daemon or executes a single command and exits.
+	Data     *systemApi.SystemOperationInput // Data for system initialization
 }
 
 // Init initializes the Fx application with the provided options.
-func Init(options *CommandOptions) {
+func Init(options *InitOptions) {
 	// Create an Fx application.
 	app := fx.New(
 		fx.NopLogger,
@@ -51,22 +50,15 @@ func Init(options *CommandOptions) {
 }
 
 // ProvideConfiguration provides a function to load and provide the application configuration.
-func ProvideConfiguration(options *CommandOptions) func() (*config.Configuration, error) {
+func ProvideConfiguration(options *InitOptions) func() (*config.Configuration, error) {
 	return func() (*config.Configuration, error) {
 		var appConfig interface{}
-		// Load custom configuration if provided.
-		/* if options.ConfigFilePath != "" {
-			if err := config.LoadConfigurationFromFile(options.ConfigFilePath, &appConfig); err != nil {
-				return nil, fmt.Errorf("failed to load custom configuration: %v", err)
-			}
-		} */
 
 		configuration := &config.Configuration{
 			Debug:        options.Debug,
 			Verbose:      options.Verbose,
 			CustomConfig: appConfig,
 		}
-
 		return configuration, nil
 	}
 }
@@ -76,15 +68,17 @@ func ProvideEventBus() event.EventBusInterface {
 	return event.NewSystemEventBus()
 }
 
-// ProvideLogger provides a logger interface.
-func ProvideLogger(options *CommandOptions) func() logger.LoggerInterface {
+// ProvideLogger provides a logger interface based on the initialization options.
+func ProvideLogger(options *InitOptions) func() logger.LoggerInterface {
+	// Return a function that creates a logger interface based on the provided options.
 	return func() logger.LoggerInterface {
-		var level logger.Level
+		// Determine the log level based on the debug option.
+		level := logger.LevelInfo
 		if options.Debug {
 			level = logger.LevelDebug
-		} else {
-			level = logger.LevelInfo
 		}
+
+		// Create a new logger with the determined log level.
 		return logger.NewLogrusLogger(level)
 	}
 }
@@ -100,8 +94,9 @@ func ProvidPluginManager() systemApi.PluginManagerInterface {
 }
 
 // ProvideSystem provides a function to configure and provide a system instance.
-func ProvideSystem(options *CommandOptions) func(
+func ProvideSystem(options *InitOptions) func(
 	lc fx.Lifecycle,
+	shutdowner fx.Shutdowner,
 	logger logger.LoggerInterface,
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
@@ -109,6 +104,7 @@ func ProvideSystem(options *CommandOptions) func(
 	registrar component.ComponentRegistrarInterface) systemApi.SystemInterface {
 	return func(
 		lc fx.Lifecycle,
+		shutdowner fx.Shutdowner,
 		logger logger.LoggerInterface,
 		eventBus event.EventBusInterface,
 		configuration *config.Configuration,
@@ -120,7 +116,7 @@ func ProvideSystem(options *CommandOptions) func(
 
 		// Add lifecycle hooks to start and stop the system.
 		lc.Append(fx.Hook{
-			OnStart: OnStart(options, system),
+			OnStart: OnStart(options, system, shutdowner),
 			OnStop:  OnStop(options, system),
 		})
 
@@ -129,7 +125,7 @@ func ProvideSystem(options *CommandOptions) func(
 }
 
 // OnStart returns a function to initialize the system and execute a command on system start.
-func OnStart(options *CommandOptions, system systemApi.SystemInterface) func(ctx context.Context) error {
+func OnStart(options *InitOptions, system systemApi.SystemInterface, shutdowner fx.Shutdowner) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
 
@@ -139,13 +135,15 @@ func OnStart(options *CommandOptions, system systemApi.SystemInterface) func(ctx
 		}
 
 		// Execute the command.
-		return ExecuteCommand(contx, options, system)
-		//return nil
+		ExecuteCommand(contx, options, system)
+
+		// If the system is not running in daemon mode, perform shutdown.
+		return ShutdownIfNotDaemon(options, shutdowner)
 	}
 }
 
 // OnStop returns a function to stop the system on system shutdown.
-func OnStop(options *CommandOptions, system systemApi.SystemInterface) func(ctx context.Context) error {
+func OnStop(options *InitOptions, system systemApi.SystemInterface) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		contx := contextApi.WithContext(ctx)
 		return system.Stop(contx)
@@ -178,7 +176,7 @@ func InitializeSystem(ctx *contextApi.Context, system systemApi.SystemInterface)
 	}
 
 	// Define the command options
-	options := &CommandOptions{
+	options := &InitOptions{
 		Command: "InitDirectoriesOperation",
 		Data:    input,
 	}
@@ -201,10 +199,23 @@ func AddPlugin(ctx *contextApi.Context, system systemApi.SystemInterface, p syst
 }
 
 // ExecuteCommand executes a command on the provided system using the provided context.
-func ExecuteCommand(ctx *contextApi.Context, options *CommandOptions, system systemApi.SystemInterface) error {
+func ExecuteCommand(ctx *contextApi.Context, options *InitOptions, system systemApi.SystemInterface) error {
 	// Execute the operation using the provided system interface.
 	if _, err := system.ExecuteOperation(ctx, options.Command, options.Data); err != nil {
 		return fmt.Errorf("failed to execute operation: %w", err)
 	}
+	return nil
+}
+
+// ShutdownIfNotDaemon shuts down the system if it's not running in daemon mode.
+// If the system is not running as a daemon, it invokes the shutdowner.Shutdown() function to gracefully shut down the system.
+// If the system is running as a daemon, it returns nil indicating no action is needed.
+func ShutdownIfNotDaemon(options *InitOptions, shutdowner fx.Shutdowner) error {
+	// Check if the system is running as a daemon
+	if options.InitMode != DaemonMode {
+		// If not running as a daemon, perform shutdown
+		return shutdowner.Shutdown()
+	}
+	// If running as a daemon, return nil indicating no action is needed
 	return nil
 }

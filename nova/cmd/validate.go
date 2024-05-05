@@ -15,7 +15,7 @@ var validateCmd = &cobra.Command{
 	Short: "Validate the current configuration",
 	Long:  `Validate the current configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.ValidateConfigOp,
 		})

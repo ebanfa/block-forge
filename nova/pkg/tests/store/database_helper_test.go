@@ -31,7 +31,7 @@ func TestGetDefaultDatabasePath_Success(t *testing.T) {
 
 	// Expected database path
 	expectedPath := filepath.Join(homeDir,
-		store.NovaHomeDirNm, "databases", "testArtifact.db")
+		store.NovaHomeDirName, "databases", "testArtifact.db")
 
 	// Call the function
 	path, err := store.GetDefaultDatabasePath("testArtifact")

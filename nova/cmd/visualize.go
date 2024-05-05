@@ -15,7 +15,7 @@ var visualizeCmd = &cobra.Command{
 	Short: "Visualize the configuration tree and dependency graph",
 	Long:  `Visualize the configuration tree and dependency graph`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.VisualizeConfigOp,
 		})

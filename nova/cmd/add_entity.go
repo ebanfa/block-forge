@@ -15,7 +15,7 @@ var entityCmd = &cobra.Command{
 	Short: "Add a new entity to the configuration",
 	Long:  `Add a new entity to the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.RemoveEntityOp,
 		})

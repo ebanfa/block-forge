@@ -15,7 +15,7 @@ var messageCmd = &cobra.Command{
 	Short: "Add a new message to the configuration",
 	Long:  `Add a new message to the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.AddMessageOp,
 		})

@@ -47,14 +47,15 @@ var createCmd = &cobra.Command{
 			},
 		}
 
-		// Populate CommandOptions with arguments and input data
-		commandOptions := provider.CommandOptions{
-			Debug:   debug,
-			Data:    inputData,
-			Command: plugin.CreateConfigurationOp,
+		// Populate InitOptions with arguments and input data
+		commandOptions := provider.InitOptions{
+			Debug:    debug,
+			Data:     inputData,
+			Command:  plugin.CreateConfigurationOp,
+			InitMode: provider.CommandMode,
 		}
 
-		// Pass CommandOptions to your main application API
+		// Pass InitOptions to your main application API
 		provider.Init(&commandOptions)
 	},
 }

@@ -15,7 +15,7 @@ var generateCmd = &cobra.Command{
 	Short: "Generate code and artifacts for the blockchain application based on the defined configuration",
 	Long:  `Generate code and artifacts for the blockchain application based on the defined configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.GenerateArtifactsOp,
 		})

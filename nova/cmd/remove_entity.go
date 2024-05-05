@@ -15,7 +15,7 @@ var removeEntityCmd = &cobra.Command{
 	Short: "Remove an existing entity from the configuration",
 	Long:  `Remove an existing entity from the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.RemoveEntityOp,
 		})

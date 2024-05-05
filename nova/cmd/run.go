@@ -15,7 +15,7 @@ var runCmd = &cobra.Command{
 	Short: "Run the blockchain application",
 	Long:  `Run the blockchain application`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.RunProjectOp,
 		})

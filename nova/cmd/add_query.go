@@ -15,7 +15,7 @@ var queryCmd = &cobra.Command{
 	Short: "Add a new query to the configuration",
 	Long:  `Add a new query to the configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
-		provider.Init(&provider.CommandOptions{
+		provider.Init(&provider.InitOptions{
 			Debug:   debug,
 			Command: plugin.AddQueryOp,
 		})

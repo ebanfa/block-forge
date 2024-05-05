@@ -26,7 +26,7 @@ func TestListConfigurationsOp_Execute_Success(t *testing.T) {
 	// Mock behavior
 	mockMetadataDB.On("GetAllMetadata").Return(mockEntries, nil)
 
-	op := commands.NewListConfigurationsOp("id", "name", "description", mockMetadataDB)
+	op := commands.NewListConfigurationsOp("id", "name", "description")
 
 	// Act
 	output, err := op.Execute(&context.Context{}, &system.SystemOperationInput{})
@@ -46,7 +46,7 @@ func TestListConfigurationsOp_Execute_Error(t *testing.T) {
 	// Mock behavior
 	mockMetadataDB.On("GetAllMetadata").Return([]*store.MetadataEntry{}, expectedErr)
 
-	op := commands.NewListConfigurationsOp("id", "name", "description", mockMetadataDB)
+	op := commands.NewListConfigurationsOp("id", "name", "description")
 
 	// Act
 	output, err := op.Execute(&context.Context{}, &system.SystemOperationInput{})
