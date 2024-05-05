@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
@@ -48,7 +49,7 @@ func NewCreateConfigurationOp(id, name, description string) *CreateConfiguration
 // and returns any output or error encountered.
 func (bo *CreateConfigurationOp) Execute(ctx *context.Context, input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 	// Extract project information from input data
-	projectID, _, err := extractProjectInfo(input)
+	projectID, projectName, err := extractProjectInfo(input)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (bo *CreateConfigurationOp) Execute(ctx *context.Context, input *system.Sys
 	}
 
 	// Insert metadata entry into MetadataDatabase
-	err = insertMetadataEntry(projectID, projectDbPath)
+	err = insertMetadataEntry(projectID, projectName, projectDbPath)
 	if err != nil {
 		return nil, err
 	}
@@ -93,26 +94,63 @@ func extractProjectInfo(input *system.SystemOperationInput) (string, string, err
 }
 
 // insertMetadataEntry inserts a metadata entry into the MetadataDatabase for the specified project.
-func insertMetadataEntry(projectID, projectDbPath string) error {
-	// Get the default database path for the metadata database
-	dbPath, err := store.GetDefaultDatabasePath(store.MetadataDatabaseID)
-	if err != nil {
-		return err
-	}
-
+func insertMetadataEntry(projectID, projectName, projectDbPath string) error {
 	// Get an instance of the MetadataDatabase
-	metaDB, err := store.GetMetadataStoreInstance(store.MetadataDatabaseID, dbPath)
+	metaDB, err := store.GetDefaultMetadataDB(store.MetadataDbName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get MetadataDatabase instance: %w", err)
 	}
 
-	// Create a new metadata entry
-	entry := &store.MetadataEntry{
-		ProjectID:    projectID,
-		DatabaseName: "default",
-		DatabasePath: projectDbPath,
+	// Load the current working version
+	_, err = metaDB.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load current working version: %w", err)
 	}
 
-	// Insert the metadata entry into the database
-	return metaDB.InsertMetadata(entry)
+	// If an entry already exists, update it
+	existingEntry, err := metaDB.GetMetadata(projectID)
+	if err != nil {
+		if err.Error() != "unexpected end of JSON input" {
+			return fmt.Errorf("failed to get metadata entry: %w", err)
+		}
+	}
+
+	// If an entry already exists, update it
+	if existingEntry != nil {
+		existingEntry.DatabasePath = projectDbPath
+		err = metaDB.UpdateMetadata(existingEntry)
+		if err != nil {
+			return fmt.Errorf("failed to update metadata entry: %w", err)
+		}
+		fmt.Printf("Updated project: %s\n", projectName)
+	} else {
+		// Create a new metadata entry
+		entry := &store.MetadataEntry{
+			ProjectID:    projectID,
+			ProjectName:  projectName,
+			DatabaseName: "default",
+			DatabasePath: projectDbPath,
+		}
+
+		// Insert the metadata entry into the database
+		err = metaDB.InsertMetadata(entry)
+		if err != nil {
+			return fmt.Errorf("failed to insert new metadata entry: %w", err)
+		}
+		fmt.Printf("Created project: %s\n", projectName)
+	}
+
+	// Save the new version
+	_, _, err = metaDB.SaveVersion()
+	if err != nil {
+		return fmt.Errorf("failed to save new version: %w", err)
+	}
+
+	// Close the MetadataDatabase
+	err = metaDB.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close MetadataDatabase: %w", err)
+	}
+
+	return nil
 }

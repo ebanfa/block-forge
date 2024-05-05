@@ -5,11 +5,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/edward1christian/block-forge/nova/pkg/utils"
 	"github.com/edward1christian/block-forge/pkg/application/db"
 )
 
-var NovaHomeDirNm = ".nova"
-var MetadataDatabaseID = "MetadataStore"
+const (
+	NovaHomeDirName = ".nova"
+	MetadataDbName  = "MetadataStore"
+)
 
 // GetDatabasePath returns the database path based on the user's home directory and project ID.
 func GetDefaultDatabasePath(artifactID string) (string, error) {
@@ -23,7 +26,7 @@ func GetDefaultDatabasePath(artifactID string) (string, error) {
 	}
 
 	// Define the database path within the .nova directory
-	dbPath := filepath.Join(homeDir, NovaHomeDirNm, "databases", artifactID+".db")
+	dbPath := filepath.Join(homeDir, NovaHomeDirName, "databases", artifactID+".db")
 
 	return dbPath, nil
 }
@@ -39,4 +42,21 @@ func GetMetadataStoreInstance(name, path string) (MetadataStore, error) {
 
 	// Create the metadata store instance
 	return NewMetadataStore(db), nil
+}
+
+func GetDefaultMetadataDB(name string) (MetadataStore, error) {
+	databaseId := utils.HashSHA256(name)
+	// Get the default database path for metadata
+	metaDBPath, err := GetDefaultDatabasePath(databaseId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the MetadataDatabase instance
+	metaDB, err := GetMetadataStoreInstance(databaseId, metaDBPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return metaDB, nil
 }

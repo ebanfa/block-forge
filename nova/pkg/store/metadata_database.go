@@ -9,6 +9,7 @@ import (
 // MetadataEntry represents metadata about a project configuration.
 type MetadataEntry struct {
 	ProjectID    string `json:"project_id"`
+	ProjectName  string `json:"project_name"`
 	DatabaseName string `json:"database_name"`
 	DatabasePath string `json:"database_path"`
 	// Add other metadata fields as needed
@@ -76,8 +77,13 @@ func (ms *MetadataStoreImpl) InsertMetadata(entry *MetadataEntry) error {
 	if err != nil {
 		return err
 	}
+
+	// Create a copy of the ProjectID byte slice
+	key := make([]byte, len(entry.ProjectID))
+	copy(key, []byte(entry.ProjectID))
+
 	// Insert into the database
-	return ms.db.Set([]byte(entry.ProjectID), serializedEntry)
+	return ms.db.Set(key, serializedEntry)
 }
 
 // GetMetadata retrieves the MetadataEntry with the given project ID from the database.

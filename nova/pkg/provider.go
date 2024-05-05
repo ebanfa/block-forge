@@ -36,6 +36,7 @@ type CommandOptions struct {
 func Init(options *CommandOptions) {
 	// Create an Fx application.
 	app := fx.New(
+		fx.NopLogger,
 		// Provide dependencies.
 		fx.Provide(ProvideConfiguration(options)),
 		fx.Provide(ProvideLogger(options)),

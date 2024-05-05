@@ -33,14 +33,14 @@ func (p *NovaPlugin) Initialize(ctx *context.Context, system systemApi.SystemInt
 	// Initialization logic
 	p.System = system
 	// Initialize the
-	system.Logger().Log(logger.LevelInfo, "NovaPlugin: Initializing plugin")
+	system.Logger().Log(logger.LevelDebug, "NovaPlugin: Initializing plugin")
 	return nil
 }
 
 // RegisterResources registers resources into the system.
 // Returns an error if resource registration fails.
 func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
-	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Registering resources")
+	p.System.Logger().Log(logger.LevelDebug, "NovaPlugin: Registering resources")
 
 	// Register components
 	if err := RegisterComponents(ctx, p.System); err != nil {
@@ -51,20 +51,20 @@ func (p *NovaPlugin) RegisterResources(ctx *context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to register services %w", err)
 	} */
-	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Registered resources")
+	p.System.Logger().Log(logger.LevelDebug, "NovaPlugin: Registered resources")
 	return nil
 }
 
 // Start starts the component.
 // Returns an error if the start operation fails.
 func (p *NovaPlugin) Start(ctx *context.Context) error {
-	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Starting plugin")
+	p.System.Logger().Log(logger.LevelDebug, "NovaPlugin: Starting plugin")
 
 	// Start the build service
 	if err := StartServices(ctx, p.System); err != nil {
 		return fmt.Errorf("failed to start BuildService: %v", err)
 	}
-	p.System.Logger().Log(logger.LevelInfo, "NovaPlugin: Started plugin")
+	p.System.Logger().Log(logger.LevelDebug, "NovaPlugin: Started plugin")
 
 	return nil
 }
