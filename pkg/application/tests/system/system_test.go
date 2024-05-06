@@ -27,6 +27,7 @@ var (
 	mockServiceComponent   *mocks.MockSystemService
 	mockOperationComponent *mocks.MockOperation
 	mockPluginManager      *mocks.MockPluginManager
+	mockMultiStore         *mocks.MockMultiStore
 )
 
 func TestMain(m *testing.M) {
@@ -39,6 +40,7 @@ func TestMain(m *testing.M) {
 	mockServiceComponent = &mocks.MockSystemService{}
 	mockOperationComponent = &mocks.MockOperation{}
 	mockPluginManager = &mocks.MockPluginManager{}
+	mockMultiStore = &mocks.MockMultiStore{}
 
 	configuration := &configApi.Configuration{
 		Services: []*configApi.ServiceConfiguration{
@@ -59,7 +61,7 @@ func TestMain(m *testing.M) {
 		},
 	}
 
-	sys = systemApi.NewSystem(logger, eventBus, configuration, mockPluginManager, registrar)
+	sys = systemApi.NewSystem(logger, eventBus, configuration, mockPluginManager, registrar, mockMultiStore)
 
 	// Mock the behavior of the component and factory
 	mockServiceComponent.On("Type").Return(component.ServiceType)
@@ -121,7 +123,7 @@ func TestSystemImpl_Initialize_Error(t *testing.T) {
 	}
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, configuration, mockPluginManager, registrar)
+	sys := systemApi.NewSystem(nil, nil, configuration, mockPluginManager, registrar, mockMultiStore)
 
 	// Test initialization with error
 	_ = sys.Initialize(ctx)
@@ -153,7 +155,7 @@ func TestSystemImpl_Start_Error(t *testing.T) {
 	registrar.On("GetComponentByType", component.OperationType).Return([]component.ComponentInterface{mockOperationComponent}, nil)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, registrar)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, registrar, mockMultiStore)
 
 	// Test starting the sys with error
 	err := sys.Start(ctx)
@@ -166,7 +168,7 @@ func TestSystemImpl_Stop_Success(t *testing.T) {
 	registrar.On("GetComponentByType", component.ServiceType).Return([]component.ComponentInterface{}, nil)
 	mockServiceComponent.On("Stop", ctx).Return(nil)
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, registrar)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, registrar, mockMultiStore)
 
 	err := sys.Initialize(ctx)
 	assert.NoError(t, err)
@@ -187,7 +189,7 @@ func TestSystemImpl_Stop_Error(t *testing.T) {
 	componentReg := &mocks.MockComponentRegistrar{}
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test stopping the sys with error
 	err := sys.Stop(ctx)
@@ -218,7 +220,7 @@ func TestSystemImpl_ExecuteOperation_Error_ComponentNotFound(t *testing.T) {
 	componentReg := &mocks.MockComponentRegistrar{}
 	componentReg.On("GetComponent", "operation_id").Return(mockOperationComponent, systemApi.ErrComponentNotFound)
 
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test executing an operation with component not found error
 	output, err := sys.ExecuteOperation(ctx, "operation_id", operationInput)
@@ -238,7 +240,7 @@ func TestSystemImpl_ExecuteOperation_Error_ComponentNotOperation(t *testing.T) {
 	componentReg.On("GetComponent", "operation_id").Return(mockServiceComponent, nil)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test executing an operation with component not an operation error
 	output, err := sys.ExecuteOperation(ctx, "operation_id", operationInput)
@@ -252,7 +254,7 @@ func TestSystemImpl_StartService_Success(t *testing.T) {
 	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test starting a service
 	err := sys.StartService(ctx, "service_id")
@@ -266,7 +268,7 @@ func TestSystemImpl_StartService_Error_ComponentNotFound(t *testing.T) {
 	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, systemApi.ErrComponentNotFound)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test starting a service with component not found error
 	err := sys.StartService(ctx, "service_id")
@@ -279,7 +281,7 @@ func TestSystemImpl_StopService_Success(t *testing.T) {
 	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test stopping a service
 	err := sys.StopService(ctx, "service_id")
@@ -292,7 +294,7 @@ func TestSystemImpl_StopService_Error_ComponentNotFound(t *testing.T) {
 	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, systemApi.ErrComponentNotFound)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test stopping a service with component not found error
 	err := sys.StopService(ctx, "service_id")
@@ -305,7 +307,7 @@ func TestSystemImpl_RestartService_Success(t *testing.T) {
 	componentReg.On("GetComponent", "service_id").Return(mockServiceComponent, nil)
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test restarting a service
 	err := sys.RestartService(ctx, "service_id")
@@ -322,7 +324,7 @@ func TestSystemImpl_RestartService_Error_StopService(t *testing.T) {
 	mockServiceComponent.On("Stop", ctx).Return(errors.New("Error stopping service"))
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test restarting a service with error while stopping service
 	err := sys.RestartService(ctx, "service_id")
@@ -340,7 +342,7 @@ func TestSystemImpl_RestartService_Error_StartService(t *testing.T) {
 	mockServiceComponent.On("Start", ctx).Return(errors.New("Error starting service"))
 
 	// Create a sys instance
-	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg)
+	sys := systemApi.NewSystem(nil, nil, &configApi.Configuration{}, mockPluginManager, componentReg, mockMultiStore)
 
 	// Test restarting a service with error while starting service
 	err := sys.RestartService(ctx, "service_id")

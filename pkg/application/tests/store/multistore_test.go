@@ -6,15 +6,20 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
 	"github.com/edward1christian/block-forge/pkg/application/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 // TestNewMultiStore tests the creation of a new MultiStore.
 func TestNewMultiStore(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
 
 	// Act
-	ms := store.NewMultiStore(mockDb)
+	ms, err := store.NewMultiStore(mockDbFactory)
+	assert.NoError(t, err)
 
 	// Assert
 	assert.NotNil(t, ms)
@@ -24,11 +29,18 @@ func TestNewMultiStore(t *testing.T) {
 // TestGetStore_ExistingStore tests retrieving an existing store from MultiStore.
 func TestGetStore_ExistingStore(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
-	ms := store.NewMultiStore(mockDb)
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
+
+	ms, err := store.NewMultiStore(mockDbFactory)
+	assert.NoError(t, err)
+
 	namespace := []byte("test")
 	options := store.StoreOptions{}
-	_, err := ms.CreateStore(namespace, options, mockDb)
+
+	_, err = ms.CreateStore(namespace, options)
 	assert.NoError(t, err)
 
 	// Act
@@ -42,8 +54,13 @@ func TestGetStore_ExistingStore(t *testing.T) {
 // TestGetStore_NonExistingStore tests attempting to retrieve a non-existing store from MultiStore.
 func TestGetStore_NonExistingStore(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
-	ms := store.NewMultiStore(mockDb)
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
+	ms, err := store.NewMultiStore(mockDbFactory)
+	assert.NoError(t, err)
+
 	namespace := []byte("test")
 	options := store.StoreOptions{}
 
@@ -58,13 +75,18 @@ func TestGetStore_NonExistingStore(t *testing.T) {
 // TestCreateStore_NewStore tests creating a new store in MultiStore.
 func TestCreateStore_NewStore(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
-	ms := store.NewMultiStore(mockDb)
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
+	ms, err := store.NewMultiStore(mockDbFactory)
+	assert.NoError(t, err)
+
 	namespace := []byte("test")
 	options := store.StoreOptions{}
 
 	// Act
-	store, err := ms.CreateStore(namespace, options, mockDb)
+	store, err := ms.CreateStore(namespace, options)
 
 	// Assert
 	assert.NoError(t, err)
@@ -75,15 +97,21 @@ func TestCreateStore_NewStore(t *testing.T) {
 // TestCreateStore_ExistingStore tests attempting to create an existing store in MultiStore.
 func TestCreateStore_ExistingStore(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
-	ms := store.NewMultiStore(mockDb)
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
+	ms, err := store.NewMultiStore(mockDbFactory)
+	assert.NoError(t, err)
+
 	namespace := []byte("test")
 	options := store.StoreOptions{}
-	_, err := ms.CreateStore(namespace, options, mockDb)
+
+	_, err = ms.CreateStore(namespace, options)
 	assert.NoError(t, err)
 
 	// Act
-	store, err := ms.CreateStore(namespace, options, mockDb)
+	store, err := ms.CreateStore(namespace, options)
 
 	// Assert
 	assert.Error(t, err)
@@ -94,11 +122,17 @@ func TestCreateStore_ExistingStore(t *testing.T) {
 // TestGetStoreCount tests getting the count of stores in MultiStore.
 func TestGetStoreCount(t *testing.T) {
 	// Arrange
-	mockDb := &mocks.MockDatabase{}
-	ms := store.NewMultiStore(mockDb)
-	_, err := ms.CreateStore([]byte("store1"), store.StoreOptions{}, mockDb)
+	mockDbFactory := &mocks.MockDatabaseFactory{}
+	mockDbFactory.On("CreateDatabase", mock.Anything, mock.Anything).Return(
+		&mocks.MockDatabase{}, nil,
+	)
+	ms, err := store.NewMultiStore(mockDbFactory)
 	assert.NoError(t, err)
-	_, err = ms.CreateStore([]byte("store2"), store.StoreOptions{}, mockDb)
+
+	_, err = ms.CreateStore([]byte("store1"), store.StoreOptions{})
+	assert.NoError(t, err)
+
+	_, err = ms.CreateStore([]byte("store2"), store.StoreOptions{})
 	assert.NoError(t, err)
 
 	// Act

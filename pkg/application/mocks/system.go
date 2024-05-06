@@ -6,6 +6,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
+	"github.com/edward1christian/block-forge/pkg/application/store"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 	"github.com/stretchr/testify/mock"
 )
@@ -42,6 +43,12 @@ func (m *MockSystem) Configuration() *configApi.Configuration {
 func (m *MockSystem) ComponentRegistry() component.ComponentRegistrarInterface {
 	args := m.Called()
 	return args.Get(0).(component.ComponentRegistrarInterface)
+}
+
+// ComponentRegistry provides a mock implementation of the ComponentRegistry method.
+func (m *MockSystem) MultiStore() store.MultiStore {
+	args := m.Called()
+	return args.Get(0).(store.MultiStore)
 }
 
 // PluginManager provides a mock implementation of the PluginManager method.

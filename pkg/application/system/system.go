@@ -9,6 +9,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
+	"github.com/edward1christian/block-forge/pkg/application/store"
 )
 
 // SystemComponentInterface represents a component in the system.
@@ -64,6 +65,9 @@ type SystemInterface interface {
 	// ComponentRegistry returns the component registry
 	ComponentRegistry() component.ComponentRegistrarInterface
 
+	// MultiStore returns the multi-level store used by the system, which is a store of stores.
+	MultiStore() store.MultiStore
+
 	// PluginManager returns the plugin manager
 	PluginManager() PluginManagerInterface
 
@@ -103,6 +107,7 @@ type SystemImpl struct {
 	eventBus      event.EventBusInterface
 	pluginManager PluginManagerInterface
 	status        SystemStatusType
+	store         store.MultiStore
 }
 
 // NewSystem creates a new instance of the SystemImpl.
@@ -111,7 +116,8 @@ func NewSystem(
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
 	pluginManager PluginManagerInterface,
-	componentReg component.ComponentRegistrarInterface) *SystemImpl {
+	componentReg component.ComponentRegistrarInterface,
+	store store.MultiStore) *SystemImpl {
 	return &SystemImpl{
 		logger:        logger,
 		eventBus:      eventBus,
@@ -140,6 +146,11 @@ func (s *SystemImpl) Configuration() *config.Configuration {
 // ComponentRegistry returns the component registry.
 func (s *SystemImpl) ComponentRegistry() component.ComponentRegistrarInterface {
 	return s.componentReg
+}
+
+// MultiStore returns the multistore
+func (s *SystemImpl) MultiStore() store.MultiStore {
+	return s.store
 }
 
 // ComponentRegistry returns the component registry.

@@ -13,6 +13,8 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/common/logger"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	"github.com/edward1christian/block-forge/pkg/application/config"
+	"github.com/edward1christian/block-forge/pkg/application/db"
+	"github.com/edward1christian/block-forge/pkg/application/store"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 	"go.uber.org/fx"
 )
@@ -42,6 +44,7 @@ func Init(options *InitOptions) {
 		fx.Provide(ProvideEventBus),
 		fx.Provide(ProvidComponentRegistrar),
 		fx.Provide(ProvidPluginManager),
+		fx.Provide(ProvideMultiStore(options)),
 		fx.Provide(ProvideSystem(options)),
 		fx.Invoke(func(systemApi.SystemInterface) {}),
 	)
@@ -83,6 +86,20 @@ func ProvideLogger(options *InitOptions) func() logger.LoggerInterface {
 	}
 }
 
+func ProvideMultiStore(options *InitOptions) func() store.MultiStore {
+	// Return a function that creates a MultiStore interface based on the provided options.
+	return func() store.MultiStore {
+		// Create the underlying database
+		database, err := db.CreateIAVLDatabase(options.Name, options.Path)
+		if err != nil {
+			return nil
+		}
+
+		// Create a new logger with the determined log level.
+		return store.NewMultiStore(database)
+	}
+}
+
 // ProvidComponentRegistrar provides a component registrar interface.
 func ProvidComponentRegistrar() component.ComponentRegistrarInterface {
 	return component.NewComponentRegistrar()
@@ -101,7 +118,8 @@ func ProvideSystem(options *InitOptions) func(
 	eventBus event.EventBusInterface,
 	configuration *config.Configuration,
 	pluginManager systemApi.PluginManagerInterface,
-	registrar component.ComponentRegistrarInterface) systemApi.SystemInterface {
+	registrar component.ComponentRegistrarInterface,
+	multiStore store.MultiStore) systemApi.SystemInterface {
 	return func(
 		lc fx.Lifecycle,
 		shutdowner fx.Shutdowner,
@@ -109,10 +127,11 @@ func ProvideSystem(options *InitOptions) func(
 		eventBus event.EventBusInterface,
 		configuration *config.Configuration,
 		pluginManager systemApi.PluginManagerInterface,
-		registrar component.ComponentRegistrarInterface) systemApi.SystemInterface {
+		registrar component.ComponentRegistrarInterface,
+		multiStore store.MultiStore) systemApi.SystemInterface {
 
 		// Create a new system instance with the provided dependencies.
-		system := systemApi.NewSystem(logger, eventBus, configuration, pluginManager, registrar)
+		system := systemApi.NewSystem(logger, eventBus, configuration, pluginManager, registrar, multiStore)
 
 		// Add lifecycle hooks to start and stop the system.
 		lc.Append(fx.Hook{
