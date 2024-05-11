@@ -10,6 +10,18 @@ type MockMultiStore struct {
 	mock.Mock
 }
 
+// Name is a mock implementation of the Name method in the Store interface.
+func (m *MockMultiStore) Name() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+// Path is a mock implementation of the Path method in the Store interface.
+func (m *MockMultiStore) Path() string {
+	args := m.Called()
+	return args.String(0)
+}
+
 // Get retrieves the value associated with the given key from the database.
 func (m *MockMultiStore) Get(key []byte) ([]byte, error) {
 	args := m.Called(key)
@@ -121,16 +133,16 @@ func (m *MockMultiStore) Close() error {
 
 // GetStore returns the store with the given namespace. If the store doesn't exist, it creates and initializes
 // a new store using the provided options.
-func (m *MockMultiStore) GetStore(namespace []byte, options store.StoreOptions) (store.Store, error) {
-	args := m.Called(namespace, options)
-	return args.Get(0).(store.Store), args.Error(1)
+func (m *MockMultiStore) GetStore(namespace []byte) store.Store {
+	args := m.Called(namespace)
+	return args.Get(0).(store.Store)
 }
 
-// CreateStore creates and initializes a new store with the given namespace and options. If a store with the same
+// AddStore adds a new store with the given namespace. If a store with the same
 // namespace already exists, it returns an error.
-func (m *MockMultiStore) CreateStore(namespace []byte, options store.StoreOptions) (store.Store, error) {
-	args := m.Called(namespace, options)
-	return args.Get(0).(store.Store), args.Error(1)
+func (m *MockMultiStore) CreateStore(namespace string) (store.Store, bool, error) {
+	args := m.Called(namespace)
+	return args.Get(0).(store.Store), args.Bool(1), args.Error(2)
 }
 
 // GetStoreCount returns the total number of stores in the multistore.

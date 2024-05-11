@@ -24,9 +24,9 @@ func TestRegisterComponents_Success(t *testing.T) {
 
 	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
+	mockComponent.On("Initialize", mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(nil)
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockComponent, nil)
-
 	// Act
 	err := plugin.RegisterComponents(mockContext, mockSystem)
 
@@ -46,8 +46,8 @@ func TestRegisterComponents_Error(t *testing.T) {
 
 	mockSystem.On("Logger").Return(mockLogger)
 	mockSystem.On("ComponentRegistry").Return(mockRegistrar)
-	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(errors.New("Error"))
 	mockRegistrar.On("CreateComponent", ctx, mock.Anything).Return(mockComponent, nil)
+	mockRegistrar.On("RegisterFactory", ctx, mock.Anything, mock.Anything).Return(errors.New("Error"))
 
 	// Act
 	err := plugin.RegisterComponents(mockContext, mockSystem)

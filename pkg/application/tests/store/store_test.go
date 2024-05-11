@@ -9,16 +9,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	MockDbName = "MockDb"
+	MockDbPath = "MockDbPath"
+)
+
 // TestNewStoreImpl_Success tests creating a new StoreImpl instance successfully.
 func TestNewStoreImpl_Success(t *testing.T) {
 	// Arrange
-	mockDatabase := &mocks.MockDatabase{} // Create a mock implementation of db.Database
+	mockDatabase := &mocks.MockDatabase{}
+
 	expectedStore := &store.StoreImpl{
 		Database: mockDatabase,
 	}
-
 	// Act
-	store, err := store.NewStoreImpl(mockDatabase)
+	store, err := store.NewStoreImpl(MockDbName, MockDbPath, mockDatabase)
 
 	// Assert
 	assert.NoError(t, err, "NewStoreImpl should not return an error")
@@ -29,10 +34,10 @@ func TestNewStoreImpl_Success(t *testing.T) {
 // TestNewStoreImpl_Error tests creating a new StoreImpl instance with an error.
 func TestNewStoreImpl_Error(t *testing.T) {
 	// Arrange
-	var nilDatabase db.Database
+	var nilDb db.Database
 
 	// Act
-	store, err := store.NewStoreImpl(nilDatabase)
+	store, err := store.NewStoreImpl(MockDbName, MockDbPath, nilDb)
 
 	// Assert
 	assert.Error(t, err, "NewStoreImpl should return an error when database is nil")

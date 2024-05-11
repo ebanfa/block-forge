@@ -10,11 +10,9 @@ import (
 )
 
 var (
-	//force   bool
 	debug   bool
 	verbose bool
-	//configFilePath string
-	//outputDir      string
+	daemon  bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -46,9 +44,9 @@ func Execute() {
 
 func init() {
 	// Define flags for command-line options
-	//rootCmd.Flags().StringVarP(&configFilePath, "config", "c", "", "Specify the path to the configuration file")
-	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
+	rootCmd.PersistentFlags().BoolVar(&daemon, "daemon", false, "Run in daemon mode")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Enable debug mode for troubleshooting")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Enable verbose mode for detailed output")
 
 	// Add flags for help and version
 	rootCmd.Flags().BoolP("help", "h", false, "Show this help message and exit")

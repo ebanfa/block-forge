@@ -1,10 +1,12 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"text/tabwriter"
 
+	novaConfigApi "github.com/edward1christian/block-forge/nova/pkg/config"
 	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
@@ -52,20 +54,32 @@ func NewListConfigurationsOp(id, name, description string) *ListConfigurationsOp
 func (bo ListConfigurationsOp) Execute(ctx_ *context.Context,
 	input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
 
+	multiStore := bo.System.MultiStore()
+	configuration := bo.System.Configuration()
+
+	// Validate the configuration
+	novaConfig, ok := configuration.CustomConfig.(novaConfigApi.NovaConfig)
+	if !ok {
+		return nil, errors.New("failed to create project. Invalid configuration")
+	}
+
 	// Get the MetadataDatabase instance
-	metaDB, err := store.GetDefaultMetadataDB(store.MetadataDbName)
+	// Creates or retrieve an existing store
+	entryStore, _, err := multiStore.CreateStore(novaConfig.MetadataDbName)
 	if err != nil {
 		return nil, err
 	}
 
+	metadataStore := store.NewMetadataStore(entryStore)
+
 	// Load the current working version
-	_, err = metaDB.Load()
+	_, err = metadataStore.Load()
 	if err != nil {
 		return nil, err
 	}
 
 	// Retrieve all metadata entries from the database
-	entries, err := metaDB.GetAllMetadata()
+	entries, err := metadataStore.GetAllMetadata()
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +98,7 @@ func (bo ListConfigurationsOp) Execute(ctx_ *context.Context,
 		// Print name and project ID in tab-separated columns
 		fmt.Fprintf(w, "%s\t%s\n", entry.ProjectName, entry.ProjectID)
 	}
+	fmt.Fprintf(w, "\n")
 
 	// Flush the buffer to ensure all data is written
 	w.Flush()
@@ -92,7 +107,7 @@ func (bo ListConfigurationsOp) Execute(ctx_ *context.Context,
 	output := &system.SystemOperationOutput{
 		Data: projectIDs,
 	}
-	err = metaDB.Close()
+	err = metadataStore.Close()
 	if err != nil {
 		return nil, err
 	}

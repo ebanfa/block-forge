@@ -61,9 +61,19 @@ func RegisterComponent(ctx *context.Context, system SystemInterface, config *con
 	}
 
 	// Create the component
-	_, err = registrar.CreateComponent(ctx, config)
+	component, err := registrar.CreateComponent(ctx, config)
 	if err != nil {
 		return fmt.Errorf("failed to create component: %s", config.ID)
+	}
+
+	// Initial system services and operations
+	switch v := component.(type) {
+	case SystemOperationInterface:
+		v.Initialize(ctx, system)
+	case SystemServiceInterface:
+		v.Initialize(ctx, system)
+	default:
+
 	}
 
 	return nil

@@ -15,10 +15,13 @@ var listCmd = &cobra.Command{
 	Short: "List all configurations",
 	Long:  `List all configurations`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Populate InitOptions with arguments and input data
+
 		provider.Init(&provider.InitOptions{
-			Debug:    debug,
-			Command:  plugin.ListConfigurationsOp,
-			InitMode: provider.CommandMode,
+			Debug:   debug,
+			Daemon:  daemon,
+			Verbose: verbose,
+			Command: plugin.ListConfigurationsOp,
 		})
 	},
 }

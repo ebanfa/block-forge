@@ -125,6 +125,7 @@ func NewSystem(
 		configuration: configuration,
 		pluginManager: pluginManager,
 		status:        SystemStoppedType,
+		store:         store,
 	}
 }
 

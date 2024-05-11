@@ -1,70 +1,70 @@
 package store
 
 import (
-	"errors"
+	"encoding/json"
+	"fmt"
 	"sync"
-
-	"github.com/edward1christian/block-forge/pkg/application/db"
 )
-
-// StoreOptions contains options for configuring a store.
-type StoreOptions struct {
-	// Initial state of the store
-	InitialHeight int64
-	Path          string
-	Name          string
-}
 
 // MultiStore is a multi-store interface that manages multiple key-value stores.
 type MultiStore interface {
 	Store
 
-	// GetStore returns the store with the given namespace. If the store doesn't exist, it creates and initializes
-	// a new store using the provided options.
-	GetStore(namespace []byte, options StoreOptions) (Store, error)
-
-	// CreateStore creates and initializes a new store with the given namespace and options. If a store with the same
-	// namespace already exists, it returns an error.
-	CreateStore(namespace []byte, options StoreOptions) (Store, error)
-
 	// GetStoreCount returns the total number of stores in the multistore.
 	GetStoreCount() int
+
+	// GetStore returns the store with the given namespace.
+	GetStore(namespace []byte) Store
+
+	// Creates and adds a new store with the given namespace.
+	// If a store with the same namespace already exists, it returns an error.
+	CreateStore(namespace string) (Store, bool, error)
+}
+
+// StoreMetaData contains metadata for a store.
+type StoreMetaData struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 // MultiStoreImpl is a concrete implementation of the MultiStore interface.
 type MultiStoreImpl struct {
-	dbFactory db.DatabaseFactory // Factory for creating databases
-	stores    map[string]Store
-	mutex     sync.RWMutex
-	database  db.Database
+	Store                         // Embedding Store to satisfy the Store interface
+	stores       map[string]Store // Map to store metadata of stores
+	mutex        sync.RWMutex
+	storeFactory StoreFactory
 }
 
-// NewMultiStore creates a new instance of MultiStoreImpl with the provided database factory.
-func NewMultiStore(dbFactory db.DatabaseFactory) (MultiStore, error) {
-	database, err := dbFactory.CreateDatabase("default", "default/path") // Assuming default values
-	if err != nil {
-		return nil, err
-	}
+// NewMultiStore creates a new instance of MultiStoreImpl with the provided store options.
+func NewMultiStore(store Store, storeFactory StoreFactory) (MultiStore, error) {
+	// Return a new instance of MultiStoreImpl with the embedded Store instance,
+	// along with other necessary fields initialized
 	return &MultiStoreImpl{
-		database:  database,
-		dbFactory: dbFactory,
-		stores:    make(map[string]Store),
-		mutex:     sync.RWMutex{},
+		Store:        store,                  // Embed the Store instance to satisfy the Store interface
+		stores:       make(map[string]Store), // Initialize the map to store metadata of stores
+		storeFactory: storeFactory,
 	}, nil
 }
 
 // GetStore returns the store with the given namespace.
 // If the store doesn't exist, it returns an error.
-func (ms *MultiStoreImpl) GetStore(namespace []byte, options StoreOptions) (Store, error) {
+func (ms *MultiStoreImpl) GetStore(namespace []byte) Store {
+	// Lock the mutex to prevent concurrent access to the map
 	ms.mutex.Lock()
-	defer ms.mutex.Unlock()
+	defer ms.mutex.Unlock() // Unlock the mutex when the function exits
 
-	ns := string(namespace)
-	store, ok := ms.stores[ns]
+	// Access the map using the namespace converted to a string as the key
+	store, ok := ms.stores[string(namespace)]
+
+	// Check if the store exists
 	if !ok {
-		return nil, errors.New("store does not exist")
+		// If the store does not exist, return an error
+		return nil
 	}
-	return store, nil
+
+	// If the store exists, return it
+	return store
 }
 
 // GetStoreCount returns the total number of stores in the multistore.
@@ -77,121 +77,102 @@ func (ms *MultiStoreImpl) GetStoreCount() int {
 
 // CreateStore creates and initializes a new store with the given namespace and options.
 // If a store with the same namespace already exists, it returns an error.
-func (ms *MultiStoreImpl) CreateStore(namespace []byte, options StoreOptions) (Store, error) {
+func (ms *MultiStoreImpl) CreateStore(namespace string) (Store, bool, error) {
 	ms.mutex.Lock()
 	defer ms.mutex.Unlock()
 
-	ns := string(namespace)
-	// Ensure store does not exist
-	if _, exists := ms.stores[ns]; exists {
-		return nil, errors.New("store already exists")
+	if !IsValidStoreName(namespace) {
+		return nil, false, fmt.Errorf("invalid store name provided: %s", namespace)
 	}
 
-	// Create the underlying database using the factory
-	database, err := ms.dbFactory.CreateDatabase(options.Name, options.Path)
-	if err != nil {
-		return nil, err
+	ns := GenerateStoreId(namespace)
+
+	store, exists := ms.stores[ns]
+	if exists {
+		return store, false, nil
 	}
 
 	// Create a new StoreImpl instance with the provided database
-	store, err := NewStoreImpl(database)
+	store, err := ms.storeFactory.CreateStore(string(namespace))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	ms.stores[ns] = store
 
-	return store, nil
-}
-
-// Get retrieves the value associated with the given key from the database.
-func (ms *MultiStoreImpl) Get(key []byte) ([]byte, error) {
-	return ms.database.Get(key)
-}
-
-// Has checks if a key exists in the database.
-func (ms *MultiStoreImpl) Has(key []byte) (bool, error) {
-	return ms.database.Has(key)
-}
-
-// Iterate iterates over all key-value pairs in the database and calls the given function for each pair.
-// Iteration stops if the function returns true.
-func (ms *MultiStoreImpl) Iterate(fn func(key, value []byte) bool) error {
-	return ms.database.Iterate(fn)
-}
-
-// IterateRange iterates over key-value pairs with keys in the specified range
-// and calls the given function for each pair. Iteration stops if the function returns true.
-func (ms *MultiStoreImpl) IterateRange(start, end []byte, ascending bool, fn func(key, value []byte) bool) error {
-	return ms.database.IterateRange(start, end, ascending, fn)
-}
-
-// Hash returns the hash of the database.
-func (ms *MultiStoreImpl) Hash() []byte {
-	return ms.database.Hash()
-}
-
-// Version returns the version of the database.
-func (ms *MultiStoreImpl) Version() int64 {
-	return ms.database.Version()
-}
-
-// String returns a string representation of the database.
-func (ms *MultiStoreImpl) String() (string, error) {
-	return ms.database.String()
-}
-
-// WorkingVersion returns the current working version of the database.
-func (ms *MultiStoreImpl) WorkingVersion() int64 {
-	return ms.database.WorkingVersion()
-}
-
-// WorkingHash returns the hash of the current working version of the database.
-func (ms *MultiStoreImpl) WorkingHash() []byte {
-	return ms.database.WorkingHash()
-}
-
-// AvailableVersions returns a list of available versions.
-func (ms *MultiStoreImpl) AvailableVersions() []int {
-	return ms.database.AvailableVersions()
-}
-
-// IsEmpty checks if the database is empty.
-func (ms *MultiStoreImpl) IsEmpty() bool {
-	return ms.database.IsEmpty()
-}
-
-// Set stores the key-value pair in the database. If the key already exists, its value will be updated.
-func (ms *MultiStoreImpl) Set(key, value []byte) error {
-	return ms.database.Set(key, value)
-}
-
-// Delete removes the key-value pair from the database.
-func (ms *MultiStoreImpl) Delete(key []byte) error {
-	return ms.database.Delete(key)
+	return store, true, nil
 }
 
 // Load loads the latest versioned database from disk.
 func (ms *MultiStoreImpl) Load() (int64, error) {
-	return ms.database.Load()
-}
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
 
-// LoadVersion loads a specific version of the database from disk.
-func (ms *MultiStoreImpl) LoadVersion(targetVersion int64) (int64, error) {
-	return ms.database.LoadVersion(targetVersion)
+	// Clear existing stores
+	ms.stores = make(map[string]Store)
+
+	// Load the database
+	version, err := ms.Store.Load()
+	if err != nil {
+		return version, err
+	}
+
+	// Retrieve metadata for each store from the database
+	err = ms.Store.Iterate(func(key, value []byte) bool {
+		// Deserialize store metadata from value
+		var meta StoreMetaData
+		err := json.Unmarshal(value, &meta)
+		if err != nil {
+			// Handle error if metadata deserialization fails
+			return false // Stop iteration
+		}
+		// Create and initialize store based on metadata
+		store, err := ms.storeFactory.CreateStore(string(key))
+		if err != nil {
+			// Handle error if store creation fails
+			return false // Stop iteration
+		}
+		// Add store to the stores map
+		ms.stores[string(key)] = store
+		return false // Continue iteration
+	})
+
+	if err != nil {
+		return version, err
+	}
+
+	return version, nil
 }
 
 // SaveVersion saves a new version of the database to disk.
 func (ms *MultiStoreImpl) SaveVersion() ([]byte, int64, error) {
-	return ms.database.SaveVersion()
-}
+	ms.mutex.Lock()
+	defer ms.mutex.Unlock()
 
-// Rollback resets the working database to the latest saved version, discarding any unsaved modifications.
-func (ms *MultiStoreImpl) Rollback() {
-	ms.database.Rollback()
-}
+	// Serialize store metadata and store them in the database
+	for id, store := range ms.stores {
+		meta := StoreMetaData{
+			Id:   id,
+			Name: store.Name(), // Assuming String method returns the name of the store
+			Path: store.Path(), // Assuming Path method returns the path of the store
+		}
+		// Serialize store metadata
+		metaJSON, err := json.Marshal(meta)
+		if err != nil {
+			return nil, 0, err
+		}
+		// Store serialized metadata in the database
+		err = ms.Store.Set([]byte(id), metaJSON)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
 
-// Close closes the database.
-func (ms *MultiStoreImpl) Close() error {
-	return ms.database.Close()
+	// Save the versioned database
+	data, version, err := ms.Store.SaveVersion()
+	if err != nil {
+		return nil, version, err
+	}
+
+	return data, version, nil
 }

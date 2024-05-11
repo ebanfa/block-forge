@@ -12,6 +12,7 @@ import (
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
 	"github.com/edward1christian/block-forge/pkg/application/mocks"
+	mockStoreApi "github.com/edward1christian/block-forge/pkg/application/mocks"
 	systemApi "github.com/edward1christian/block-forge/pkg/application/system"
 )
 
@@ -27,7 +28,7 @@ var (
 	mockServiceComponent   *mocks.MockSystemService
 	mockOperationComponent *mocks.MockOperation
 	mockPluginManager      *mocks.MockPluginManager
-	mockMultiStore         *mocks.MockMultiStore
+	mockMultiStore         *mockStoreApi.MockMultiStore
 )
 
 func TestMain(m *testing.M) {
@@ -40,7 +41,7 @@ func TestMain(m *testing.M) {
 	mockServiceComponent = &mocks.MockSystemService{}
 	mockOperationComponent = &mocks.MockOperation{}
 	mockPluginManager = &mocks.MockPluginManager{}
-	mockMultiStore = &mocks.MockMultiStore{}
+	mockMultiStore = &mockStoreApi.MockMultiStore{}
 
 	configuration := &configApi.Configuration{
 		Services: []*configApi.ServiceConfiguration{

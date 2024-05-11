@@ -2,6 +2,8 @@ package db
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	dbm "github.com/cosmos/iavl/db"
@@ -20,12 +22,12 @@ func TestIAVLDatabaseFactory_CreateDatabase_Success(t *testing.T) {
 	mockDbm.On("Get", mock.Anything).Return([]byte{}, nil)
 	mockDbm.On("NewBatchWithSize", mock.Anything).Return(&mocks.MockBatch{}, nil)
 
-	factory := db.NewIAVLDatabaseFactory(func(name, backendType, path string) (dbm.DB, error) {
-		return mockDbm, nil // Implement mock behavior here if necessary
+	factory := db.NewIAVLDatabaseFactory(func(name, backendType, path string) (*dbm.Wrapper, error) {
+		return &dbm.Wrapper{DB: mockDbm}, nil // Implement mock behavior here if necessary
 	})
-
+	dbPath := filepath.Join(os.TempDir(), "testDb")
 	// Act
-	db, err := factory.CreateDatabase("test", "/path/to/db")
+	db, err := factory.CreateDatabase("test", dbPath)
 
 	// Assert
 	assert.NoError(t, err, "Creating database should not return an error")
@@ -36,8 +38,8 @@ func TestIAVLDatabaseFactory_CreateDatabase_Success(t *testing.T) {
 // TestIAVLDatabaseFactory_CreateDatabase_Error tests the CreateDatabase method of IAVLDatabaseFactory for error.
 func TestIAVLDatabaseFactory_CreateDatabase_Error(t *testing.T) {
 	// Arrange
-	expectedErr := errors.New("error creating database")
-	factory := db.NewIAVLDatabaseFactory(func(name, backendType, path string) (dbm.DB, error) {
+	expectedErr := errors.New("failed to initialize database: mkdir /path: permission denied")
+	factory := db.NewIAVLDatabaseFactory(func(name, backendType, path string) (*dbm.Wrapper, error) {
 		return nil, expectedErr
 	})
 

@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	novaConfigApi "github.com/edward1christian/block-forge/nova/pkg/config"
 	"github.com/edward1christian/block-forge/nova/pkg/store"
 	"github.com/edward1christian/block-forge/pkg/application/common/context"
 	"github.com/edward1christian/block-forge/pkg/application/component"
 	configApi "github.com/edward1christian/block-forge/pkg/application/config"
+	storeApi "github.com/edward1christian/block-forge/pkg/application/store"
 	"github.com/edward1christian/block-forge/pkg/application/system"
 )
 
@@ -48,109 +50,99 @@ func NewCreateConfigurationOp(id, name, description string) *CreateConfiguration
 // Execute performs the operation with the given context and input parameters,
 // and returns any output or error encountered.
 func (bo *CreateConfigurationOp) Execute(ctx *context.Context, input *system.SystemOperationInput) (*system.SystemOperationOutput, error) {
-	// Extract project information from input data
-	projectID, projectName, err := extractProjectInfo(input)
-	if err != nil {
-		return nil, err
+
+	// Check if input data is in the expected format
+	projectName, ok := input.Data.(string)
+	if !ok {
+		return nil, errors.New("failed to create project. Invalid input data")
 	}
 
-	// Get the project-specific database path
-	projectDbPath, err := store.GetDefaultDatabasePath(projectID)
-	if err != nil {
-		return nil, err
+	multiStore := bo.System.MultiStore()
+	configuration := bo.System.Configuration()
+
+	// Validate the configuration
+	novaConfig, ok := configuration.CustomConfig.(novaConfigApi.NovaConfig)
+	if !ok {
+		return nil, errors.New("failed to create project. Invalid configuration")
 	}
 
-	// Insert metadata entry into MetadataDatabase
-	err = insertMetadataEntry(projectID, projectName, projectDbPath)
+	_, err := bo.CreateProjectMetadataEntry(projectName, novaConfig, multiStore)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create project metadata entry for project %s. %w", projectName, err)
+	}
+
+	// Load the latest version of the MultiStore database from disk
+	_, err = multiStore.Load()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load multistore for project %s. %w", projectName, err)
+	}
+
+	// Save the latest version of the MultiStore database to disk
+	_, _, err = multiStore.SaveVersion()
+	if err != nil {
+		return nil, fmt.Errorf("failed to save multistore version for project %s. %w", projectName, err)
 	}
 
 	// Return success response
 	return &system.SystemOperationOutput{}, nil
 }
 
-// extractProjectInfo extracts project ID and project name from the input data.
-func extractProjectInfo(input *system.SystemOperationInput) (string, string, error) {
-	// Check if input data is in the expected format
-	data, ok := input.Data.(map[string]interface{})
-	if !ok {
-		return "", "", errors.New("invalid input data format")
+func (bo *CreateConfigurationOp) CreateProjectMetadataEntry(
+	projectName string, configuration novaConfigApi.NovaConfig, multiStore storeApi.MultiStore) (*store.MetadataEntry, error) {
+
+	// Creates a store or retrieves it already exists
+	metadataStore, err := bo.CreateMetadataStore(configuration.MetadataDbName, multiStore)
+	if err != nil {
+		return nil, err
 	}
 
-	// Extract project ID from input data
-	projectID, ok := data["projectID"].(string)
-	if !ok {
-		return "", "", errors.New("project ID must be a string")
+	// Create the Metadata entry
+	metadata := bo.createProjectMetadata(projectName, configuration.DatabasesDir)
+
+	// Store the record
+	err = metadataStore.InsertMetadata(metadata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to store metadata for project %s. %w", projectName, err)
 	}
 
-	// Extract project name from input data
-	projectName, ok := data["projectName"].(string)
-	if !ok {
-		return "", "", errors.New("project name must be a string")
+	// Save the latest version of the Metadata database to disk
+	_, _, err = metadataStore.SaveVersion()
+	if err != nil {
+		return nil, fmt.Errorf("failed to save metadata store version for project %s. %w", projectName, err)
 	}
 
-	return projectID, projectName, nil
+	return metadata, nil
 }
 
-// insertMetadataEntry inserts a metadata entry into the MetadataDatabase for the specified project.
-func insertMetadataEntry(projectID, projectName, projectDbPath string) error {
-	// Get an instance of the MetadataDatabase
-	metaDB, err := store.GetDefaultMetadataDB(store.MetadataDbName)
+func (bo *CreateConfigurationOp) CreateMetadataStore(storeName string, multiStore storeApi.MultiStore) (*store.MetadataStoreImpl, error) {
+	// Creates or retrieve an existing store
+	metadataStore, _, err := multiStore.CreateStore(storeName)
 	if err != nil {
-		return fmt.Errorf("failed to get MetadataDatabase instance: %w", err)
+		return nil, err
 	}
 
-	// Load the current working version
-	_, err = metaDB.Load()
+	// Load the latest version of the metadata database from disk
+	_, err = metadataStore.Load()
 	if err != nil {
-		return fmt.Errorf("failed to load current working version: %w", err)
+		return nil, fmt.Errorf("failed to load metadata store: %s. %w", storeName, err)
 	}
 
-	// If an entry already exists, update it
-	existingEntry, err := metaDB.GetMetadata(projectID)
-	if err != nil {
-		if err.Error() != "unexpected end of JSON input" {
-			return fmt.Errorf("failed to get metadata entry: %w", err)
-		}
+	return store.NewMetadataStore(metadataStore), nil
+
+}
+
+func (bo *CreateConfigurationOp) createProjectMetadata(projectName, databasesDir string) *store.MetadataEntry {
+
+	// Generate storage id
+	projectID, projectDbPath := storeApi.GenererateStorageInfo(
+		projectName, databasesDir,
+	)
+
+	return &store.MetadataEntry{
+		ProjectID:    projectID,
+		ProjectName:  projectName,
+		DatabaseName: projectID,
+		DatabasePath: projectDbPath,
 	}
 
-	// If an entry already exists, update it
-	if existingEntry != nil {
-		existingEntry.DatabasePath = projectDbPath
-		err = metaDB.UpdateMetadata(existingEntry)
-		if err != nil {
-			return fmt.Errorf("failed to update metadata entry: %w", err)
-		}
-		fmt.Printf("Updated project: %s\n", projectName)
-	} else {
-		// Create a new metadata entry
-		entry := &store.MetadataEntry{
-			ProjectID:    projectID,
-			ProjectName:  projectName,
-			DatabaseName: "default",
-			DatabasePath: projectDbPath,
-		}
-
-		// Insert the metadata entry into the database
-		err = metaDB.InsertMetadata(entry)
-		if err != nil {
-			return fmt.Errorf("failed to insert new metadata entry: %w", err)
-		}
-		fmt.Printf("Created project: %s\n", projectName)
-	}
-
-	// Save the new version
-	_, _, err = metaDB.SaveVersion()
-	if err != nil {
-		return fmt.Errorf("failed to save new version: %w", err)
-	}
-
-	// Close the MetadataDatabase
-	err = metaDB.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close MetadataDatabase: %w", err)
-	}
-
-	return nil
 }
